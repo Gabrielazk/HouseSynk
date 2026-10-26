@@ -63,11 +63,14 @@ class SettingsScreen(MDScreen):
         lbl_pais = f"Country: {pais}" if lang == "en" else f"País: {pais}"
         lbl_estado = f"State: {estado}" if lang == "en" else f"Estado: {estado}"
         lbl_tema = f"Theme: {tema_val}" if lang == "en" else f"Tema: {tema_val}"
+        lbl_idioma = "Language: English" if lang == "en" else "Idioma: Português"
 
         self.btn_pais = MDButton(MDButtonText(text=lbl_pais), on_release=self.alternar_pais)
         self.btn_estado = MDButton(MDButtonText(text=lbl_estado), on_release=self.alternar_estado)
         self.btn_tema = MDButton(MDButtonText(text=lbl_tema), on_release=self.alternar_tema)
+        self.btn_idioma = MDButton(MDButtonText(text=lbl_idioma), on_release=self.alternar_idioma)
         
+        box_conteudo.add_widget(self.btn_idioma)
         box_conteudo.add_widget(self.btn_pais)
         box_conteudo.add_widget(self.btn_estado)
         box_conteudo.add_widget(self.btn_tema)
@@ -104,7 +107,6 @@ class SettingsScreen(MDScreen):
     def alternar_pais(self, instance):
         if CONFIG_APP.get("pais") == "BR (R$)":
             CONFIG_APP["pais"] = "EUA ($)"
-            CONFIG_APP["idioma"] = "en"
             CONFIG_APP["estado"] = "NY"
             CONFIG_APP["moeda"] = "$"
             CONFIG_APP["separador_decimal"] = "."
@@ -121,7 +123,6 @@ class SettingsScreen(MDScreen):
             CONFIG_APP["mao_obra"] = str(PRECOS_EUA["mao_obra"])
         else:
             CONFIG_APP["pais"] = "BR (R$)"
-            CONFIG_APP["idioma"] = "pt"
             CONFIG_APP["estado"] = "SP"
             CONFIG_APP["moeda"] = "R$"
             CONFIG_APP["separador_decimal"] = ","
@@ -148,6 +149,16 @@ class SettingsScreen(MDScreen):
         idx = (lista.index(est_atual) + 1) % len(lista) if est_atual in lista else 0
         CONFIG_APP["estado"] = lista[idx]
         
+        if self.manager:
+            self.manager.atualizar_todas_as_telas()
+
+    def alternar_idioma(self, instance):
+        """Português <-> inglês. É separado do país: dá para usar o app em inglês com preços do Brasil, por exemplo."""
+        novo = "en" if CONFIG_APP.get("idioma", "pt") == "pt" else "pt"
+        CONFIG_APP["idioma"] = novo
+        # o nome do tema também é traduzido
+        traducao_tema = {"Escuro": "Dark", "Claro": "Light"} if novo == "en" else {"Dark": "Escuro", "Light": "Claro"}
+        CONFIG_APP["tema"] = traducao_tema.get(CONFIG_APP.get("tema"), CONFIG_APP.get("tema"))
         if self.manager:
             self.manager.atualizar_todas_as_telas()
 

@@ -20,6 +20,7 @@ from kivymd.uix.dialog import (
     MDDialogButtonContainer,
 )
 from src.calculators.brocas import (
+    PRECO_ARAME_KG,
     calcular_brocas,
     BITOLAS_LONGITUDINAL,
     BITOLA_PADRAO,
@@ -1613,6 +1614,8 @@ class CalculatorScreen(MDScreen):
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
         custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
         custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if res['incluiu_ferragem'] else 0.0
+        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
+        custo_aco += custo_arame  # o arame entra no custo da ferragem
         custo_mo = res['custo_mao_obra']
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco
         custo_total = custo_mat + custo_mo
@@ -1635,7 +1638,8 @@ class CalculatorScreen(MDScreen):
                     f"c/ {fmt_num(res['espacamento_estribo_cm'], 0)} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({res['barras_12m_estribos']} {txt('un_barras12')})\n"
                 )
-            texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco)})\n"
+            texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
+            texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
         if custo_mo > 0:
             texto_res += f"• {txt('label_mo')}: {fmt_num(res['total_metros_escavados'], 1)} m ({fmt_moeda(custo_mo)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_total)}"
@@ -1649,6 +1653,7 @@ class CalculatorScreen(MDScreen):
             },
             "cimento": res['sacos_cimento'], "areia": res['areia_m3'], "pedra": res['pedra_m3'],
             "aco_kg": res['quilos_aco'], "barras_12m": res['barras_12m'],
+            "arame_kg": res['arame_kg'] if res['incluiu_ferragem'] else 0.0,
             "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
             "resumo_texto": texto_res
         }
@@ -1682,6 +1687,8 @@ class CalculatorScreen(MDScreen):
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
         custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
         custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if res['incluiu_ferragem'] else 0.0
+        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
+        custo_aco += custo_arame  # o arame entra no custo da ferragem
         custo_mo = comp * preco_mo
         custo_imperm = res['latas_imperm'] * PRECO_LATA_IMPERM if res['incluiu_impermeabilizacao'] else 0.0
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_imperm
@@ -1705,7 +1712,8 @@ class CalculatorScreen(MDScreen):
                     f"c/ {fmt_num(res['espacamento_estribo_cm'], 0)} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({res['barras_12m_estribos']} {txt('un_barras12')})\n"
                 )
-            texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco)})\n"
+            texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
+            texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
         if res['incluiu_impermeabilizacao']:
             un_lata = txt('un_lata') if res['latas_imperm'] == 1 else txt('un_latas')
             texto_res += (
@@ -1721,6 +1729,7 @@ class CalculatorScreen(MDScreen):
             "tipo": "baldrame",
             "cimento": res['sacos_cimento'], "areia": res['areia_m3'], "pedra": res['pedra_m3'],
             "aco_kg": res['quilos_aco'], "barras_12m": res['barras_12m'],
+            "arame_kg": res['arame_kg'] if res['incluiu_ferragem'] else 0.0,
             "imperm_litros": res['litros_imperm'],
             "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
             "resumo_texto": texto_res,

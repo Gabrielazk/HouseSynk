@@ -25,6 +25,10 @@ GANCHO_ESTRIBO_CM = 10.0   # sobra para fechar o estribo
 
 BARRA_COMERCIAL_M = 12.0
 
+# Arame recozido para amarrar os estribos nos ferros: % do peso do aço (PROVISÓRIO, confirmar com o engenheiro)
+ARAME_POR_KG_ACO = 0.02
+PRECO_ARAME_KG = 15.00  # preço PROVISÓRIO (R$) até a tabela de preços ser refeita
+
 
 def calcular_brocas(
     quantidade: int,
@@ -117,6 +121,7 @@ def calcular_brocas(
         "kg_estribos": kg_estribos,
         "barras_12m_estribos": barras_estribos,
         "quilos_aco": quilos_aco,
+        "arame_kg": round(quilos_aco * ARAME_POR_KG_ACO, 2),
         "barras_12m": barras_12m,
         "total_metros_escavados": round(total_metros_escavados, 2),
         "custo_mao_obra": custo_mao_obra

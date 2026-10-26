@@ -168,6 +168,9 @@ class SummaryScreen(MDScreen):
                 texto += f"• Brita: {fmt_num(total_pedra, 2)} m³\n"
             if total_aco > 0:
                 texto += f"• Aço: {fmt_num(total_aco, 1)} kg ({total_barras} barras de 12m)\n"
+            total_arame = sum(item.get("arame_kg", 0) for item in ORCAMENTO_FINAL)
+            if total_arame > 0:
+                texto += f"• {txt('label_arame')}: {fmt_num(total_arame, 1)} kg\n"
             for rotulo, itens_c in (("label_piso_resumo", itens_piso), ("label_azulejo_resumo", itens_azulejo)):
                 if itens_c:
                     caixas_c = sum(i.get("caixas", 0) for i in itens_c)

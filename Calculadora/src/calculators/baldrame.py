@@ -8,6 +8,7 @@ from src.calculators.brocas import (
     COBRIMENTO_CM,
     GANCHO_ESTRIBO_CM,
     BARRA_COMERCIAL_M,
+    ARAME_POR_KG_ACO,
 )
 
 # Perda padrão do baldrame (a da broca é 10%)
@@ -115,6 +116,7 @@ def calcular_baldrame(
         "kg_estribos": kg_estribos,
         "barras_12m_estribos": barras_estribos,
         "quilos_aco": quilos_aco,
+        "arame_kg": round(quilos_aco * ARAME_POR_KG_ACO, 2),
         "barras_12m": barras_12m,
         "incluiu_impermeabilizacao": incluir_impermeabilizacao,
         "area_imperm_m2": round(area_imperm_m2, 2),

@@ -39,6 +39,7 @@
     <Compile Include="src\calculators\revestimento.py" />
     <Compile Include="src\calculators\telhado.py" />
     <Compile Include="src\calculators\tracos.py" />
+    <Compile Include="src\calculators\unidades.py" />
     <Compile Include="src\calculators\__init__.py" />
     <Compile Include="src\models\database.py" />
     <Compile Include="src\models\material.py" />
@@ -54,6 +55,7 @@
     <Compile Include="src\views\main_screen.py" />
     <Compile Include="src\views\settings_screen.py" />
     <Compile Include="src\views\summary_screen.py" />
+    <Compile Include="src\views\textos_eua.py" />
     <Compile Include="src\views\__init__.py" />
   </ItemGroup>
   <ItemGroup>

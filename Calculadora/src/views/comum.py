@@ -5,6 +5,9 @@ nunca "from src.views.comum import USUARIO_LOGADO", senão a tela fica com uma c
 import os
 from src.models.material import TabelaPrecos
 
+from src.calculators.unidades import METRICO, IMPERIAL
+from src.views.textos_eua import TEXTOS_EUA
+
 # Imagens do app (pasta Calculadora/assets). O caminho é montado a partir deste arquivo,
 # então funciona de qualquer pasta de onde o app for aberto.
 PASTA_APP = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -837,8 +840,18 @@ ORCAMENTO_FINAL = []
 # Reserva para imprevistos escolhida no Resumo (a tela e o PDF leem daqui)
 RESERVA = {"perfil": "nenhuma"}
 
+def sistema_unidades() -> str:
+    """Métrico (Brasil) ou imperial (EUA). Segue o país escolhido nas Configurações."""
+    return IMPERIAL if CONFIG_APP.get("pais") == "EUA ($)" else METRICO
+
 def txt(chave: str) -> str:
+    """Texto no idioma escolhido. Com o país EUA, procura primeiro no TEXTOS_EUA
+    (unidades e exemplos americanos); se não achar lá, usa o texto normal."""
     lang = CONFIG_APP.get("idioma", "pt").lower()
+    if sistema_unidades() == IMPERIAL:
+        texto_eua = TEXTOS_EUA.get(lang, {}).get(chave)
+        if texto_eua is not None:
+            return texto_eua
     dicionario_lang = TEXTOS.get(lang, TEXTOS.get("pt", {}))
     return dicionario_lang.get(chave, chave)
 

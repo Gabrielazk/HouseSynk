@@ -134,6 +134,7 @@ class HomeScreen(MDScreen):
 
     def ir_para_calculadora(self, instance):
         ORCAMENTO_FINAL.clear()
+        comum.RESERVA["perfil"] = "nenhuma"  # orçamento novo começa sem reserva
         calc_screen = self.manager.get_screen("calculator")
         calc_screen.reiniciar()
         for child in calc_screen.layout_principal.children:

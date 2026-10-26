@@ -22,6 +22,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.divider import MDDivider
 from src.views.comum import CONFIG_APP, txt, fmt_moeda
 from src.views import comum
+from src.calculators.reserva import PERFIS_RESERVA
 
 
 # --- TELA DE HISTÓRICO ---
@@ -102,13 +103,15 @@ class HistoryScreen(MDScreen):
             btn_vis = MDButton(MDButtonText(text=txt("btn_vis")), on_release=lambda x, it=item: self.visualizar_orcamento(it))
             btn_edit = MDButton(MDButtonText(text=txt("btn_edit")), on_release=lambda x, it=item: self.editar_orcamento(it))
             btn_dup = MDButton(MDButtonText(text=txt("btn_dup")), on_release=lambda x, it=item: self.duplicar_popup(it))
+            btn_resumo = MDButton(MDButtonText(text=txt("btn_resumo_hist")), on_release=lambda x, it=item: self.abrir_resumo(it))
             row1.add_widget(btn_vis)
+            row1.add_widget(btn_resumo)
             row1.add_widget(btn_edit)
-            row1.add_widget(btn_dup)
             
             row2 = MDBoxLayout(orientation="horizontal", spacing="6dp", size_hint_y=None, height="36dp")
             btn_ren = MDButton(MDButtonText(text=txt("btn_ren")), on_release=lambda x, it=item: self.renomear_popup(it))
             btn_exc = MDButton(MDButtonText(text=txt("btn_exc")), on_release=lambda x, it=item: self.excluir_popup(it))
+            row2.add_widget(btn_dup)
             row2.add_widget(btn_ren)
             row2.add_widget(btn_exc)
             
@@ -120,21 +123,34 @@ class HistoryScreen(MDScreen):
             
             self.box_cards.add_widget(card)
 
-    def _abrir_no_calculo(self, item, modo_leitura):
+    def _abrir_no_calculo(self, item, modo_leitura, ir_para_calculo=True):
         dados = item["dados_json"]
         if not dados:
             return
         calc_screen = self.manager.get_screen("calculator")
         calc_screen.reiniciar(montar=False)
         calc_screen.origem = "history"
+        # reserva para imprevistos salva junto com o orçamento (orçamentos antigos não têm: fica "Sem reserva")
+        perfil = dados[0].get("reserva_perfil", "nenhuma") if isinstance(dados[0], dict) else "nenhuma"
+        comum.RESERVA["perfil"] = perfil if perfil in PERFIS_RESERVA else "nenhuma"
         # carrega do último para o primeiro: assim a primeira aba é a que fica aberta
         for etapa in reversed(dados):
             calc_screen.preencher_campos(etapa.get("inputs", {}), modo_leitura=modo_leitura, tipo=etapa.get("tipo", "brocas"))
             calc_screen.executar_calculo(None)
-        self.manager.current = "calculator"
+        if ir_para_calculo:
+            self.manager.current = "calculator"
+        return calc_screen
 
     def visualizar_orcamento(self, item):
         self._abrir_no_calculo(item, modo_leitura=True)
+
+    def abrir_resumo(self, item):
+        """Vai direto para o Resumo do orçamento salvo (de lá dá para gerar o PDF).
+        Carrega as abas como no Editar, então o botão Editar Cálculos do Resumo também funciona."""
+        calc_screen = self._abrir_no_calculo(item, modo_leitura=False, ir_para_calculo=False)
+        if calc_screen:
+            calc_screen.finalizar_e_ir_resumo()
+            self.manager.get_screen("summary").origem = "history"  # o Voltar do Resumo volta para cá
 
     def editar_orcamento(self, item):
         self._abrir_no_calculo(item, modo_leitura=False)

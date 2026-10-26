@@ -2500,5 +2500,6 @@ class CalculatorScreen(MDScreen):
         ORCAMENTO_FINAL.clear()
         ORCAMENTO_FINAL.extend(itens)
         summary_screen = self.manager.get_screen("summary")
+        summary_screen.origem = "calculator"  # o Voltar do Resumo volta para as abas
         summary_screen.atualizar_resumo()
         self.manager.current = "summary"

@@ -7,6 +7,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDButtonIcon
 from kivymd.uix.menu import MDDropdownMenu
+from kivy.clock import Clock
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import (
@@ -31,17 +32,22 @@ class SummaryScreen(MDScreen):
         self.md_bg_color = self.theme_cls.backgroundColor
         self.dialog_salvar = None
         self.modo = "orcamento"  # "orcamento" ou "lista" (botões no topo)
+        self.origem = "calculator"  # tela para onde o Voltar leva ("calculator" ou "history")
         
         layout_main = MDBoxLayout(orientation="vertical", padding="16dp", spacing="12dp")
         
         topo = MDBoxLayout(size_hint_y=None, height="40dp", spacing="10dp")
         self.titulo_topo = MDLabel(text=txt("titulo_resumo"), font_style="Title", role="medium", bold=True, theme_text_color="Primary")
+        self.txt_voltar = MDButtonText(text=txt("btn_voltar"))
+        self.btn_voltar = MDButton(self.txt_voltar, on_release=self.voltar)
+        topo.add_widget(self.btn_voltar)
         topo.add_widget(self.titulo_topo)
 
         # Botões Orçamento | Lista de compras (o que está aberto fica destacado)
         self.box_modos = MDBoxLayout(size_hint_y=None, height="48dp", spacing="8dp")
         
-        scroll = MDScrollView()
+        self.scroll = MDScrollView()
+        scroll = self.scroll
         self.box_conteudo = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         self.box_conteudo.bind(minimum_height=self.box_conteudo.setter('height'))
         
@@ -71,6 +77,10 @@ class SummaryScreen(MDScreen):
         layout_main.add_widget(self.box_modos)
         layout_main.add_widget(scroll)
         self.add_widget(layout_main)
+
+    def voltar(self, instance=None):
+        """Volta para a tela de onde a pessoa veio: as abas (Finalizar) ou o Histórico (botão Resumo)."""
+        self.manager.current = "history" if self.origem == "history" else "calculator"
 
     def editar_calculos(self, instance):
         calc_screen = self.manager.get_screen("calculator")
@@ -126,7 +136,7 @@ class SummaryScreen(MDScreen):
             usuario_id=user_id,
             nome=nome,
             estado=CONFIG_APP["estado"],
-            dados=ORCAMENTO_FINAL,
+            dados=[dict(item, reserva_perfil=comum.RESERVA["perfil"]) for item in ORCAMENTO_FINAL],
             valor_total=valor_total
         )
         self.dialog_salvar.dismiss()
@@ -193,6 +203,7 @@ class SummaryScreen(MDScreen):
 
     def atualizar_resumo(self):
         self.titulo_topo.text = txt("titulo_resumo")
+        self.txt_voltar.text = txt("btn_voltar")
         self.btn_salvar_hist.children[0].text = txt("btn_salvar_hist")
         self.btn_pdf.children[0].text = txt("btn_pdf")
         self.btn_editar.children[0].text = txt("btn_editar")
@@ -201,11 +212,16 @@ class SummaryScreen(MDScreen):
 
         if not ORCAMENTO_FINAL:
             self.lbl_detalhes.text = txt("lbl_resumo_vazio")
-            return
-        if self.modo == "lista":
+        elif self.modo == "lista":
             self.lbl_detalhes.text = self.texto_lista_compras()
         else:
             self.lbl_detalhes.text = self.texto_orcamento()
+        self.ir_para_o_topo()
+
+    def ir_para_o_topo(self):
+        """Barra de rolagem lá em cima. Espera o texto novo ser desenhado (o tamanho dele muda) e sobe de novo."""
+        for atraso in (0, 0.1):
+            Clock.schedule_once(lambda dt: setattr(self.scroll, "scroll_y", 1), atraso)
 
     def _montar_botoes_modo(self):
         self.box_modos.clear_widgets()

@@ -7,7 +7,8 @@ from datetime import datetime
 
 from src.calculators.baldrame import LITROS_POR_LATA
 from src.calculators.hidraulica import BARRA_TUBO_M
-from src.views.comum import CONFIG_APP, txt, fmt_num
+from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_moeda
+from src.calculators.reserva import calcular_reserva
 from src.views.calculator_screen import CalculatorScreen
 from src.views import comum
 
@@ -154,3 +155,39 @@ def montar_lista_compras(itens):
             grupos["esquadrias"].append(C._texto_item_esquadria(esq))
 
     return [(g, grupos[g]) for g in GRUPOS if grupos[g]]
+
+
+def texto_whatsapp(itens):
+    """A lista de compras pronta para mandar no WhatsApp (*texto* = negrito, _texto_ = itálico)."""
+    formato = "%d/%m/%Y" if CONFIG_APP.get("idioma", "pt") == "pt" else "%m/%d/%Y"
+    texto = f"*{txt('lista_titulo').capitalize()} - {comum.NOME_APP}*\n{datetime.now().strftime(formato)}\n"
+    for grupo, linhas in montar_lista_compras(itens):
+        texto += f"\n*{txt('loja_' + grupo)}*\n"
+        texto += "".join(f"• {linha}\n" for linha in linhas)
+    texto += f"\n_{txt('aviso_estimativa')}_"
+    return texto
+
+
+def texto_whatsapp_orcamento(itens):
+    """Resumo curto do orçamento para o WhatsApp: custo de cada etapa, subtotais, total e reserva.
+    (O detalhe de cada material fica no PDF, senão a mensagem fica enorme.)"""
+    formato = "%d/%m/%Y" if CONFIG_APP.get("idioma", "pt") == "pt" else "%m/%d/%Y"
+    texto = f"*{txt('resumo_titulo').capitalize()} - {comum.NOME_APP}*\n{datetime.now().strftime(formato)}\n\n"
+    for item in itens:
+        texto += f"• {item['etapa']}: {fmt_moeda(item.get('custo_total', 0))}\n"
+
+    subtotal_mat = sum(i.get("custo_mat", 0) for i in itens)
+    subtotal_mo = sum(i.get("custo_mo", 0) for i in itens)
+    total = subtotal_mat + subtotal_mo
+    texto += f"\n{txt('resumo_sub_mat')}: {fmt_moeda(subtotal_mat)}\n"
+    if subtotal_mo > 0:
+        texto += f"{txt('resumo_sub_mo')}: {fmt_moeda(subtotal_mo)}\n"
+    texto += f"*{txt('resumo_total').capitalize()}: {fmt_moeda(total)}*\n"
+
+    perfil = comum.RESERVA["perfil"]
+    reserva = calcular_reserva(total, perfil)
+    if reserva > 0:
+        texto += f"{txt('label_reserva')} – {txt('reserva_' + perfil)}: {fmt_moeda(reserva)}\n"
+        texto += f"*{txt('resumo_total_reserva').capitalize()}: {fmt_moeda(total + reserva)}*\n"
+    texto += f"\n_{txt('aviso_estimativa')}_"
+    return texto

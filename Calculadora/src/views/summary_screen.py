@@ -2,6 +2,8 @@
 import os
 import subprocess
 import sys
+import webbrowser
+from urllib.parse import quote
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
@@ -20,7 +22,7 @@ from kivymd.uix.dialog import (
 from src.models.database import salvar_orcamento, quantidade_orcamentos_salvos
 from src.views.comum import CONFIG_APP, ORCAMENTO_FINAL, txt, fmt_moeda
 from src.views import comum
-from src.services.lista_compras import montar_lista_compras, cabecalho
+from src.services.lista_compras import montar_lista_compras, cabecalho, texto_whatsapp, texto_whatsapp_orcamento
 from src.calculators.reserva import PERFIS_RESERVA, PERCENTUAL_RESERVA, calcular_reserva
 
 
@@ -70,6 +72,9 @@ class SummaryScreen(MDScreen):
         self.menu_reserva = None
         self.box_conteudo.add_widget(self.box_reserva)
         self.box_conteudo.add_widget(self.lbl_detalhes)
+        # Botão do WhatsApp (nas duas abas: manda a lista ou o resumo do orçamento), logo acima dos outros botões
+        self.box_whatsapp = MDBoxLayout(orientation="vertical", adaptive_height=True)
+        self.box_conteudo.add_widget(self.box_whatsapp)
         self.box_conteudo.add_widget(box_botoes)
         
         scroll.add_widget(self.box_conteudo)
@@ -209,6 +214,7 @@ class SummaryScreen(MDScreen):
         self.btn_editar.children[0].text = txt("btn_editar")
         self._montar_botoes_modo()
         self._montar_seletor_reserva()
+        self._montar_botao_whatsapp()
 
         if not ORCAMENTO_FINAL:
             self.lbl_detalhes.text = txt("lbl_resumo_vazio")
@@ -231,6 +237,26 @@ class SummaryScreen(MDScreen):
                 style="filled" if modo == self.modo else "outlined",
                 on_release=lambda x, m=modo: self.trocar_modo(m)
             ))
+
+    def _montar_botao_whatsapp(self):
+        self.box_whatsapp.clear_widgets()
+        if not ORCAMENTO_FINAL:
+            return
+        self.box_whatsapp.add_widget(MDButton(
+            MDButtonIcon(icon="whatsapp"), MDButtonText(text=txt("btn_whatsapp")),
+            style="filled", pos_hint={"center_x": 0.5}, on_release=self.enviar_whatsapp
+        ))
+
+    def enviar_whatsapp(self, instance=None):
+        """Abre o WhatsApp com o texto já escrito (a lista ou o resumo do orçamento, conforme a aba aberta);
+        a pessoa só escolhe o contato e envia.
+        No computador abre o WhatsApp Web/Desktop; no celular, o app. (No iPhone vai virar o botão de compartilhar.)"""
+        texto = texto_whatsapp(ORCAMENTO_FINAL) if self.modo == "lista" else texto_whatsapp_orcamento(ORCAMENTO_FINAL)
+        link = "https://wa.me/?text=" + quote(texto)
+        try:
+            webbrowser.open(link)
+        except Exception as erro:
+            self._aviso_pdf(txt("whatsapp_erro").format(erro=erro))
 
     def _montar_seletor_reserva(self):
         self.box_reserva.clear_widgets()

@@ -12,7 +12,7 @@ from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.graphics.shapes import Drawing, Rect
+from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether, PageBreak,
 )
@@ -149,6 +149,7 @@ def _parte_orcamento(itens):
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
     partes += [Paragraph(_esc(txt("resumo_financeiro").capitalize()), ESTILO_SECAO), KeepTogether(tabela)]
+    partes += _grafico_barras(itens)
     return partes
 
 
@@ -156,6 +157,40 @@ def _caixinha():
     desenho = Drawing(10, 10)
     desenho.add(Rect(0.5, 0.5, 9, 9, rx=1.5, ry=1.5, strokeColor=AZUL, strokeWidth=0.8, fillColor=None))
     return desenho
+
+
+def _grafico_barras(itens):
+    """Onde vai o dinheiro: uma barra por aba, da mais cara para a mais barata, com o valor e a %.
+    Só aparece com 2 abas ou mais (com uma só, a barra seria sempre 100%)."""
+    custos = sorted(((i["etapa"], i.get("custo_total", 0)) for i in itens), key=lambda c: c[1], reverse=True)
+    custos = [c for c in custos if c[1] > 0]
+    total = sum(valor for _, valor in custos)
+    if len(custos) < 2 or total <= 0:
+        return []
+
+    altura_linha, barra = 9 * mm, 5.5 * mm
+    rotulo_w, valor_w = 32 * mm, 42 * mm          # coluna do nome e coluna do valor
+    barra_max = LARGURA - rotulo_w - valor_w - 4 * mm
+    maior = custos[0][1]
+    desenho = Drawing(LARGURA, altura_linha * len(custos))
+    for n, (nome, valor) in enumerate(custos):
+        y = desenho.height - (n + 1) * altura_linha + (altura_linha - barra) / 2
+        largura = max(barra_max * valor / maior, 1.5)
+        cor = AZUL if n == 0 else colors.HexColor("#5B87A6")   # a mais cara em destaque
+        desenho.add(String(0, y + 1.6 * mm, nome[:22], fontName=FONTE, fontSize=9, fillColor=colors.black))
+        desenho.add(Rect(rotulo_w, y, largura, barra, rx=1.5, ry=1.5, fillColor=cor, strokeColor=None))
+        texto = f"{fmt_moeda(valor)}  ({valor / total * 100:.0f}%)"
+        desenho.add(String(rotulo_w + largura + 2 * mm, y + 1.6 * mm, texto, fontName=FONTE, fontSize=8.5, fillColor=CINZA))
+
+    return [
+        Spacer(1, 6 * mm),
+        KeepTogether([
+            Paragraph(_esc(txt("grafico_titulo")), ESTILO_SECAO),
+            Paragraph(_esc(txt("grafico_sub")), ESTILO_DETALHE),
+            Spacer(1, 3 * mm),
+            desenho,
+        ]),
+    ]
 
 
 def _parte_lista(itens):

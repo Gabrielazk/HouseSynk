@@ -80,9 +80,9 @@ O app está sendo preparado para a **App Store**.
 
 <table>
   <tr>
-    <td align="center" valign="top" width="33%"><img src="assets/images/inicio.png" width="230" alt="Tela inicial"><br><sub>Tela inicial</sub></td>
     <td align="center" valign="top" width="33%"><img src="assets/images/login.png" width="230" alt="Login"><br><sub>Login</sub></td>
     <td align="center" valign="top" width="33%"><img src="assets/images/cadastro.png" width="230" alt="Cadastro"><br><sub>Cadastro</sub></td>
+    <td align="center" valign="top" width="33%"><img src="assets/images/inicio.png" width="230" alt="Tela inicial"><br><sub>Tela inicial</sub></td>
   </tr>
 </table>
 

@@ -1,5 +1,7 @@
 """Tela inicial (Home)."""
 from kivymd.uix.screen import MDScreen
+from kivy.uix.image import Image
+from kivy.metrics import dp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText
@@ -11,7 +13,7 @@ from kivymd.uix.dialog import (
     MDDialogButtonContainer,
 )
 from kivymd.uix.widget import MDWidget
-from src.views.comum import ORCAMENTO_FINAL, txt
+from src.views.comum import LOGO_APP, ORCAMENTO_FINAL, txt
 from src.views import comum
 
 
@@ -67,6 +69,9 @@ class HomeScreen(MDScreen):
             on_release=self.ir_para_historico
         )
         
+        # Logo do app em cima do nome
+        self.img_logo = Image(source=LOGO_APP, size_hint=(None, None), size=(dp(112), dp(112)), pos_hint={"center_x": 0.5})
+        center_box.add_widget(self.img_logo)
         center_box.add_widget(self.lbl_titulo)
         center_box.add_widget(self.lbl_subtitulo)
         center_box.add_widget(self.btn_iniciar)

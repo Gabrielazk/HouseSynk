@@ -1,12 +1,14 @@
 """Tela de Login / Cadastro."""
 from kivymd.uix.screen import MDScreen
+from kivy.uix.image import Image
+from kivy.metrics import dp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from src.models.database import cadastrar_usuario, autenticar_usuario
 from kivymd.uix.widget import MDWidget
-from src.views.comum import txt
+from src.views.comum import LOGO_APP, txt
 from src.views import comum
 
 
@@ -120,6 +122,7 @@ class LoginScreen(MDScreen):
         self.lbl_status = MDLabel(text="", halign="center", theme_text_color="Error")
         
         self.layout_main.add_widget(top_bar)
+        self.layout_main.add_widget(Image(source=LOGO_APP, size_hint=(None, None), size=(dp(80), dp(80)), pos_hint={"center_x": 0.5}))
         self.layout_main.add_widget(self.lbl_titulo)
         self.layout_main.add_widget(self.lbl_sub)
         self.layout_main.add_widget(self.in_nome)

@@ -35,6 +35,7 @@
     <Compile Include="src\calculators\pintura.py" />
     <Compile Include="src\calculators\reboco.py" />
     <Compile Include="src\calculators\rejunte.py" />
+    <Compile Include="src\calculators\reserva.py" />
     <Compile Include="src\calculators\revestimento.py" />
     <Compile Include="src\calculators\telhado.py" />
     <Compile Include="src\calculators\tracos.py" />
@@ -42,6 +43,7 @@
     <Compile Include="src\models\database.py" />
     <Compile Include="src\models\material.py" />
     <Compile Include="src\models\__init__.py" />
+    <Compile Include="src\services\lista_compras.py" />
     <Compile Include="src\services\pdf_generator.py" />
     <Compile Include="src\services\__init__.py" />
     <Compile Include="src\views\calculator_screen.py" />

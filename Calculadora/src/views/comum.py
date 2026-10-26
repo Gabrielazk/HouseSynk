@@ -2,13 +2,21 @@
 
 USUARIO_LOGADO fica aqui. Nas telas, use sempre comum.USUARIO_LOGADO (ler e trocar),
 nunca "from src.views.comum import USUARIO_LOGADO", senão a tela fica com uma cópia antiga."""
+import os
 from src.models.material import TabelaPrecos
+
+# Imagens do app (pasta Calculadora/assets). O caminho é montado a partir deste arquivo,
+# então funciona de qualquer pasta de onde o app for aberto.
+PASTA_APP = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+LOGO_APP = os.path.join(PASTA_APP, "assets", "logo.png")          # logo com cantos arredondados (telas, janela e PDF)
+ICONE_APP = os.path.join(PASTA_APP, "assets", "icone_app.png")    # ícone quadrado 1024x1024 para a App Store
+NOME_APP = "HouseSynk"
 
 
 # Dicionário completo com todas as chaves traduzidas
 TEXTOS = {
     "pt": {
-        "titulo_app": "BuildCalc Pro",
+        "titulo_app": "HouseSynk",
         "subtitulo_app": "Calculadora Profissional de Materiais e Orçamentos",
         "btn_iniciar": "Iniciar Orçamento",
         "btn_precos": "Configurar Preços da Região",
@@ -69,6 +77,38 @@ TEXTOS = {
         "label_custo": "Custo Estimado da Etapa",
         "un_sacos": "sacos de 50 kg",
         "titulo_resumo": "Orçamento Consolidado",
+        "resumo_titulo": "ORÇAMENTO CONSOLIDADO DA OBRA",
+        "resumo_regiao": "Região / Estado",
+        "resumo_etapas": "ETAPAS INCLUÍDAS",
+        "resumo_lista": "LISTA DE COMPRAS CONSOLIDADA (TOTAL)",
+        "resumo_financeiro": "RESUMO FINANCEIRO FINAL",
+        "resumo_sub_mat": "Subtotal Materiais",
+        "resumo_sub_mo": "Subtotal Mão de Obra",
+        "resumo_total": "TOTAL GERAL DA OBRA",
+        "aviso_estimativa": "Os valores são estimativas e não substituem o projeto de um engenheiro ou arquiteto.",
+        "resumo_aba_orcamento": "Orçamento",
+        "label_reserva": "Reserva para imprevistos",
+        "reserva_nenhuma": "Sem reserva",
+        "reserva_tranquila": "Obra tranquila (+10%)",
+        "reserva_antiga": "Reforma antiga (+15%)",
+        "resumo_total_reserva": "TOTAL COM RESERVA",
+        "pdf_titulo": "Gerar PDF",
+        "pdf_sub": "O que você quer no PDF?",
+        "pdf_op_orcamento": "Orçamento",
+        "pdf_op_lista": "Lista de compras",
+        "pdf_op_ambos": "Os dois juntos",
+        "pdf_salvo": "PDF salvo em:\n{caminho}",
+        "pdf_erro": "Não foi possível gerar o PDF.\n{erro}",
+        "btn_abrir": "Abrir",
+        "resumo_aba_lista": "Lista de compras",
+        "resumo_responsavel": "Responsável",
+        "resumo_data": "Data",
+        "lista_titulo": "LISTA DE COMPRAS",
+        "loja_basico": "MATERIAL BÁSICO (depósito de construção)",
+        "loja_acabamento": "ACABAMENTO",
+        "loja_eletrica": "ELÉTRICA",
+        "loja_hidraulica": "HIDRÁULICA",
+        "loja_esquadrias": "ESQUADRIAS (para cotação)",
         "lbl_resumo_vazio": "Nenhum cálculo finalizado ainda.",
         "btn_novo_calc": "<- Voltar aos Cálculos",
         "btn_pdf": "Gerar / Exportar PDF",
@@ -78,7 +118,7 @@ TEXTOS = {
         "btn_salvar_precos": "Salvar e Voltar",
         "titulo_historico": "Histórico de Orçamentos",
         "lbl_hist_vazio": "Nenhum orçamento salvo no histórico.",
-        "login_titulo": "Bem-vindo ao BuildCalc",
+        "login_titulo": "Bem-vindo ao HouseSynk",
         "login_sub": "Faça login ou crie sua conta para salvar orçamentos",
         "hint_nome": "Seu Nome",
         "hint_email": "E-mail",
@@ -362,7 +402,7 @@ TEXTOS = {
         "un_e": "e"
     },
     "en": {
-        "titulo_app": "BuildCalc Pro",
+        "titulo_app": "HouseSynk",
         "subtitulo_app": "Professional Material & Cost Estimator",
         "btn_iniciar": "Start Estimate",
         "btn_precos": "Configure Region Prices",
@@ -397,7 +437,7 @@ TEXTOS = {
         "hint_esp_estribo": "Stirrup spacing in cm (ex: 20)",
         "label_ferro": "Rebar",
         "label_estribos": "Stirrups",
-        "un_barras12": "12 m bars",
+        "un_barras12": "bars of 12 m",
         "titulo_ajuda": "Help",
         "ajuda_brocas": "Enter the number of piles, the diameter (e.g. 20 cm) and the average depth of each one. If you like, add the rebar. The app estimates the concrete and steel needed.\n\nStirrups are only included if you enter the bars. To leave stirrups out, keep the spacing empty.",
         "ajuda_baldrame": "Enter the total length of the grade beams, their width and height. If you like, add the number of bars, bar size, stirrup spacing and waterproofing.",
@@ -423,6 +463,38 @@ TEXTOS = {
         "label_custo": "Estimated Stage Cost",
         "un_sacos": "bags of 50 kg",
         "titulo_resumo": "Consolidated Estimate",
+        "resumo_titulo": "CONSOLIDATED PROJECT ESTIMATE",
+        "resumo_regiao": "Region / State",
+        "resumo_etapas": "INCLUDED STEPS",
+        "resumo_lista": "CONSOLIDATED SHOPPING LIST (TOTAL)",
+        "resumo_financeiro": "FINAL FINANCIAL SUMMARY",
+        "resumo_sub_mat": "Materials subtotal",
+        "resumo_sub_mo": "Labor subtotal",
+        "resumo_total": "PROJECT GRAND TOTAL",
+        "aviso_estimativa": "Values are estimates and do not replace a project by an engineer or architect.",
+        "resumo_aba_orcamento": "Estimate",
+        "label_reserva": "Contingency reserve",
+        "reserva_nenhuma": "No reserve",
+        "reserva_tranquila": "Smooth project (+10%)",
+        "reserva_antiga": "Old renovation (+15%)",
+        "resumo_total_reserva": "TOTAL WITH CONTINGENCY",
+        "pdf_titulo": "Create PDF",
+        "pdf_sub": "What do you want in the PDF?",
+        "pdf_op_orcamento": "Estimate",
+        "pdf_op_lista": "Shopping list",
+        "pdf_op_ambos": "Both together",
+        "pdf_salvo": "PDF saved to:\n{caminho}",
+        "pdf_erro": "Could not create the PDF.\n{erro}",
+        "btn_abrir": "Open",
+        "resumo_aba_lista": "Shopping list",
+        "resumo_responsavel": "Prepared by",
+        "resumo_data": "Date",
+        "lista_titulo": "SHOPPING LIST",
+        "loja_basico": "BASIC MATERIALS (building supply store)",
+        "loja_acabamento": "FINISHING",
+        "loja_eletrica": "ELECTRICAL",
+        "loja_hidraulica": "PLUMBING",
+        "loja_esquadrias": "DOORS & WINDOWS (for quotes)",
         "lbl_resumo_vazio": "No calculation finalized yet.",
         "btn_novo_calc": "<- Back to Calculations",
         "btn_pdf": "Export / Share PDF",
@@ -432,7 +504,7 @@ TEXTOS = {
         "btn_salvar_precos": "Save & Back",
         "titulo_historico": "Estimate History",
         "lbl_hist_vazio": "No saved estimates in history.",
-        "login_titulo": "Welcome to BuildCalc",
+        "login_titulo": "Welcome to HouseSynk",
         "login_sub": "Log in or create an account to save estimates",
         "hint_nome": "Your Name",
         "hint_email": "Email",
@@ -752,6 +824,8 @@ USUARIO_LOGADO = None
 
 TABELA_PRECOS_GLOBAL = TabelaPrecos()
 ORCAMENTO_FINAL = []
+# Reserva para imprevistos escolhida no Resumo (a tela e o PDF leem daqui)
+RESERVA = {"perfil": "nenhuma"}
 
 def txt(chave: str) -> str:
     lang = CONFIG_APP.get("idioma", "pt").lower()
@@ -759,9 +833,12 @@ def txt(chave: str) -> str:
     return dicionario_lang.get(chave, chave)
 
 def fmt_moeda(valor: float) -> str:
+    """Ex.: R$ 4.902,70 (Brasil) ou US$ 4,902.70 (EUA): o separador de milhar é o contrário do decimal."""
     sep = CONFIG_APP["separador_decimal"]
+    milhar = "." if sep == "," else ","
     moeda = CONFIG_APP["moeda"]
-    texto = f"{valor:.2f}".replace('.', sep)
+    texto = f"{valor:,.2f}"  # 4,902.70 (padrão do Python)
+    texto = texto.replace(",", "#").replace(".", sep).replace("#", milhar)
     return f"{moeda} {texto}"
 
 def fmt_num(valor: float, casas: int = 2) -> str:

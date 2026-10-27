@@ -130,7 +130,8 @@ from src.calculators.tracos import (
     TRACO_MASSA_PADRAO,
 )
 from kivymd.uix.widget import MDWidget
-from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, txt, fmt_moeda, fmt_num
+from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, txt, fmt_moeda, fmt_num, sistema_unidades
+from src.calculators.unidades import IMPERIAL, ler_numero
 
 
 # --- TELA DE CÁLCULO COM ABAS (Navegação Interna) ---
@@ -1533,6 +1534,9 @@ class CalculatorScreen(MDScreen):
         if self.dialog_ajuda:
             self.dialog_ajuda.dismiss()
         texto = f"{txt(f'ajuda_{self.aba_atual}')}\n\n{txt('nota_opcionais')}"
+                # EUA + português: explica as siglas (ft, in, sq ft...) no fim da ajuda
+        if sistema_unidades() == IMPERIAL and CONFIG_APP.get("idioma", "pt").lower() == "pt":
+            texto += f"\n\n{txt('legenda_unidades')}"
         self.dialog_ajuda = MDDialog(
             MDDialogHeadlineText(text=txt("titulo_ajuda")),
             MDDialogSupportingText(text=texto),
@@ -1547,8 +1551,8 @@ class CalculatorScreen(MDScreen):
     # ==========================================
     @staticmethod
     def _numero(texto, padrao=0.0):
-        texto = (texto or "").strip()
-        return float(texto.replace(',', '.')) if texto else padrao
+        """Lê o número digitado. Aceita decimal (2,5 ou 2.5) e fração (1/8, 2 1/2)."""
+        return ler_numero(texto, CONFIG_APP["separador_decimal"], padrao)
 
     def _aba_iniciada(self, aba, estado):
         if aba == "esquadrias" and self.esquadrias_itens:

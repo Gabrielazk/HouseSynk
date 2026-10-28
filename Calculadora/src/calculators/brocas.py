@@ -30,6 +30,10 @@ PERDA_ACO_PERCENTUAL = 10.0
 # O concreto continua sendo a broca inteira; só o ferro em pé e o estribo usam essa altura.
 FRACAO_GAIOLA_BROCA = 0.5
 
+# Profundidade máxima aceita (CONFIRMADO pelo engenheiro em Oct 28, 2026: 30 m).
+# Acima disso, a tela avisa para conferir o número (ex.: digitou 300 no lugar de 3,00).
+PROFUNDIDADE_MAXIMA_M = 30.0
+
 BARRA_COMERCIAL_M = 12.0
 
 # Arame recozido para amarrar os estribos nos ferros: 2% do peso do aço (CONFIRMADO pelo engenheiro em Oct 27, 2026)

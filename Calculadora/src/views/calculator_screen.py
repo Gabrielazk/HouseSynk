@@ -25,6 +25,7 @@ from src.calculators.brocas import (
     BITOLAS_LONGITUDINAL,
     BITOLA_PADRAO,
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
+    PROFUNDIDADE_MAXIMA_M,
 )
 from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_IMPERM_LITRO, PRECO_IMPERM_LITRO_EUA
 from src.calculators.reboco import (
@@ -93,6 +94,7 @@ from src.calculators.hidraulica import (
 from src.calculators.pintura import (
     calcular_pintura,
     DEMAOS_PADRAO,
+    DEMAOS_MAXIMO,
     PERDA_PADRAO_PINTURA,
     RENDIMENTO_PADRAO_M2_L,
     TIPOS_MASSA,
@@ -1403,16 +1405,25 @@ class CalculatorScreen(MDScreen):
         return self._texto_campo(round(area, 2)), self._texto_campo(larg), self._texto_campo(alt)
 
     def _montar_dicas_rejunte(self, box_form):
-        """Dica (só texto): mostra a área e o tamanho da peça já digitados no Piso e no Azulejo."""
+        """Dica em botão: "Usar dados do Piso (...)" / "Usar dados do Azulejo (...)".
+        Ao tocar, preenche a área e o tamanho da peça com o que foi digitado naquela aba
+        (igual à dica do Contrapiso na aba Piso)."""
         for aba in ("piso", "azulejo"):
             dados = self._dados_ceramica_digitados(aba)
             if not dados:
                 continue
             area, larg, alt = dados
-            box_form.add_widget(MDLabel(
-                text=txt(f"dica_rejunte_{aba}").format(area=area, peca=f"{larg}x{alt}"),
-                theme_text_color="Secondary", adaptive_height=True
+            box_form.add_widget(MDButton(
+                MDButtonText(text=txt(f"dica_rejunte_{aba}").format(area=area, peca=f"{larg}x{alt}")),
+                style="text",
+                on_release=lambda x, d=dados: self._usar_dados_ceramica(*d)
             ))
+
+    def _usar_dados_ceramica(self, area, larg, alt):
+        """Preenche a área e o tamanho da peça do Rejunte (a junta a pessoa ainda digita)."""
+        self.in_rej_area.text = area
+        self.in_rej_larg.text = larg
+        self.in_rej_alt.text = alt
 
     @staticmethod
     def _rotulo_argamassa(tipo, sistema=None):
@@ -1537,7 +1548,16 @@ class CalculatorScreen(MDScreen):
 
     def _montar_dropdown(self, box_form, titulo, opcoes, atual, ao_escolher, rotulo=str, largura=200):
         """Título + botão que abre a lista de opções. Retorna o texto do botão (mostra a opção atual)."""
-        box_form.add_widget(MDLabel(text=titulo, font_style="Title", role="small", bold=True, theme_text_color="Primary"))
+        # O título fica 14dp mais baixo que o próprio texto: o texto "sobra" 7dp para cima e 7dp para baixo,
+        # dentro do espaço de 16dp entre os campos. Assim ele fica perto do campo de cima e do botão,
+        # igual aos títulos de seção (ex.: "Armadura / Ferragem"). A altura segue o texto, então um
+        # título que quebra em 2 linhas continua sem invadir o campo de cima.
+        lbl_titulo = MDLabel(
+            text=titulo, font_style="Title", role="small", bold=True, theme_text_color="Primary",
+            size_hint_y=None
+        )
+        lbl_titulo.bind(texture_size=lambda instance, value: setattr(instance, "height", max(dp(1), value[1] - dp(14))))
+        box_form.add_widget(lbl_titulo)
         texto = MDButtonText(text=rotulo(atual))
         botao = MDButton(
             MDButtonIcon(icon="menu-down"),
@@ -1770,6 +1790,12 @@ class CalculatorScreen(MDScreen):
         """Lê o número digitado. Aceita decimal (2,5 ou 2.5) e fração (1/8, 2 1/2)."""
         return ler_numero(texto, CONFIG_APP["separador_decimal"], padrao)
 
+    @staticmethod
+    def _num_curto(valor):
+        """Número para o texto do resultado, sem casas quando é inteiro: 10 -> "10", 2,5 -> "2,5".
+        (Antes a perda 2,5% aparecia como "2%" e o espaçamento 12,5 cm como "12 cm".)"""
+        return fmt_num(valor, 0 if float(valor).is_integer() else 1)
+
     def _aba_iniciada(self, aba, estado):
         if aba == "esquadrias" and self.esquadrias_itens:
             return True  # a lista já tem itens (mesmo com o formulário vazio)
@@ -1821,6 +1847,11 @@ class CalculatorScreen(MDScreen):
         preco_mo = self._numero(e.get("mo"), 0.0)
         bitola = self.bitola["brocas"]
 
+        # Profundidade absurda (ex.: 300 no lugar de 3,00): avisa em vez de calcular.
+        # O limite é em metros; nos EUA a mensagem mostra em ft (o _med converte).
+        if prof > PROFUNDIDADE_MAXIMA_M:
+            return {"erro": txt("msg_prof_max").format(max=self._med(PROFUNDIDADE_MAXIMA_M, "comprimento", 0))}
+
         res = calcular_brocas(
             quantidade=qtd, profundidade_m=prof, diametro_cm=diam,
             perda_percentual=perda, incluir_ferragem=(num_barras > 0),
@@ -1843,7 +1874,7 @@ class CalculatorScreen(MDScreen):
 
         texto_res = (
             f"{txt('label_traco_curto')}: {res['traco']}\n"
-            f"{txt('label_volume')} ({fmt_num(res['perda_percentual'], 0)}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
+            f"{txt('label_volume')} ({self._num_curto(res['perda_percentual'])}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
             f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
@@ -1857,7 +1888,7 @@ class CalculatorScreen(MDScreen):
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
-                    f"c/ {fmt_num(res['espacamento_estribo_cm'], 0)} cm: "
+                    f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({res['barras_12m_estribos']} {txt('un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
@@ -2423,6 +2454,8 @@ class CalculatorScreen(MDScreen):
         parede = self._numero(parede_txt, 0.0)
         teto = self._numero(teto_txt, 0.0)
         demaos = int(demaos_txt)
+        if demaos > DEMAOS_MAXIMO:  # ex.: digitou "22" no lugar de "2"
+            return {"erro": txt("msg_demaos").format(n=demaos, max=DEMAOS_MAXIMO)}
         sistema = sistema_unidades()
         eua = (sistema == IMPERIAL)
         # Rendimento vazio: o padrão do país (12 m²/L no Brasil; 400 sq ft/gal nos EUA)

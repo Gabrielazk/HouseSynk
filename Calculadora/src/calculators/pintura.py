@@ -4,6 +4,8 @@ from src.calculators.embalagens import grandes_e_pequenas
 
 # Valores padrão
 DEMAOS_PADRAO = 2
+# Mais que isso é quase sempre erro de digitação (ex.: "22" no lugar de "2"); a tela avisa
+DEMAOS_MAXIMO = 5
 PERDA_PADRAO_PINTURA = 10.0
 
 # Rendimento da tinta: m² pintados com 1 litro, em UMA demão (CONFIRMADO pelo engenheiro em Oct 27, 2026)

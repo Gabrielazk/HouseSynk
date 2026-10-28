@@ -38,11 +38,9 @@ from src.calculators.contrapiso import calcular_contrapiso, PERDA_PADRAO_CONTRAP
 from src.calculators.revestimento import (
     calcular_piso,
     calcular_azulejo,
-    PERDA_PADRAO_REVESTIMENTO,
     TIPOS_ARGAMASSA,
     ARGAMASSA_PADRAO_PISO,
     ARGAMASSA_PADRAO_AZULEJO,
-    RODAPE_PECA_M,
     PRECO_PISO_M2,
     PRECO_AZULEJO_M2,
     PRECO_RODAPE_M,
@@ -57,6 +55,7 @@ from src.calculators.laje import (
     PERDA_PADRAO_LAJE,
     CAPA_PADRAO_CM,
     PRECO_LAJE_PREMOLDADA_M2,
+    PRECO_PAINEL_TELA,
 )
 from src.calculators.telhado import (
     calcular_telhado,
@@ -160,12 +159,12 @@ CAMPOS_ABA = {
     "paredes": ["area", "vaos", "junta", "quebra"],
     "contrapiso": ["area", "esp", "perda"],
     "reboco": ["area", "vaos", "esp", "perda"],
-    "piso": ["area", "larg", "alt", "caixa", "perda", "rodape"],
+    "piso": ["area", "larg", "alt", "caixa", "perda", "rodape", "rodape_peca"],
     "azulejo": ["area", "larg", "alt", "vaos", "caixa", "perda"],
     "rejunte": ["area", "larg", "alt", "junta", "esp", "perda"],
     "laje": ["area", "capa", "esp", "perda"],
     "telhado": ["area", "incl", "cumeeira", "perda"],
-    "eletrica": ["tomadas", "interruptores", "luzes", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
+    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100", "perda"],
     "pintura": ["parede", "teto", "demaos", "rend", "perda"],
     "esquadrias": ["qtd", "larg", "alt"],  # campos do formulário "Nova porta ou janela"; a lista fica em self.esquadrias_itens
@@ -182,7 +181,7 @@ CAMPOS_INICIAIS = {
     "rejunte": ["area", "larg", "alt", "junta"],
     "laje": ["area", "esp"],
     "telhado": ["area", "cumeeira"],
-    "eletrica": ["tomadas", "interruptores", "luzes", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
+    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100"],
     "pintura": ["parede", "teto"],
     "esquadrias": ["qtd", "larg", "alt"],
@@ -198,7 +197,8 @@ UNIDADE_CAMPO = {
     "paredes": {"area": "area", "vaos": "area", "junta": "centimetro"},
     "contrapiso": {"area": "area", "esp": "centimetro"},
     "reboco": {"area": "area", "vaos": "area", "esp": "centimetro"},
-    "piso": {"area": "area", "larg": "centimetro", "alt": "centimetro", "caixa": "area", "rodape": "comprimento"},
+    "piso": {"area": "area", "larg": "centimetro", "alt": "centimetro", "caixa": "area", "rodape": "comprimento",
+             "rodape_peca": "comprimento"},
     "azulejo": {"area": "area", "larg": "centimetro", "alt": "centimetro", "vaos": "area", "caixa": "area"},
     "rejunte": {"area": "area", "larg": "centimetro", "alt": "centimetro", "junta": "milimetro", "esp": "milimetro"},
     "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro"},
@@ -236,10 +236,12 @@ class CalculatorScreen(MDScreen):
         self.dois_lados = {"reboco": False}
         self.chapisco = {"reboco": False}
         self.argamassa = {"piso": ARGAMASSA_PADRAO_PISO, "azulejo": ARGAMASSA_PADRAO_AZULEJO}
+        self.desenho = {"piso": False, "azulejo": False}  # assentamento com desenho: perda de 25%
         self.laje_tipo = TIPO_LAJE_PADRAO
         self.laje_enchimento = ENCHIMENTO_PADRAO
         self.telha_tipo = TIPO_TELHA_PADRAO
         self.madeiramento = {"telhado": False}
+        self.tela = {"laje": False}  # tela soldada na capa da laje pré-moldada
         self.selador = {"pintura": False}
         self.fundo = {"pintura": False}
         self.massa_tipo = "nenhuma"
@@ -722,26 +724,34 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_cer_alt)
 
         # --- Opcionais ---
+        # A perda começa vazia: vazia = automática pelo tamanho da peça (10%, 15%, 20% ou 25% com desenho)
         self.in_cer_vaos = campo(txt("hint_vaos"))
         self.in_cer_caixa = campo(txt("hint_m2_caixa"))
-        self.in_cer_perda = campo(txt("hint_perda"), self._texto_campo(PERDA_PADRAO_REVESTIMENTO))
+        self.in_cer_perda = campo(txt("hint_perda_auto"))
         if not piso:
             box_form.add_widget(self.in_cer_vaos)
         box_form.add_widget(self.in_cer_caixa)
+        self._montar_sim_nao(box_form, txt("label_desenho"), self.desenho, aba, "desenho")
         box_form.add_widget(self.in_cer_perda)
         self._botoes_arg[aba] = self._montar_dropdown(
             box_form, txt("label_argamassa"), TIPOS_ARGAMASSA, self.argamassa[aba],
             lambda v: self._escolher_argamassa(aba, v)
         )
         self.in_cer_rodape = campo(txt("hint_rodape"))
+        self.in_cer_rodape_peca = campo(txt("hint_rodape_peca"))
         if piso:
             box_form.add_widget(self.in_cer_rodape)
+            box_form.add_widget(self.in_cer_rodape_peca)
 
         self._campos = {
             "area": self.in_cer_area, "larg": self.in_cer_larg, "alt": self.in_cer_alt,
             "caixa": self.in_cer_caixa, "perda": self.in_cer_perda,
         }
-        self._campos["rodape" if piso else "vaos"] = self.in_cer_rodape if piso else self.in_cer_vaos
+        if piso:
+            self._campos["rodape"] = self.in_cer_rodape
+            self._campos["rodape_peca"] = self.in_cer_rodape_peca
+        else:
+            self._campos["vaos"] = self.in_cer_vaos
 
         if not ro:
             self.btn_calc_cer = MDButton(MDButtonText(text=txt("btn_calcular")), pos_hint={"center_x": 0.5}, on_release=self.executar_calculo)
@@ -817,6 +827,7 @@ class CalculatorScreen(MDScreen):
                 self._escolher_laje_enchimento, rotulo=self._rotulo_laje, largura=None
             )
             box_form.add_widget(self.in_laje_capa)
+            self._montar_sim_nao(box_form, txt("label_tela"), self.tela, "laje", "tela")
         self._montar_seletor_traco(box_form, "laje")
         box_form.add_widget(self.in_laje_perda)
 
@@ -951,9 +962,11 @@ class CalculatorScreen(MDScreen):
         self.in_ele_tomadas = campo(txt("hint_tomadas"))
         self.in_ele_interruptores = campo(txt("hint_interruptores"))
         self.in_ele_luzes = campo(txt("hint_luzes"))
+        self.in_ele_chuveiros = campo(txt("hint_chuveiros"))
         box_form.add_widget(self.in_ele_tomadas)
         box_form.add_widget(self.in_ele_interruptores)
         box_form.add_widget(self.in_ele_luzes)
+        box_form.add_widget(self.in_ele_chuveiros)
 
         # --- Opcionais: metragens de quem já tem o projeto (vazio = o app estima) ---
         box_form.add_widget(MDLabel(text=txt("secao_projeto"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
@@ -961,7 +974,7 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_ele_conduite)
         self._campos = {
             "tomadas": self.in_ele_tomadas, "interruptores": self.in_ele_interruptores,
-            "luzes": self.in_ele_luzes, "conduite": self.in_ele_conduite,
+            "luzes": self.in_ele_luzes, "chuveiros": self.in_ele_chuveiros, "conduite": self.in_ele_conduite,
         }
         for bitola in BITOLAS_FIO:
             campo_fio = campo(txt("hint_fio").format(b=self._rotulo_bitola_fio(bitola)))
@@ -1418,9 +1431,12 @@ class CalculatorScreen(MDScreen):
             self.chapisco[aba] = False
         if aba in self.argamassa:
             self.argamassa[aba] = ARGAMASSA_PADRAO_PISO if aba == "piso" else ARGAMASSA_PADRAO_AZULEJO
+        if aba in self.desenho:
+            self.desenho[aba] = False
         if aba == "laje":
             self.laje_tipo = TIPO_LAJE_PADRAO
             self.laje_enchimento = ENCHIMENTO_PADRAO
+            self.tela["laje"] = False
         if aba == "telhado":
             self.telha_tipo = TIPO_TELHA_PADRAO
             self.madeiramento[aba] = False
@@ -1931,17 +1947,21 @@ class CalculatorScreen(MDScreen):
         larg = self._numero(e["larg"])
         alt = self._numero(e["alt"])
         caixa = self._numero(e.get("caixa"), 0.0)
-        perda = self._numero(e.get("perda"), PERDA_PADRAO_REVESTIMENTO)
+        perda_txt = (e.get("perda") or "").strip()
+        perda_digitada = self._numero(perda_txt) if perda_txt else None  # vazio = automática
+        desenho = self.desenho[aba]
         tipo_arg = self.argamassa[aba]
         vaos = 0.0 if piso else self._numero(e.get("vaos"), 0.0)
         rodape = self._numero(e.get("rodape"), 0.0) if piso else 0.0
+        rodape_peca = self._numero(e.get("rodape_peca"), 0.0) if piso else 0.0
 
         if piso:
-            res = calcular_piso(area, larg, alt, caixa, tipo_arg, perda, rodape)
+            res = calcular_piso(area, larg, alt, caixa, tipo_arg, perda_digitada, rodape, desenho, rodape_peca)
         else:
-            res = calcular_azulejo(area, larg, alt, vaos, caixa, tipo_arg, perda)
+            res = calcular_azulejo(area, larg, alt, vaos, caixa, tipo_arg, perda_digitada, desenho)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
+        perda = res['perda_percentual']
 
         preco_m2 = PRECO_PISO_M2 if piso else PRECO_AZULEJO_M2
         custo_pecas = res['area_com_perda_m2'] * preco_m2
@@ -1953,8 +1973,9 @@ class CalculatorScreen(MDScreen):
         if res['desconto_vaos_m2'] > 0:
             texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
             texto_res += f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
+        origem_perda = f", {txt('label_perda_auto')}" if res['perda_automatica'] else ""
         texto_res += (
-            f"{txt('label_area_perda')} ({fmt_num(perda, 0)}%): {fmt_num(res['area_com_perda_m2'], 2)} m²\n"
+            f"{txt('label_area_perda')} ({fmt_num(perda, 0)}%{origem_perda}): {fmt_num(res['area_com_perda_m2'], 2)} m²\n"
             f"{txt('label_peca')}: {fmt_num(larg, 0 if float(larg).is_integer() else 1)}x{fmt_num(alt, 0 if float(alt).is_integer() else 1)} cm\n"
         )
         custo_txt = f" ({fmt_moeda(custo_pecas)})"
@@ -1968,10 +1989,10 @@ class CalculatorScreen(MDScreen):
             f"({fmt_num(res['argamassa_kg'], 1)} kg) ({fmt_moeda(custo_arg)})\n"
         )
         if res['rodape_m'] > 0:
-            texto_res += (
-                f"• {txt('label_rodape')}: {fmt_num(res['rodape_m'], 2)} m "
-                f"({res['rodape_pecas']} {txt('un_pecas')} {txt('un_de')} {fmt_num(RODAPE_PECA_M, 2)} m) ({fmt_moeda(custo_rodape)})\n"
-            )
+            linha_rodape = f"• {txt('label_rodape')}: {fmt_num(res['rodape_m'], 2)} m"
+            if res['rodape_pecas'] > 0:  # só quando o cliente informa o tamanho da peça
+                linha_rodape += f" ({res['rodape_pecas']} {txt('un_pecas')} {txt('un_de')} {fmt_num(res['rodape_peca_m'], 2)} m)"
+            texto_res += f"{linha_rodape} ({fmt_moeda(custo_rodape)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         resultado = {
@@ -1982,8 +2003,10 @@ class CalculatorScreen(MDScreen):
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": {
-                "area": area, "larg": larg, "alt": alt, "caixa": caixa, "perda": perda,
-                "argamassa": tipo_arg, "vaos": vaos, "rodape": rodape
+                "area": area, "larg": larg, "alt": alt, "caixa": caixa,
+                "perda": perda_digitada if perda_digitada is not None else "",  # vazio = automática
+                "argamassa": tipo_arg, "vaos": vaos, "rodape": rodape,
+                "rodape_peca": rodape_peca if rodape_peca > 0 else "", "desenho": desenho
             }
         }
         return {"texto": texto_res, "resultado": resultado}
@@ -2052,7 +2075,8 @@ class CalculatorScreen(MDScreen):
         esp = self._numero(e.get("esp"), 0.0)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_LAJE)
 
-        res = calcular_laje(area, self.laje_tipo, self.laje_enchimento, capa, esp, perda, self.traco["laje"])
+        res = calcular_laje(area, self.laje_tipo, self.laje_enchimento, capa, esp, perda, self.traco["laje"],
+                            tela_soldada=self.tela["laje"])
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
 
@@ -2060,7 +2084,8 @@ class CalculatorScreen(MDScreen):
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
         custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
         custo_laje_pm = res['laje_premoldada_m2'] * PRECO_LAJE_PREMOLDADA_M2.get(res['enchimento'], 0.0)
-        custo_mat = custo_cimento + custo_areia + custo_pedra + custo_laje_pm
+        custo_tela = res['tela_paineis'] * PRECO_PAINEL_TELA
+        custo_mat = custo_cimento + custo_areia + custo_pedra + custo_laje_pm + custo_tela
 
         def n(v):
             return fmt_num(v, 0 if float(v).is_integer() else 1)
@@ -2084,6 +2109,12 @@ class CalculatorScreen(MDScreen):
             texto_res += f"• {txt('label_laje_pm')}: {fmt_num(res['laje_premoldada_m2'], 2)} m² ({fmt_moeda(custo_laje_pm)})\n"
             if res['lajotas'] > 0:
                 texto_res += f"  ({txt('label_lajotas')}: {res['lajotas']} {txt('un_unidades')})\n"
+            if res['incluiu_tela']:
+                qtd = res['tela_paineis']
+                texto_res += (
+                    f"• {txt('label_tela_res')}: {fmt_num(res['tela_m2'], 2)} m² = "
+                    f"{qtd} {txt('un_painel_tela') if qtd == 1 else txt('un_paineis_tela')} ({fmt_moeda(custo_tela)})\n"
+                )
         texto_res += (
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
@@ -2096,11 +2127,12 @@ class CalculatorScreen(MDScreen):
             "tipo": "laje",
             "cimento": res['sacos_cimento'], "areia": res['areia_m3'], "pedra": res['pedra_m3'],
             "laje_premoldada_m2": res['laje_premoldada_m2'], "lajotas": res['lajotas'],
+            "tela_paineis": res['tela_paineis'],
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": {
                 "area": area, "capa": capa, "esp": esp if esp > 0 else "", "perda": perda, "traco": res["traco"],
-                "tipo_laje": res["tipo"], "enchimento": self.laje_enchimento
+                "tipo_laje": res["tipo"], "enchimento": self.laje_enchimento, "tela": self.tela["laje"]
             }
         }
         return {"texto": texto_res, "resultado": resultado}
@@ -2358,6 +2390,7 @@ class CalculatorScreen(MDScreen):
         tomadas = inteiro("tomadas")
         interruptores = inteiro("interruptores")
         luzes = inteiro("luzes")
+        chuveiros = inteiro("chuveiros")
         conduite = metros("conduite")
         fios_projeto = {}
         for bitola in BITOLAS_FIO:
@@ -2366,7 +2399,7 @@ class CalculatorScreen(MDScreen):
                 fios_projeto[bitola] = valor
         perda = self._numero(e.get("perda"), PERDA_PADRAO_ELETRICA)
 
-        res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda)
+        res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda, chuveiros)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
 
@@ -2388,8 +2421,11 @@ class CalculatorScreen(MDScreen):
         texto_res = (
             f"{txt('label_tomadas')}: {tomadas}\n"
             f"{txt('label_interruptores')}: {interruptores}\n"
-            f"{txt('label_luzes')}: {luzes}\n\n"
+            f"{txt('label_luzes')}: {luzes}\n"
         )
+        if chuveiros > 0:
+            texto_res += f"{txt('label_chuveiros')}: {chuveiros}\n"
+        texto_res += "\n"
         if res['rolos_conduite'] > 0:
             texto_res += (
                 f"• {txt('label_conduite')} ({origem(not res['conduite_estimado'])}, {txt('label_com_perda').format(p=fmt_num(perda, 0))}): "
@@ -2412,7 +2448,7 @@ class CalculatorScreen(MDScreen):
 
         inputs = {
             "tomadas": tomadas if tomadas else "", "interruptores": interruptores if interruptores else "",
-            "luzes": luzes if luzes else "", "conduite": conduite if conduite is not None else "", "perda": perda,
+            "luzes": luzes if luzes else "", "chuveiros": chuveiros if chuveiros else "", "conduite": conduite if conduite is not None else "", "perda": perda,
         }
         for bitola in BITOLAS_FIO:
             inputs[self._chave_fio(bitola)] = fios_projeto.get(bitola, "")
@@ -2423,7 +2459,7 @@ class CalculatorScreen(MDScreen):
             "rolos_conduite": res['rolos_conduite'],
             "fios": {str(b): f['rolos'] for b, f in res['fios'].items()},
             "caixas_4x2": res['caixas_4x2'], "caixas_octogonais": res['caixas_octogonais'],
-            "tomadas": tomadas, "interruptores": interruptores,
+            "tomadas": tomadas, "interruptores": interruptores, "chuveiros": chuveiros,
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": inputs,
@@ -2568,11 +2604,14 @@ class CalculatorScreen(MDScreen):
         if aba in self.argamassa:
             padrao = ARGAMASSA_PADRAO_PISO if aba == "piso" else ARGAMASSA_PADRAO_AZULEJO
             self.argamassa[aba] = inputs_dict.get("argamassa") if inputs_dict.get("argamassa") in TIPOS_ARGAMASSA else padrao
+        if aba in self.desenho:
+            self.desenho[aba] = bool(inputs_dict.get("desenho"))
         if aba == "laje":
             tipo = inputs_dict.get("tipo_laje")
             self.laje_tipo = tipo if tipo in TIPOS_LAJE else TIPO_LAJE_PADRAO
             ench = inputs_dict.get("enchimento")
             self.laje_enchimento = ench if ench in ENCHIMENTOS else ENCHIMENTO_PADRAO
+            self.tela["laje"] = bool(inputs_dict.get("tela"))
         if aba == "telhado":
             telha = inputs_dict.get("tipo_telha")
             self.telha_tipo = telha if telha in TIPOS_TELHA else TIPO_TELHA_PADRAO

@@ -76,6 +76,9 @@ def montar_lista_compras(itens):
         if lajotas > 0:
             linha += f" ({txt('label_lajotas')}: {lajotas} {txt('un_unidades')})"
         basico.append(linha)
+    total = _soma(itens, "tela_paineis")
+    if total > 0:
+        basico.append(f"{txt('label_tela_res')}: {total} {txt('un_painel_tela') if total == 1 else txt('un_paineis_tela')}")
     for item in _do_tipo(itens, "telhado"):
         linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {item['telhas']} {txt('un_unidades')}"
         if item.get("cumeeiras", 0) > 0:

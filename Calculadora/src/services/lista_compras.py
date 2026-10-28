@@ -2,10 +2,9 @@
 
 Usada pela tela de Resumo e pelo PDF (os dois mostram exatamente a mesma lista).
 """
-import math
 from datetime import datetime
 
-from src.calculators.baldrame import LITROS_POR_LATA
+from src.calculators.pintura import latas_e_galoes
 from src.calculators.hidraulica import BARRA_TUBO_M
 from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_moeda
 from src.calculators.reserva import calcular_reserva
@@ -67,8 +66,9 @@ def montar_lista_compras(itens):
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
     total = _soma(itens, "imperm_litros")
     if total > 0:
-        latas = math.ceil(total / LITROS_POR_LATA)
-        basico.append(f"{txt('label_imperm_item')}: {fmt_num(total, 1)} L ({latas} {txt('un_lata') if latas == 1 else txt('un_latas')})")
+        # Baldes de 18 L e galões de 3,6 L (vale também para orçamentos antigos, que só têm os litros)
+        latas, galoes = latas_e_galoes(total)
+        basico.append(f"{txt('label_imperm_item')}: {fmt_num(total, 1)} L ({C._texto_latas_galoes(latas, galoes)})")
     total = _soma(itens, "laje_premoldada_m2")
     if total > 0:
         linha = f"{txt('label_laje_pm_resumo')}: {fmt_num(total, 2)} m²"

@@ -7,20 +7,29 @@ from src.calculators.brocas import (
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
     COBRIMENTO_CM,
     GANCHO_ESTRIBO_CM,
+    PERDA_ACO_PERCENTUAL,
     BARRA_COMERCIAL_M,
     ARAME_POR_KG_ACO,
 )
+# O impermeabilizante vem nas mesmas embalagens da tinta (balde de 18 L e galão de 3,6 L)
+from src.calculators.pintura import latas_e_galoes, LATA_L, GALAO_L
 
-# Perda padrão do baldrame (a da broca é 10%)
+# Perda padrão do concreto do baldrame (CONFIRMADO pelo engenheiro em Oct 27, 2026; a da broca é 10%)
 PERDA_PADRAO_BALDRAME = 5.0
 
-# Impermeabilização (premissas de trabalho, a conferir)
-DEMAOS_IMPERMEABILIZANTE = 2
-LITROS_POR_M2_POR_DEMAO = 0.4     # litros de impermeabilizante por m2 em cada demão
-LITROS_POR_LATA = 18.0            # lata de 18 L
+# Traspasse (emenda) do ferro quando a viga passa do tamanho da barra de 12 m:
+# as duas barras ficam sobrepostas por 40 vezes a bitola (ex.: ferro de 8 mm -> 32 cm).
+# O engenheiro deixou a escolha com a gente (Oct 27, 2026); 40 vezes é a regra mais usada na prática.
+TRASPASSE_DIAMETROS = 40
 
-# Preço PROVISÓRIO (R$) até a tabela de preços ser refeita
-PRECO_LATA_IMPERM = 280.00        # lata de 18 L de impermeabilizante
+# Impermeabilização: tinta asfáltica (ex.: Neutrol), aplicada no topo e nas duas laterais da viga.
+# O fabricante indica de 0,4 a 0,5 L por m²; o app usa 0,4 L/m² por demão, em 2 demãos.
+DEMAOS_IMPERMEABILIZANTE = 2
+LITROS_POR_M2_POR_DEMAO = 0.4
+
+# Preço PROVISÓRIO (R$ por litro) até a tabela de preços ser refeita.
+# O engenheiro pediu o preço por litro, porque o produto vem em balde de 18 L e galão de 3,6 L.
+PRECO_IMPERM_LITRO = 15.50
 
 
 def calcular_baldrame(
@@ -60,6 +69,7 @@ def calcular_baldrame(
     # Ferragem opcional: ferro longitudinal + estribos retangulares
     incluiu_ferragem = num_barras_longitudinais > 0
     total_metros_barras = 0.0
+    traspasse_m = 0.0
     kg_longitudinal = 0.0
     barras_longitudinal = 0
     total_estribos = 0
@@ -68,7 +78,11 @@ def calcular_baldrame(
     barras_estribos = 0
 
     if incluiu_ferragem:
-        total_metros_barras = comprimento_m * num_barras_longitudinais
+        fator_aco = 1 + PERDA_ACO_PERCENTUAL / 100.0  # perda do ferro (cortes e sobras)
+        # Emendas: uma a cada 12 m de viga, em cada barra (ex.: 30 m de viga = 2 emendas por barra)
+        emendas_por_barra = max(0, math.ceil(comprimento_m / BARRA_COMERCIAL_M - 1e-9) - 1)
+        traspasse_m = emendas_por_barra * num_barras_longitudinais * TRASPASSE_DIAMETROS * bitola_mm / 1000.0
+        total_metros_barras = (comprimento_m * num_barras_longitudinais + traspasse_m) * fator_aco
         kg_longitudinal = round(total_metros_barras * PESO_POR_METRO[bitola_mm], 2)
         barras_longitudinal = math.ceil(total_metros_barras / BARRA_COMERCIAL_M)
 
@@ -79,7 +93,7 @@ def calcular_baldrame(
                 return {"erro": "Viga muito pequena para colocar estribos."}
             comprimento_estribo_m = (2 * (largura_interna_cm + altura_interna_cm) + GANCHO_ESTRIBO_CM) / 100.0
             total_estribos = int(comprimento_m * 100.0 // espacamento_estribo_cm) + 1
-            total_metros_estribos = total_estribos * comprimento_estribo_m
+            total_metros_estribos = total_estribos * comprimento_estribo_m * fator_aco
             kg_estribos = round(total_metros_estribos * PESO_POR_METRO[BITOLA_ESTRIBO_MM], 2)
             barras_estribos = math.ceil(total_metros_estribos / BARRA_COMERCIAL_M)
 
@@ -90,10 +104,12 @@ def calcular_baldrame(
     area_imperm_m2 = 0.0
     litros_imperm = 0.0
     latas_imperm = 0
+    galoes_imperm = 0
     if incluir_impermeabilizacao:
         area_imperm_m2 = comprimento_m * (largura_m + 2 * altura_m)
         litros_imperm = area_imperm_m2 * LITROS_POR_M2_POR_DEMAO * DEMAOS_IMPERMEABILIZANTE
-        latas_imperm = math.ceil(litros_imperm / LITROS_POR_LATA)
+        latas_imperm, galoes_imperm = latas_e_galoes(litros_imperm)
+    litros_compra_imperm = latas_imperm * LATA_L + galoes_imperm * GALAO_L
 
     return {
         "volume_m3": round(volume, 3),
@@ -105,6 +121,7 @@ def calcular_baldrame(
         "pedra_m3": pedra_m3,
         "incluiu_ferragem": incluiu_ferragem,
         "bitola_mm": bitola_mm,
+        "traspasse_m": round(traspasse_m, 2),
         "total_metros_barras": round(total_metros_barras, 2),
         "kg_longitudinal": kg_longitudinal,
         "barras_12m_longitudinal": barras_longitudinal,
@@ -121,5 +138,7 @@ def calcular_baldrame(
         "incluiu_impermeabilizacao": incluir_impermeabilizacao,
         "area_imperm_m2": round(area_imperm_m2, 2),
         "litros_imperm": round(litros_imperm, 1),
-        "latas_imperm": latas_imperm,
+        "latas_imperm": latas_imperm,       # baldes de 18 L
+        "galoes_imperm": galoes_imperm,     # galões de 3,6 L
+        "litros_compra_imperm": round(litros_compra_imperm, 1),
     }

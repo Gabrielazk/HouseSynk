@@ -26,7 +26,7 @@ from src.calculators.brocas import (
     BITOLA_PADRAO,
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
 )
-from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_LATA_IMPERM
+from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_IMPERM_LITRO
 from src.calculators.reboco import (
     calcular_reboco,
     ESPESSURA_PADRAO_CM as ESPESSURA_REBOCO_PADRAO_CM,
@@ -1745,6 +1745,7 @@ class CalculatorScreen(MDScreen):
             f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
         )
         if res['incluiu_ferragem']:
+            texto_res += f"{txt('label_gaiola').format(m=fmt_num(res['altura_gaiola_m'], 2))}\n"
             texto_res += (
                 f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
                 f"{fmt_num(res['kg_longitudinal'], 1)} kg ({res['barras_12m_longitudinal']} {txt('un_barras12')})\n"
@@ -1807,7 +1808,8 @@ class CalculatorScreen(MDScreen):
         custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
         custo_aco += custo_arame  # o arame entra no custo da ferragem
         custo_mo = comp * preco_mo
-        custo_imperm = res['latas_imperm'] * PRECO_LATA_IMPERM if res['incluiu_impermeabilizacao'] else 0.0
+        # Impermeabilizante: preço por litro, sobre os litros das embalagens compradas (18 L e 3,6 L)
+        custo_imperm = res['litros_compra_imperm'] * PRECO_IMPERM_LITRO if res['incluiu_impermeabilizacao'] else 0.0
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_imperm
         custo_total = custo_mat + custo_mo
 
@@ -1819,10 +1821,13 @@ class CalculatorScreen(MDScreen):
             f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
         )
         if res['incluiu_ferragem']:
-            texto_res += (
+            linha_ferro = (
                 f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
-                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({res['barras_12m_longitudinal']} {txt('un_barras12')})\n"
+                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({res['barras_12m_longitudinal']} {txt('un_barras12')})"
             )
+            if res['traspasse_m'] > 0:  # viga maior que 12 m: as barras têm emendas
+                linha_ferro += f" ({txt('label_traspasse').format(m=fmt_num(res['traspasse_m'], 2))})"
+            texto_res += linha_ferro + "\n"
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
@@ -1832,10 +1837,10 @@ class CalculatorScreen(MDScreen):
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
             texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
         if res['incluiu_impermeabilizacao']:
-            un_lata = txt('un_lata') if res['latas_imperm'] == 1 else txt('un_latas')
             texto_res += (
                 f"• {txt('label_imperm_item')}: {fmt_num(res['area_imperm_m2'], 1)} m² · "
-                f"{fmt_num(res['litros_imperm'], 1)} L ({res['latas_imperm']} {un_lata}) ({fmt_moeda(custo_imperm)})\n"
+                f"{fmt_num(res['litros_imperm'], 1)} L = "
+                f"{self._texto_latas_galoes(res['latas_imperm'], res['galoes_imperm'])} ({fmt_moeda(custo_imperm)})\n"
             )
         if custo_mo > 0:
             texto_res += f"• {txt('label_mo')}: {fmt_num(comp, 1)} m ({fmt_moeda(custo_mo)})\n"

@@ -17,15 +17,22 @@ PESO_POR_METRO = {
 BITOLAS_LONGITUDINAL = [6.3, 8.0, 10.0, 12.5, 16.0]
 BITOLA_PADRAO = 8.0
 
-# Estribos (premissas de trabalho, a conferir)
+# Estribos (CONFIRMADO pelo engenheiro em Oct 27, 2026)
 BITOLA_ESTRIBO_MM = 5.0
 ESPACAMENTO_ESTRIBO_PADRAO_CM = 20.0
-COBRIMENTO_CM = 3.0        # concreto que cobre o estribo
-GANCHO_ESTRIBO_CM = 10.0   # sobra para fechar o estribo
+COBRIMENTO_CM = 2.0        # concreto que cobre o estribo
+GANCHO_ESTRIBO_CM = 5.0    # sobra para fechar o estribo (nas Brocas, uma em cada ponta da espiral)
+
+# Perda do ferro: cortes e sobras (CONFIRMADO pelo engenheiro em Oct 27, 2026)
+PERDA_ACO_PERCENTUAL = 10.0
+
+# Nas Brocas a gaiola de ferro vai só até a METADE da profundidade (CONFIRMADO pelo engenheiro em Oct 27, 2026).
+# O concreto continua sendo a broca inteira; só o ferro em pé e o estribo usam essa altura.
+FRACAO_GAIOLA_BROCA = 0.5
 
 BARRA_COMERCIAL_M = 12.0
 
-# Arame recozido para amarrar os estribos nos ferros: % do peso do aço (PROVISÓRIO, confirmar com o engenheiro)
+# Arame recozido para amarrar os estribos nos ferros: 2% do peso do aço (CONFIRMADO pelo engenheiro em Oct 27, 2026)
 ARAME_POR_KG_ACO = 0.02
 PRECO_ARAME_KG = 15.00  # preço PROVISÓRIO (R$) até a tabela de preços ser refeita
 
@@ -68,6 +75,7 @@ def calcular_brocas(
     pedra_m3 = round(volume_total_m3 * consumo["pedra_m3"], 2)
 
     # Ferragem opcional: ferro longitudinal + estribos
+    altura_gaiola_m = profundidade_m * FRACAO_GAIOLA_BROCA
     total_metros_barras = 0.0
     kg_longitudinal = 0.0
     barras_longitudinal = 0
@@ -77,8 +85,9 @@ def calcular_brocas(
     kg_estribos = 0.0
     barras_estribos = 0
 
+    fator_aco = 1 + PERDA_ACO_PERCENTUAL / 100.0
     if incluir_ferragem and num_barras_longitudinais > 0:
-        total_metros_barras = quantidade * profundidade_m * num_barras_longitudinais
+        total_metros_barras = quantidade * altura_gaiola_m * num_barras_longitudinais * fator_aco
         kg_longitudinal = round(total_metros_barras * PESO_POR_METRO[bitola_mm], 2)
         barras_longitudinal = math.ceil(total_metros_barras / BARRA_COMERCIAL_M)
 
@@ -86,10 +95,16 @@ def calcular_brocas(
             diametro_interno_cm = diametro_cm - 2 * COBRIMENTO_CM
             if diametro_interno_cm <= 0:
                 return {"erro": "Diâmetro muito pequeno para colocar estribos."}
-            comprimento_estribo_m = (math.pi * diametro_interno_cm + GANCHO_ESTRIBO_CM) / 100.0
-            estribos_por_broca = int(profundidade_m * 100.0 // espacamento_estribo_cm) + 1
+            # Estribo em ESPIRAL (resposta do engenheiro): um fio contínuo que dá voltas pela gaiola.
+            # Cada volta sobe o espaçamento (passo); o comprimento de uma volta é a hipotenusa
+            # entre a circunferência e o passo. Mais um gancho em cada ponta.
+            circunferencia_m = math.pi * diametro_interno_cm / 100.0
+            passo_m = espacamento_estribo_cm / 100.0
+            voltas = altura_gaiola_m / passo_m
+            espiral_por_broca_m = voltas * math.hypot(circunferencia_m, passo_m) + 2 * GANCHO_ESTRIBO_CM / 100.0
+            estribos_por_broca = math.ceil(voltas)  # número de voltas
             total_estribos = estribos_por_broca * quantidade
-            total_metros_estribos = total_estribos * comprimento_estribo_m
+            total_metros_estribos = espiral_por_broca_m * quantidade * fator_aco
             kg_estribos = round(total_metros_estribos * PESO_POR_METRO[BITOLA_ESTRIBO_MM], 2)
             barras_estribos = math.ceil(total_metros_estribos / BARRA_COMERCIAL_M)
 
@@ -110,6 +125,7 @@ def calcular_brocas(
         "pedra_m3": pedra_m3,
         "incluiu_ferragem": incluir_ferragem and num_barras_longitudinais > 0,
         "bitola_mm": bitola_mm,
+        "altura_gaiola_m": round(altura_gaiola_m, 2),
         "total_metros_barras": round(total_metros_barras, 2),
         "kg_longitudinal": kg_longitudinal,
         "barras_12m_longitudinal": barras_longitudinal,
@@ -118,6 +134,7 @@ def calcular_brocas(
         "espacamento_estribo_cm": espacamento_estribo_cm,
         "total_estribos": total_estribos,
         "total_metros_estribos": round(total_metros_estribos, 2),
+        "perda_aco_percentual": PERDA_ACO_PERCENTUAL,
         "kg_estribos": kg_estribos,
         "barras_12m_estribos": barras_estribos,
         "quilos_aco": quilos_aco,

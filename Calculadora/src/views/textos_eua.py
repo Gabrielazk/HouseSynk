@@ -42,7 +42,7 @@ TEXTOS_EUA = {
         "hint_tubo_esg100": "Esgoto 100 mm, em ft",
         # --- Contrapiso, Piso, Azulejo e Rejunte ---
         "hint_area_contrapiso": "Área do contrapiso em sq ft (ex: 430)",
-        "hint_esp_contrapiso": "Espessura média em in (ex: 2)",
+        "hint_esp_contrapiso": "Espessura média em in (normalmente 2 a 2 3/4)",
         "hint_area_piso": "Área do piso em sq ft (ex: 430)",
         "hint_area_azulejo": "Área de parede a revestir em sq ft (ex: 320)",
         "hint_larg_peca": "Largura da peça em in (ex: 12)",
@@ -101,7 +101,7 @@ TEXTOS_EUA = {
         "hint_tubo_esg100": "Drain 100 mm, ft",
         # --- Subfloor, floor, wall tile and grout ---
         "hint_area_contrapiso": "Subfloor area, sq ft (ex: 430)",
-        "hint_esp_contrapiso": "Average thickness, in (ex: 2)",
+        "hint_esp_contrapiso": "Average thickness, in (usually 2 to 2 3/4)",
         "hint_area_piso": "Floor area, sq ft (ex: 430)",
         "hint_area_azulejo": "Wall area to tile, sq ft (ex: 320)",
         "hint_larg_peca": "Tile width, in (ex: 12)",

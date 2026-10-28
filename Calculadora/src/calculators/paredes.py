@@ -2,10 +2,9 @@ import math
 from src.calculators.tracos import (
     TRACOS_MASSA,
     TRACO_MASSA_PADRAO,
-    DENSIDADE_CIMENTO,
-    DENSIDADE_CAL,
     SACO_CIMENTO_KG,
     SACO_CAL_KG,
+    materiais_da_massa,
 )
 
 # Tijolos e blocos: medidas em cm, na ordem do nome (largura x altura x comprimento).
@@ -47,8 +46,7 @@ def calcular_paredes(
         return {"erro": "Tipo de tijolo ou bloco inválido."}
     if assentamento not in ASSENTAMENTOS:
         return {"erro": "Assentamento inválido."}
-    partes = TRACOS_MASSA.get(traco)
-    if partes is None:
+    if traco not in TRACOS_MASSA:
         return {"erro": "Traço da massa inválido."}
 
     area_liquida_m2 = area_bruta_m2 - desconto_vaos_m2
@@ -76,14 +74,11 @@ def calcular_paredes(
     massa_por_m2_m3 = (espessura_cm / 100.0) * (1.0 - pecas_por_m2 * area_face_peca_m2)
     volume_massa_m3 = massa_por_m2_m3 * area_liquida_m2
 
-    total_partes = partes["cimento"] + partes["cal"] + partes["areia"]
-    vol_cimento = volume_massa_m3 * partes["cimento"] / total_partes
-    vol_cal = volume_massa_m3 * partes["cal"] / total_partes
-    vol_areia = volume_massa_m3 * partes["areia"] / total_partes
-
-    sacos_cimento = math.ceil(vol_cimento * DENSIDADE_CIMENTO / SACO_CIMENTO_KG)
-    sacos_cal = math.ceil(vol_cal * DENSIDADE_CAL / SACO_CAL_KG)
-    areia_m3 = round(vol_areia, 2)
+    # Mesma conta da massa do Reboco (fica no tracos.py, com o inchamento da areia)
+    materiais = materiais_da_massa(volume_massa_m3, traco)
+    sacos_cimento = math.ceil(materiais["cimento_kg"] / SACO_CIMENTO_KG)
+    sacos_cal = math.ceil(materiais["cal_kg"] / SACO_CAL_KG)
+    areia_m3 = round(materiais["areia_m3"], 2)
 
     return {
         "area_bruta_m2": round(area_bruta_m2, 2),

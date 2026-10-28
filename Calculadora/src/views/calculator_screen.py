@@ -34,7 +34,7 @@ from src.calculators.reboco import (
     CHAPISCO_TRACO_RODAPE,
     CHAPISCO_ESPESSURA_CM,
 )
-from src.calculators.contrapiso import calcular_contrapiso, PERDA_PADRAO_CONTRAPISO
+from src.calculators.contrapiso import calcular_contrapiso, PERDA_PADRAO_CONTRAPISO, TRACO_PADRAO_CONTRAPISO
 from src.calculators.revestimento import (
     calcular_piso,
     calcular_azulejo,
@@ -228,7 +228,7 @@ class CalculatorScreen(MDScreen):
         self.estado_abas = {}        # texto digitado em cada aba
         self.textos_resultado = {}   # último resultado mostrado em cada aba
         self._sistema_estado = sistema_unidades()  # em que unidades o texto do estado_abas está
-        self.traco = {"brocas": TRACO_CONCRETO_PADRAO, "baldrame": TRACO_CONCRETO_PADRAO, "paredes": TRACO_MASSA_PADRAO, "contrapiso": TRACO_CONCRETO_PADRAO, "reboco": TRACO_MASSA_PADRAO, "laje": TRACO_CONCRETO_PADRAO}
+        self.traco = {"brocas": TRACO_CONCRETO_PADRAO, "baldrame": TRACO_CONCRETO_PADRAO, "paredes": TRACO_MASSA_PADRAO, "contrapiso": TRACO_PADRAO_CONTRAPISO, "reboco": TRACO_MASSA_PADRAO, "laje": TRACO_CONCRETO_PADRAO}
         self.tijolo = {"paredes": TIJOLO_PADRAO}
         self.assent = {"paredes": ASSENTAMENTO_PADRAO}
         self.bitola = {"brocas": BITOLA_PADRAO, "baldrame": BITOLA_PADRAO}
@@ -1479,14 +1479,17 @@ class CalculatorScreen(MDScreen):
         if self.menu_ativo:
             self.menu_ativo.dismiss()
 
-    # --- Traço do concreto (Brocas e Baldrame) ---
+    # --- Traço do concreto ou da massa ---
     @staticmethod
     def _tabela_traco(aba):
-        """Concreto (Brocas, Baldrame) ou massa (Paredes): tabela de traços, traço padrão e título do campo."""
+        """Concreto (Brocas, Baldrame, Laje, Contrapiso) ou massa (Paredes, Reboco):
+        tabela de traços, traço padrão e título do campo."""
         if aba == "paredes":
             return TRACOS_MASSA, TRACO_MASSA_PADRAO, "label_traco_massa"
         if aba == "reboco":
             return TRACOS_MASSA, TRACO_MASSA_PADRAO, "label_traco_massa_obrig"
+        if aba == "contrapiso":
+            return TRACOS_CONCRETO, TRACO_PADRAO_CONTRAPISO, "label_traco"  # contrapiso usa 1:3:3
         return TRACOS_CONCRETO, TRACO_CONCRETO_PADRAO, "label_traco"
 
     def _montar_seletor_traco(self, box_form, aba):

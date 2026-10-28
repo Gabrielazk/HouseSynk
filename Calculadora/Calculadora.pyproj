@@ -29,6 +29,7 @@
     <Compile Include="src\calculators\brocas.py" />
     <Compile Include="src\calculators\contrapiso.py" />
     <Compile Include="src\calculators\eletrica.py" />
+    <Compile Include="src\calculators\embalagens.py" />
     <Compile Include="src\calculators\esquadrias.py" />
     <Compile Include="src\calculators\hidraulica.py" />
     <Compile Include="src\calculators\laje.py" />

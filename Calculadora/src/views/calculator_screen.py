@@ -26,7 +26,7 @@ from src.calculators.brocas import (
     BITOLA_PADRAO,
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
 )
-from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_IMPERM_LITRO
+from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_IMPERM_LITRO, PRECO_IMPERM_LITRO_EUA
 from src.calculators.reboco import (
     calcular_reboco,
     ESPESSURA_PADRAO_CM as ESPESSURA_REBOCO_PADRAO_CM,
@@ -45,6 +45,9 @@ from src.calculators.revestimento import (
     PRECO_AZULEJO_M2,
     PRECO_RODAPE_M,
     PRECO_ARGAMASSA_SACO,
+    PRECO_ARGAMASSA_SACO_EUA,
+    tipos_argamassa,
+    argamassa_padrao,
 )
 from src.calculators.laje import (
     calcular_laje,
@@ -94,7 +97,10 @@ from src.calculators.pintura import (
     RENDIMENTO_PADRAO_M2_L,
     TIPOS_MASSA,
     PRECO_TINTA,
+    PRECO_TINTA_EUA,
     PRECO_BALDE_MASSA,
+    RENDIMENTO_PADRAO_EUA_SQFT_GAL,
+    rendimento_padrao_m2_l,
 )
 from src.calculators.esquadrias import (
     calcular_esquadrias,
@@ -112,6 +118,7 @@ from src.calculators.rejunte import (
     ESPESSURA_PADRAO_MM,
     PRECO_LATA_1KG,
     PRECO_LATA_2KG,
+    PRECO_REJUNTE_EUA,
 )
 from src.calculators.paredes import (
     calcular_paredes,
@@ -129,8 +136,24 @@ from src.calculators.tracos import (
     TRACO_MASSA_PADRAO,
 )
 from kivymd.uix.widget import MDWidget
-from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, txt, fmt_moeda, fmt_num, sistema_unidades
+from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, sistema_unidades
+from src.views.textos_eua import TEXTOS_EUA
 from src.calculators.unidades import METRICO, IMPERIAL, ler_numero, para_metrico, do_metrico, texto_polegadas
+
+
+def txt_do_pais(chave, sistema=None):
+    """Igual ao txt(), mas no país em que a conta foi feita (sistema = METRICO ou IMPERIAL).
+    Serve para a lista de compras de um orçamento feito no outro país continuar certa
+    (ex.: um orçamento do Brasil mostra "lata de 18 L" mesmo com o país trocado para EUA).
+    sistema=None: usa o país escolhido agora (é o mesmo que txt)."""
+    if sistema is None or sistema == sistema_unidades():
+        return txt(chave)
+    lang = CONFIG_APP.get("idioma", "pt").lower()
+    if sistema == IMPERIAL:
+        texto_eua = TEXTOS_EUA.get(lang, {}).get(chave)
+        if texto_eua is not None:
+            return texto_eua
+    return TEXTOS.get(lang, TEXTOS.get("pt", {})).get(chave, chave)
 
 
 # --- TELA DE CÁLCULO COM ABAS (Navegação Interna) ---
@@ -235,7 +258,9 @@ class CalculatorScreen(MDScreen):
         self.imperm = {"baldrame": False}
         self.dois_lados = {"reboco": False}
         self.chapisco = {"reboco": False}
-        self.argamassa = {"piso": ARGAMASSA_PADRAO_PISO, "azulejo": ARGAMASSA_PADRAO_AZULEJO}
+        # Argamassa colante: AC-I / AC-II no Brasil; A118.1 / A118.4 (thinset) nos EUA
+        sistema = self._sistema_estado
+        self.argamassa = {"piso": argamassa_padrao(True, sistema), "azulejo": argamassa_padrao(False, sistema)}
         self.desenho = {"piso": False, "azulejo": False}  # assentamento com desenho: perda de 25%
         self.laje_tipo = TIPO_LAJE_PADRAO
         self.laje_enchimento = ENCHIMENTO_PADRAO
@@ -271,8 +296,20 @@ class CalculatorScreen(MDScreen):
             return
         self._capturar_estado()  # guarda o texto da aba aberta antes de converter
         self._converter_estado_abas(self._sistema_estado, sistema)
+        self._trocar_argamassa_de_pais(sistema)
         self._sistema_estado = sistema
         self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi convertido
+
+    def _trocar_argamassa_de_pais(self, sistema):
+        """Cada país tem os seus tipos de argamassa colante. Ao trocar de país, troca pelo
+        equivalente: AC-I <-> A118.1 (não modificada); AC-II e AC-III <-> A118.4 (modificada)."""
+        equivalente = {"AC-I": "A118.1", "AC-II": "A118.4", "AC-III": "A118.4",
+                       "A118.1": "AC-I", "A118.4": "AC-II"}
+        for aba in self.argamassa:
+            atual = self.argamassa[aba]
+            if atual not in tipos_argamassa(sistema):
+                novo = equivalente.get(atual)
+                self.argamassa[aba] = novo if novo in tipos_argamassa(sistema) else argamassa_padrao(aba == "piso", sistema)
 
     def montar_tela(self):
         self._sincronizar_unidades()
@@ -734,8 +771,9 @@ class CalculatorScreen(MDScreen):
         self._montar_sim_nao(box_form, txt("label_desenho"), self.desenho, aba, "desenho")
         box_form.add_widget(self.in_cer_perda)
         self._botoes_arg[aba] = self._montar_dropdown(
-            box_form, txt("label_argamassa"), TIPOS_ARGAMASSA, self.argamassa[aba],
-            lambda v: self._escolher_argamassa(aba, v)
+            box_form, txt("label_argamassa"), tipos_argamassa(sistema_unidades()), self.argamassa[aba],
+            lambda v: self._escolher_argamassa(aba, v), rotulo=self._rotulo_argamassa,
+            largura=None if sistema_unidades() == IMPERIAL else 200  # nos EUA o nome é mais comprido
         )
         self.in_cer_rodape = campo(txt("hint_rodape"))
         self.in_cer_rodape_peca = campo(txt("hint_rodape_peca"))
@@ -1076,14 +1114,18 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_pint_demaos)
 
         # --- Opcionais (já vêm com valor padrão) ---
-        self.in_pint_rend = campo(txt("hint_rendimento"), self._texto_padrao(RENDIMENTO_PADRAO_M2_L, "rendimento"))
+        # Rendimento padrão: 12 m²/L no Brasil; 400 sq ft/gal nos EUA (o que os fabricantes de lá informam)
+        eua = (sistema_unidades() == IMPERIAL)
+        self.in_pint_rend = campo(txt("hint_rendimento"), self._rend_padrao_texto(sistema_unidades()))
         self.in_pint_perda = campo(txt("hint_perda"), self._texto_campo(PERDA_PADRAO_PINTURA))
         box_form.add_widget(self.in_pint_rend)
-        self._montar_sim_nao(box_form, txt("label_selador"), self.selador, "pintura", "selador")
-        self._botao_massa = self._montar_dropdown(
-            box_form, txt("label_massa"), TIPOS_MASSA, self.massa_tipo,
-            self._escolher_massa, rotulo=self._rotulo_massa, largura=None
-        )
+        # Nos EUA não aparecem selador nem massa: lá a parede é de drywall e só se usa o primer
+        if not eua:
+            self._montar_sim_nao(box_form, txt("label_selador"), self.selador, "pintura", "selador")
+            self._botao_massa = self._montar_dropdown(
+                box_form, txt("label_massa"), TIPOS_MASSA, self.massa_tipo,
+                self._escolher_massa, rotulo=self._rotulo_massa, largura=None
+            )
         self._montar_sim_nao(box_form, txt("label_fundo"), self.fundo, "pintura", "fundo")
         box_form.add_widget(self.in_pint_perda)
 
@@ -1119,14 +1161,36 @@ class CalculatorScreen(MDScreen):
         self._botao_massa.text = self._rotulo_massa(valor)
 
     @staticmethod
-    def _texto_latas_galoes(latas, galoes):
-        """Ex.: '2 latas de 18 L e 1 galão de 3,6 L'."""
+    def _texto_latas_galoes(latas, galoes, sistema=None):
+        """Ex.: '2 latas de 18 L e 1 galão de 3,6 L' (Brasil) ou '2 baldes de 5 gal e 1 galão de 1 gal' (EUA).
+        sistema: o país em que a conta foi feita (None = o país escolhido agora)."""
+        t = lambda chave: txt_do_pais(chave, sistema)
         partes = []
         if latas:
-            partes.append(f"{latas} {txt('un_lata_18') if latas == 1 else txt('un_latas_18')}")
+            partes.append(f"{latas} {t('un_lata_18') if latas == 1 else t('un_latas_18')}")
         if galoes:
-            partes.append(f"{galoes} {txt('un_galao_36') if galoes == 1 else txt('un_galoes_36')}")
-        return f" {txt('un_e')} ".join(partes)
+            partes.append(f"{galoes} {t('un_galao_36') if galoes == 1 else t('un_galoes_36')}")
+        return f" {t('un_e')} ".join(partes)
+
+    @staticmethod
+    def _med(valor_metrico, tipo, casas=2):
+        """Medida do resultado (a conta é em métrico) com a unidade do país escolhido.
+        Ex.: área 10 -> "10,00 m²" no Brasil ou "107.64 sq ft" nos EUA;
+        peça 30 cm -> "30 cm" ou "11.811 in" (12 in digitado volta como "12 in")."""
+        sistema = sistema_unidades()
+        if sistema == IMPERIAL:
+            valor = do_metrico(valor_metrico, tipo, sistema)
+            if tipo in ("centimetro", "milimetro"):
+                return f"{texto_polegadas(valor)} in"
+            unidade = {"area": "sq ft", "comprimento": "ft", "peso": "lb", "litro": "gal",
+                       "consumo": "lb/sq ft", "rendimento": "sq ft/gal"}[tipo]
+            return f"{fmt_num(valor, casas)} {unidade}"
+        if tipo in ("centimetro", "milimetro"):
+            unidade = "cm" if tipo == "centimetro" else "mm"
+            return f"{fmt_num(valor_metrico, 0 if float(valor_metrico).is_integer() else 1)} {unidade}"
+        unidade = {"area": "m²", "comprimento": "m", "peso": "kg", "litro": "L",
+                   "consumo": "kg/m²", "rendimento": "m²/L"}[tipo]
+        return f"{fmt_num(valor_metrico, casas)} {unidade}"
 
     # ==========================================
     # CONTEÚDO DA ABA ESQUADRIAS (lista de portas e janelas + insumos de fixação)
@@ -1350,10 +1414,18 @@ class CalculatorScreen(MDScreen):
                 theme_text_color="Secondary", adaptive_height=True
             ))
 
+    @staticmethod
+    def _rotulo_argamassa(tipo, sistema=None):
+        """Brasil: o próprio nome (AC-I, AC-II...). EUA: "Modificada (ANSI A118.4)"..."""
+        sistema = sistema or sistema_unidades()
+        if sistema == IMPERIAL:
+            return txt_do_pais(f"arg_{tipo}", sistema)
+        return tipo
+
     def _escolher_argamassa(self, aba, valor):
         self.argamassa[aba] = valor
         if aba in self._botoes_arg:
-            self._botoes_arg[aba].text = valor
+            self._botoes_arg[aba].text = self._rotulo_argamassa(valor)
 
     # ==========================================
     # BOTÕES DO FLUXO: Limpar, Anterior (menos na 1ª aba), Próximo (menos na última) e Finalizar
@@ -1430,7 +1502,7 @@ class CalculatorScreen(MDScreen):
         if aba in self.chapisco:
             self.chapisco[aba] = False
         if aba in self.argamassa:
-            self.argamassa[aba] = ARGAMASSA_PADRAO_PISO if aba == "piso" else ARGAMASSA_PADRAO_AZULEJO
+            self.argamassa[aba] = argamassa_padrao(aba == "piso", sistema_unidades())
         if aba in self.desenho:
             self.desenho[aba] = False
         if aba == "laje":
@@ -1665,6 +1737,7 @@ class CalculatorScreen(MDScreen):
         """O país mudou com abas preenchidas: reescreve as medidas digitadas nas unidades novas
         (ex.: 3 m vira 9.84 ft). Os resultados antigos são apagados (estavam na unidade velha)."""
         separador = "," if antigo == METRICO else "."
+        rend_antes = ((self.estado_abas.get("pintura") or {}).get("rend") or "").strip()
         for aba, estado in self.estado_abas.items():
             for chave, tipo in UNIDADE_CAMPO.get(aba, {}).items():
                 texto = (estado.get(chave) or "").strip()
@@ -1675,7 +1748,19 @@ class CalculatorScreen(MDScreen):
                 except ValueError:
                     continue  # texto inválido fica como está (o Calcular avisa)
                 estado[chave] = self._formatar_medida(para_metrico(valor, tipo, antigo), tipo, novo)
+        # Rendimento da tinta que ainda era o padrão do país antigo: vira o padrão do país novo
+        # (12 m²/L <-> 400 sq ft/gal), em vez de um número quebrado como 491 sq ft/gal
+        pintura = self.estado_abas.get("pintura")
+        if pintura is not None and rend_antes == self._rend_padrao_texto(antigo):
+            pintura["rend"] = self._rend_padrao_texto(novo)
         self.textos_resultado.clear()
+
+    @staticmethod
+    def _rend_padrao_texto(sistema):
+        """Texto do rendimento padrão da tinta: "12" (m²/L) no Brasil, "400" (sq ft/gal) nos EUA."""
+        if sistema == IMPERIAL:
+            return str(RENDIMENTO_PADRAO_EUA_SQFT_GAL)
+        return CalculatorScreen._texto_campo(RENDIMENTO_PADRAO_M2_L)
 
     # ==========================================
     # CÁLCULOS (a partir do texto digitado, sem depender dos campos na tela)
@@ -1815,7 +1900,8 @@ class CalculatorScreen(MDScreen):
             comprimento_m=comp, largura_cm=larg, altura_cm=alt,
             perda_percentual=perda, traco=self.traco["baldrame"],
             num_barras_longitudinais=num_barras, bitola_mm=bitola,
-            espacamento_estribo_cm=esp_estribo, incluir_impermeabilizacao=imperm
+            espacamento_estribo_cm=esp_estribo, incluir_impermeabilizacao=imperm,
+            sistema=sistema_unidades()
         )
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
@@ -1827,8 +1913,10 @@ class CalculatorScreen(MDScreen):
         custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
         custo_aco += custo_arame  # o arame entra no custo da ferragem
         custo_mo = comp * preco_mo
-        # Impermeabilizante: preço por litro, sobre os litros das embalagens compradas (18 L e 3,6 L)
-        custo_imperm = res['litros_compra_imperm'] * PRECO_IMPERM_LITRO if res['incluiu_impermeabilizacao'] else 0.0
+        # Impermeabilizante: preço por litro, sobre os litros das embalagens compradas
+        # (Brasil: 18 L e 3,6 L; EUA: balde de 5 gal com 4,75 gal e galão de 1 gal)
+        preco_imperm = PRECO_IMPERM_LITRO_EUA if sistema_unidades() == IMPERIAL else PRECO_IMPERM_LITRO
+        custo_imperm = res['litros_compra_imperm'] * preco_imperm if res['incluiu_impermeabilizacao'] else 0.0
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_imperm
         custo_total = custo_mat + custo_mo
 
@@ -1857,8 +1945,8 @@ class CalculatorScreen(MDScreen):
             texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
         if res['incluiu_impermeabilizacao']:
             texto_res += (
-                f"• {txt('label_imperm_item')}: {fmt_num(res['area_imperm_m2'], 1)} m² · "
-                f"{fmt_num(res['litros_imperm'], 1)} L = "
+                f"• {txt('label_imperm_item')}: {self._med(res['area_imperm_m2'], 'area', 1)} · "
+                f"{self._med(res['litros_imperm'], 'litro', 1)} = "
                 f"{self._texto_latas_galoes(res['latas_imperm'], res['galoes_imperm'])} ({fmt_moeda(custo_imperm)})\n"
             )
         if custo_mo > 0:
@@ -1872,6 +1960,7 @@ class CalculatorScreen(MDScreen):
             "aco_kg": res['quilos_aco'], "barras_12m": res['barras_12m'],
             "arame_kg": res['arame_kg'] if res['incluiu_ferragem'] else 0.0,
             "imperm_litros": res['litros_imperm'],
+            "sistema": sistema_unidades(),  # país da conta (a lista de compras usa as embalagens dele)
             "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
             "resumo_texto": texto_res,
             "inputs": {
@@ -1955,49 +2044,79 @@ class CalculatorScreen(MDScreen):
         rodape = self._numero(e.get("rodape"), 0.0) if piso else 0.0
         rodape_peca = self._numero(e.get("rodape_peca"), 0.0) if piso else 0.0
 
+        sistema = sistema_unidades()
+        eua = (sistema == IMPERIAL)
         if piso:
-            res = calcular_piso(area, larg, alt, caixa, tipo_arg, perda_digitada, rodape, desenho, rodape_peca)
+            res = calcular_piso(area, larg, alt, caixa, tipo_arg, perda_digitada, rodape, desenho, rodape_peca, sistema)
         else:
-            res = calcular_azulejo(area, larg, alt, vaos, caixa, tipo_arg, perda_digitada, desenho)
+            res = calcular_azulejo(area, larg, alt, vaos, caixa, tipo_arg, perda_digitada, desenho, sistema)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
         perda = res['perda_percentual']
 
         preco_m2 = PRECO_PISO_M2 if piso else PRECO_AZULEJO_M2
         custo_pecas = res['area_com_perda_m2'] * preco_m2
-        custo_arg = res['sacos_argamassa'] * PRECO_ARGAMASSA_SACO[tipo_arg]
+        preco_saco = PRECO_ARGAMASSA_SACO_EUA if eua else PRECO_ARGAMASSA_SACO
+        custo_arg = res['sacos_argamassa'] * preco_saco[tipo_arg]
         custo_rodape = res['rodape_m'] * PRECO_RODAPE_M
         custo_mat = custo_pecas + custo_arg + custo_rodape
 
-        texto_res = f"{txt('label_area')}: {fmt_num(res['area_bruta_m2'], 2)} m²\n"
+        # Áreas e rodapé mostrados: no Brasil, os do cálculo (já arredondados, igual a antes);
+        # nos EUA, sem o arredondamento em m² (senão 430 sq ft aparece como 430.02 sq ft)
+        if eua:
+            fator_rodape = 1 + ((10.0 if res['perda_automatica'] else perda) / 100.0)
+            mostra = {"bruta": area, "vaos": vaos, "liquida": area - vaos,
+                      "com_perda": (area - vaos) * (1 + perda / 100.0), "rodape": rodape * fator_rodape}
+        else:
+            mostra = {"bruta": res['area_bruta_m2'], "vaos": res['desconto_vaos_m2'], "liquida": res['area_liquida_m2'],
+                      "com_perda": res['area_com_perda_m2'], "rodape": res['rodape_m']}
+        texto_res = f"{txt('label_area')}: {self._med(mostra['bruta'], 'area')}\n"
         if res['desconto_vaos_m2'] > 0:
-            texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
-            texto_res += f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
+            texto_res += f"{txt('label_vaos')}: {self._med(mostra['vaos'], 'area')}\n"
+            texto_res += f"{txt('label_area_liquida')}: {self._med(mostra['liquida'], 'area')}\n"
         origem_perda = f", {txt('label_perda_auto')}" if res['perda_automatica'] else ""
+        if eua:  # ex.: 12x12 in
+            texto_peca = f"{texto_polegadas(do_metrico(larg, 'centimetro', sistema))}x{self._med(alt, 'centimetro')}"
+        else:    # ex.: 60x60 cm (igual a antes)
+            texto_peca = f"{fmt_num(larg, 0 if float(larg).is_integer() else 1)}x{fmt_num(alt, 0 if float(alt).is_integer() else 1)} cm"
         texto_res += (
-            f"{txt('label_area_perda')} ({fmt_num(perda, 0)}%{origem_perda}): {fmt_num(res['area_com_perda_m2'], 2)} m²\n"
-            f"{txt('label_peca')}: {fmt_num(larg, 0 if float(larg).is_integer() else 1)}x{fmt_num(alt, 0 if float(alt).is_integer() else 1)} cm\n"
+            f"{txt('label_area_perda')} ({fmt_num(perda, 0)}%{origem_perda}): {self._med(mostra['com_perda'], 'area')}\n"
+            f"{txt('label_peca')}: {texto_peca}\n"
         )
         custo_txt = f" ({fmt_moeda(custo_pecas)})"
         if res['caixas'] > 0:
+            # Por caixa: m² no Brasil, sq ft nos EUA (o número que a pessoa digitou)
+            por_caixa = fmt_num(do_metrico(caixa, "area", sistema), 2)
             texto_res += f"• {txt('label_pecas')}: {res['pecas']} {txt('un_pecas')}\n"
-            texto_res += f"• {txt('label_caixas')}: {res['caixas']} {txt('un_caixas')} ({fmt_num(caixa, 2)} {txt('un_caixa_m2')}){custo_txt}\n"
+            texto_res += f"• {txt('label_caixas')}: {res['caixas']} {txt('un_caixas')} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
         else:
             texto_res += f"• {txt('label_pecas')}: {res['pecas']} {txt('un_pecas')}{custo_txt}\n"
-        texto_res += (
-            f"• {txt('label_argamassa_res')} {tipo_arg}: {res['sacos_argamassa']} {txt('un_sacos_cal')} "
-            f"({fmt_num(res['argamassa_kg'], 1)} kg) ({fmt_moeda(custo_arg)})\n"
-        )
+        if eua:
+            # Ex.: "Argamassa colante (thinset) Modificada (ANSI A118.4): 3 sacos de 50 lb (150 lb)"
+            qtd = res['sacos_argamassa']
+            texto_res += (
+                f"• {txt('label_argamassa_res')} {self._rotulo_argamassa(tipo_arg)}: "
+                f"{qtd} {txt('un_saco_argamassa') if qtd == 1 else txt('un_sacos_argamassa')} "
+                f"({self._med(res['argamassa_kg'], 'peso', 1)}) ({fmt_moeda(custo_arg)})\n"
+                f"  {txt('label_desempenadeira')}: {res['desempenadeira']} in · "
+                f"{txt('label_consumo')}: {self._med(res['consumo_argamassa_kg_m2'], 'consumo', 3)}\n"
+            )
+        else:
+            texto_res += (
+                f"• {txt('label_argamassa_res')} {tipo_arg}: {res['sacos_argamassa']} {txt('un_sacos_cal')} "
+                f"({fmt_num(res['argamassa_kg'], 1)} kg) ({fmt_moeda(custo_arg)})\n"
+            )
         if res['rodape_m'] > 0:
-            linha_rodape = f"• {txt('label_rodape')}: {fmt_num(res['rodape_m'], 2)} m"
+            linha_rodape = f"• {txt('label_rodape')}: {self._med(mostra['rodape'], 'comprimento')}"
             if res['rodape_pecas'] > 0:  # só quando o cliente informa o tamanho da peça
-                linha_rodape += f" ({res['rodape_pecas']} {txt('un_pecas')} {txt('un_de')} {fmt_num(res['rodape_peca_m'], 2)} m)"
+                linha_rodape += f" ({res['rodape_pecas']} {txt('un_pecas')} {txt('un_de')} {self._med(res['rodape_peca_m'], 'comprimento')})"
             texto_res += f"{linha_rodape} ({fmt_moeda(custo_rodape)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         resultado = {
             "etapa": txt("secao_" + aba),
             "tipo": aba,
+            "sistema": sistema,  # país da conta (a lista de compras usa as embalagens dele)
             "argamassa_sacos": res['sacos_argamassa'],
             "pecas": res['pecas'], "caixas": res['caixas'], "rodape_m": res['rodape_m'],
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
@@ -2012,14 +2131,29 @@ class CalculatorScreen(MDScreen):
         return {"texto": texto_res, "resultado": resultado}
 
     @staticmethod
-    def _texto_latas(latas_1kg, latas_2kg):
-        """Ex.: '2 latas de 2 kg e 1 lata de 1 kg'."""
+    def _texto_latas(latas_1kg, latas_2kg, sistema=None):
+        """Ex.: '2 latas de 2 kg e 1 lata de 1 kg' (latinhas de rejunte do Brasil)."""
+        t = lambda chave: txt_do_pais(chave, sistema)
         partes = []
         if latas_2kg:
-            partes.append(f"{latas_2kg} {txt('un_lata_2kg') if latas_2kg == 1 else txt('un_latas_2kg')}")
+            partes.append(f"{latas_2kg} {t('un_lata_2kg') if latas_2kg == 1 else t('un_latas_2kg')}")
         if latas_1kg:
-            partes.append(f"{latas_1kg} {txt('un_lata_1kg') if latas_1kg == 1 else txt('un_latas_1kg')}")
-        return f" {txt('un_e')} ".join(partes)
+            partes.append(f"{latas_1kg} {t('un_lata_1kg') if latas_1kg == 1 else t('un_latas_1kg')}")
+        return f" {t('un_e')} ".join(partes)
+
+    @staticmethod
+    def _texto_rejunte(tipo, grandes, pequenas, sistema=None):
+        """Embalagens de rejunte por tipo. Brasil ("lata"): '2 latas de 2 kg e 1 lata de 1 kg'.
+        EUA: '2 sacos de 25 lb e 1 caixa de 7 lb' (com areia) ou '3 caixas de 10 lb' (sem areia)."""
+        if tipo == "lata":
+            return CalculatorScreen._texto_latas(pequenas, grandes, sistema)
+        t = lambda chave: txt_do_pais(chave, sistema)
+        partes = []
+        if grandes:
+            partes.append(f"{grandes} {t('un_grande_' + tipo) if grandes == 1 else t('un_grandes_' + tipo)}")
+        if pequenas:
+            partes.append(f"{pequenas} {t('un_pequena_' + tipo) if pequenas == 1 else t('un_pequenas_' + tipo)}")
+        return f" {t('un_e')} ".join(partes)
 
     def _calcular_rejunte(self, e):
         if not all((e.get(k) or "").strip() for k in ("area", "larg", "alt", "junta")):
@@ -2032,32 +2166,56 @@ class CalculatorScreen(MDScreen):
         esp = self._numero(e.get("esp"), ESPESSURA_PADRAO_MM)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_REJUNTE)
 
-        res = calcular_rejunte(area, larg, alt, junta, esp, perda)
+        sistema = sistema_unidades()
+        res = calcular_rejunte(area, larg, alt, junta, esp, perda, sistema)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
 
-        custo_mat = res['latas_1kg'] * PRECO_LATA_1KG + res['latas_2kg'] * PRECO_LATA_2KG
+        tipo_rej = res['tipo_rejunte']  # "lata" (Brasil), "com_areia" ou "sem_areia" (EUA)
+        if tipo_rej == "lata":
+            custo_mat = res['latas_1kg'] * PRECO_LATA_1KG + res['latas_2kg'] * PRECO_LATA_2KG
+        else:
+            preco_grande, preco_pequena = PRECO_REJUNTE_EUA[tipo_rej]
+            custo_mat = res['embalagens_grandes'] * preco_grande + res['embalagens_pequenas'] * preco_pequena
 
         def n(v):
             return fmt_num(v, 0 if float(v).is_integer() else 1)
 
+        if tipo_rej == "lata":  # Brasil: igual a antes
+            texto_dados = (
+                f"{txt('label_area')}: {fmt_num(res['area_m2'], 2)} m²\n"
+                f"{txt('label_peca')}: {n(larg)}x{n(alt)} cm\n"
+                f"{txt('label_junta')}: {n(junta)} mm\n"
+                f"{txt('label_espessura')}: {n(esp)} mm\n"
+                f"{txt('label_consumo')}: {fmt_num(res['consumo_kg_m2'], 3)} kg/m²\n"
+                f"• {txt('label_rejunte_res')} ({txt('label_com_perda').format(p=fmt_num(perda, 0))}): {fmt_num(res['kg_total'], 2)} kg\n"
+            )
+        else:   # EUA: sq ft, in, lb
+            texto_dados = (
+                f"{txt('label_area')}: {self._med(area, 'area')}\n"
+                f"{txt('label_peca')}: {texto_polegadas(do_metrico(larg, 'centimetro', sistema))}x{self._med(alt, 'centimetro')}\n"
+                f"{txt('label_junta')}: {self._med(junta, 'milimetro')}\n"
+                f"{txt('label_espessura')}: {self._med(esp, 'milimetro')}\n"
+                f"{txt('label_consumo')}: {self._med(res['consumo_kg_m2'], 'consumo', 3)}\n"
+                f"• {txt('label_rejunte_' + tipo_rej)} ({txt('label_com_perda').format(p=fmt_num(perda, 0))}): "
+                f"{self._med(res['kg_total'], 'peso', 2)}\n"
+            )
         texto_res = (
-            f"{txt('label_area')}: {fmt_num(res['area_m2'], 2)} m²\n"
-            f"{txt('label_peca')}: {n(larg)}x{n(alt)} cm\n"
-            f"{txt('label_junta')}: {n(junta)} mm\n"
-            f"{txt('label_espessura')}: {n(esp)} mm\n"
-            f"{txt('label_consumo')}: {fmt_num(res['consumo_kg_m2'], 3)} kg/m²\n"
-            f"• {txt('label_rejunte_res')} ({txt('label_com_perda').format(p=fmt_num(perda, 0))}): {fmt_num(res['kg_total'], 2)} kg\n"
-            f"• {self._texto_latas(res['latas_1kg'], res['latas_2kg'])} ({fmt_moeda(custo_mat)})\n"
-            f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+            texto_dados
+            + f"• {self._texto_rejunte(tipo_rej, res['embalagens_grandes'], res['embalagens_pequenas'])} ({fmt_moeda(custo_mat)})\n"
+            + f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
 
         resultado = {
             "etapa": txt("secao_rejunte"),
             "tipo": "rejunte",
+            "sistema": sistema,  # país da conta (a lista de compras usa as embalagens dele)
             "rejunte_kg": res['kg_total'],
             "rejunte_latas_1kg": res['latas_1kg'],
             "rejunte_latas_2kg": res['latas_2kg'],
+            "rejunte_tipo": tipo_rej,
+            "rejunte_grandes": res['embalagens_grandes'],
+            "rejunte_pequenas": res['embalagens_pequenas'],
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": {"area": area, "larg": larg, "alt": alt, "junta": junta, "esp": esp, "perda": perda}
@@ -2265,18 +2423,23 @@ class CalculatorScreen(MDScreen):
         parede = self._numero(parede_txt, 0.0)
         teto = self._numero(teto_txt, 0.0)
         demaos = int(demaos_txt)
-        rend = self._numero(e.get("rend"), RENDIMENTO_PADRAO_M2_L)
+        sistema = sistema_unidades()
+        eua = (sistema == IMPERIAL)
+        # Rendimento vazio: o padrão do país (12 m²/L no Brasil; 400 sq ft/gal nos EUA)
+        rend = self._numero(e.get("rend"), rendimento_padrao_m2_l(sistema))
         perda = self._numero(e.get("perda"), PERDA_PADRAO_PINTURA)
-        selador = self.selador["pintura"]
+        # Nos EUA não existem selador nem massa (a tela nem mostra; aqui garante que não entram)
+        selador = False if eua else self.selador["pintura"]
         fundo = self.fundo["pintura"]
-        massa = self.massa_tipo
+        massa = "nenhuma" if eua else self.massa_tipo
 
-        res = calcular_pintura(parede, teto, demaos, rend, perda, selador, massa, fundo)
+        res = calcular_pintura(parede, teto, demaos, rend, perda, selador, massa, fundo, sistema)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
 
+        tabela_precos = PRECO_TINTA_EUA if eua else PRECO_TINTA
         custos = {
-            item: d['latas'] * PRECO_TINTA[item]["lata"] + d['galoes'] * PRECO_TINTA[item]["galao"]
+            item: d['latas'] * tabela_precos[item]["lata"] + d['galoes'] * tabela_precos[item]["galao"]
             for item, d in res['itens'].items()
         }
         custo_massa = res['baldes_massa'] * PRECO_BALDE_MASSA.get(massa, 0.0)
@@ -2286,18 +2449,23 @@ class CalculatorScreen(MDScreen):
             return fmt_num(v, 0 if float(v).is_integer() else 1)
 
         texto_res = ""
+        # Nos EUA mostra a área digitada, sem o arredondamento em m² (1000 sq ft, e não 999.97)
         if res['area_parede_m2'] > 0:
-            texto_res += f"{txt('label_area_parede_pint')}: {fmt_num(res['area_parede_m2'], 2)} m²\n"
+            texto_res += f"{txt('label_area_parede_pint')}: {self._med(parede if eua else res['area_parede_m2'], 'area')}\n"
         if res['area_teto_m2'] > 0:
-            texto_res += f"{txt('label_area_teto_pint')}: {fmt_num(res['area_teto_m2'], 2)} m²\n"
+            texto_res += f"{txt('label_area_teto_pint')}: {self._med(teto if eua else res['area_teto_m2'], 'area')}\n"
+        if eua:  # ex.: 400 sq ft/gal (o número que a pessoa digitou)
+            texto_rend = f"{n(round(do_metrico(rend, 'rendimento', sistema), 1))} sq ft/gal"
+        else:
+            texto_rend = f"{n(rend)} m²/L"
         texto_res += (
             f"{txt('label_demaos')}: {demaos}\n"
-            f"{txt('label_rendimento')}: {n(rend)} m²/L\n\n"
+            f"{txt('label_rendimento')}: {texto_rend}\n\n"
         )
         perda_txt = txt('label_com_perda').format(p=fmt_num(perda, 0))
         for item, d in res['itens'].items():
             texto_res += (
-                f"• {txt('label_pint_' + item)} ({perda_txt}): {fmt_num(d['litros'], 1)} L = "
+                f"• {txt('label_pint_' + item)} ({perda_txt}): {self._med(d['litros'], 'litro', 1)} = "
                 f"{self._texto_latas_galoes(d['latas'], d['galoes'])} ({fmt_moeda(custos[item])})\n"
             )
         if res['baldes_massa'] > 0:
@@ -2311,6 +2479,7 @@ class CalculatorScreen(MDScreen):
         resultado = {
             "etapa": txt("secao_pintura"),
             "tipo": "pintura",
+            "sistema": sistema,  # país da conta (a lista de compras usa as embalagens dele)
             "pintura": {item: [d['latas'], d['galoes']] for item, d in res['itens'].items()},
             "massa_tipo": massa, "baldes_massa": res['baldes_massa'],
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
@@ -2602,8 +2771,9 @@ class CalculatorScreen(MDScreen):
         if aba in self.chapisco:
             self.chapisco[aba] = bool(inputs_dict.get("chapisco"))
         if aba in self.argamassa:
-            padrao = ARGAMASSA_PADRAO_PISO if aba == "piso" else ARGAMASSA_PADRAO_AZULEJO
-            self.argamassa[aba] = inputs_dict.get("argamassa") if inputs_dict.get("argamassa") in TIPOS_ARGAMASSA else padrao
+            # Tipo salvo no orçamento; se for do outro país, troca pelo equivalente deste país
+            self.argamassa[aba] = inputs_dict.get("argamassa") or argamassa_padrao(aba == "piso", sistema_unidades())
+            self._trocar_argamassa_de_pais(sistema_unidades())
         if aba in self.desenho:
             self.desenho[aba] = bool(inputs_dict.get("desenho"))
         if aba == "laje":

@@ -11,8 +11,8 @@ from src.calculators.brocas import (
     BARRA_COMERCIAL_M,
     ARAME_POR_KG_ACO,
 )
-# O impermeabilizante vem nas mesmas embalagens da tinta (balde de 18 L e galão de 3,6 L)
-from src.calculators.pintura import latas_e_galoes, LATA_L, GALAO_L
+from src.calculators.unidades import METRICO, IMPERIAL, L_POR_GAL
+from src.calculators.embalagens import grandes_e_pequenas
 
 # Perda padrão do concreto do baldrame (CONFIRMADO pelo engenheiro em Oct 27, 2026; a da broca é 10%)
 PERDA_PADRAO_BALDRAME = 5.0
@@ -24,12 +24,23 @@ TRASPASSE_DIAMETROS = 40
 
 # Impermeabilização: tinta asfáltica (ex.: Neutrol), aplicada no topo e nas duas laterais da viga.
 # O fabricante indica de 0,4 a 0,5 L por m²; o app usa 0,4 L/m² por demão, em 2 demãos.
+# (Nos EUA isso dá 2 gal por 100 sq ft; a Henry indica de 1,5 a 2 gal por 100 sq ft: bate.)
 DEMAOS_IMPERMEABILIZANTE = 2
 LITROS_POR_M2_POR_DEMAO = 0.4
 
-# Preço PROVISÓRIO (R$ por litro) até a tabela de preços ser refeita.
-# O engenheiro pediu o preço por litro, porque o produto vem em balde de 18 L e galão de 3,6 L.
-PRECO_IMPERM_LITRO = 15.50
+# Embalagens do impermeabilizante: (balde, galão), em litros
+# Brasil: balde de 18 L e galão de 3,6 L (as mesmas da tinta).
+# EUA (Henry, damp-proofing de fundação): balde de 5 gal com 4,75 gal de produto dentro, e galão de 1 gal.
+EMBALAGENS_IMPERM_L = {
+    METRICO: (18.0, 3.6),
+    IMPERIAL: (4.75 * L_POR_GAL, 1 * L_POR_GAL),
+}
+
+# Preço PROVISÓRIO por litro até a tabela de preços ser refeita.
+# O engenheiro pediu o preço por litro, porque o produto vem em balde e galão.
+PRECO_IMPERM_LITRO = 15.50   # Brasil (R$)
+# EUA ($): balde de 5 gal (4,75 gal) a $39.95 (pesquisa de Oct 28, 2026) = cerca de $2.22 por litro
+PRECO_IMPERM_LITRO_EUA = 39.95 / (4.75 * L_POR_GAL)
 
 
 def calcular_baldrame(
@@ -42,6 +53,7 @@ def calcular_baldrame(
     bitola_mm: float = BITOLA_PADRAO,
     espacamento_estribo_cm: float = ESPACAMENTO_ESTRIBO_PADRAO_CM,
     incluir_impermeabilizacao: bool = False,
+    sistema: str = METRICO,
 ) -> dict:
     if comprimento_m <= 0 or largura_cm <= 0 or altura_cm <= 0:
         return {"erro": "Valores devem ser maiores que zero."}
@@ -101,6 +113,7 @@ def calcular_baldrame(
     barras_12m = barras_longitudinal + barras_estribos
 
     # Impermeabilização opcional: topo + 2 laterais da viga
+    balde_l, galao_l = EMBALAGENS_IMPERM_L[sistema]
     area_imperm_m2 = 0.0
     litros_imperm = 0.0
     latas_imperm = 0
@@ -108,8 +121,8 @@ def calcular_baldrame(
     if incluir_impermeabilizacao:
         area_imperm_m2 = comprimento_m * (largura_m + 2 * altura_m)
         litros_imperm = area_imperm_m2 * LITROS_POR_M2_POR_DEMAO * DEMAOS_IMPERMEABILIZANTE
-        latas_imperm, galoes_imperm = latas_e_galoes(litros_imperm)
-    litros_compra_imperm = latas_imperm * LATA_L + galoes_imperm * GALAO_L
+        latas_imperm, galoes_imperm = grandes_e_pequenas(litros_imperm, balde_l, galao_l)
+    litros_compra_imperm = latas_imperm * balde_l + galoes_imperm * galao_l
 
     return {
         "volume_m3": round(volume, 3),
@@ -138,7 +151,7 @@ def calcular_baldrame(
         "incluiu_impermeabilizacao": incluir_impermeabilizacao,
         "area_imperm_m2": round(area_imperm_m2, 2),
         "litros_imperm": round(litros_imperm, 1),
-        "latas_imperm": latas_imperm,       # baldes de 18 L
-        "galoes_imperm": galoes_imperm,     # galões de 3,6 L
+        "latas_imperm": latas_imperm,       # baldes (18 L no Brasil; 5 gal nos EUA)
+        "galoes_imperm": galoes_imperm,     # galões (3,6 L no Brasil; 1 gal nos EUA)
         "litros_compra_imperm": round(litros_compra_imperm, 1),
     }

@@ -4,11 +4,13 @@ Usada pela tela de Resumo e pelo PDF (os dois mostram exatamente a mesma lista).
 """
 from datetime import datetime
 
-from src.calculators.pintura import latas_e_galoes
 from src.calculators.hidraulica import BARRA_TUBO_M
+from src.calculators.baldrame import EMBALAGENS_IMPERM_L
+from src.calculators.embalagens import grandes_e_pequenas
+from src.calculators.unidades import METRICO, IMPERIAL, do_metrico
 from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_moeda
 from src.calculators.reserva import calcular_reserva
-from src.views.calculator_screen import CalculatorScreen
+from src.views.calculator_screen import CalculatorScreen, txt_do_pais
 from src.views import comum
 
 # Ordem dos grupos (lojas) na lista
@@ -33,6 +35,12 @@ def _soma(itens, chave):
 
 def _do_tipo(itens, tipo):
     return [item for item in itens if item.get("tipo") == tipo]
+
+
+def _sistema(item):
+    """País em que a aba foi calculada. Orçamento antigo (de antes da versão EUA) não tem
+    essa informação e foi feito no Brasil: métrico."""
+    return item.get("sistema", METRICO)
 
 
 def montar_lista_compras(itens):
@@ -64,11 +72,20 @@ def montar_lista_compras(itens):
     total = _soma(itens, "arame_kg")
     if total > 0:
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
-    total = _soma(itens, "imperm_litros")
-    if total > 0:
-        # Baldes de 18 L e galões de 3,6 L (vale também para orçamentos antigos, que só têm os litros)
-        latas, galoes = latas_e_galoes(total)
-        basico.append(f"{txt('label_imperm_item')}: {fmt_num(total, 1)} L ({C._texto_latas_galoes(latas, galoes)})")
+    for item in _do_tipo(itens, "baldrame"):
+        litros = item.get("imperm_litros", 0)
+        if litros > 0:
+            # Brasil: baldes de 18 L e galões de 3,6 L. EUA: baldes de 5 gal (4,75 gal) e galões de 1 gal.
+            # (Vale também para orçamentos antigos, que só têm os litros.)
+            sistema = _sistema(item)
+            balde, galao = EMBALAGENS_IMPERM_L[sistema]
+            latas, galoes = grandes_e_pequenas(litros, balde, galao)
+            if sistema == IMPERIAL:
+                quantidade = f"{fmt_num(do_metrico(litros, 'litro', IMPERIAL), 1)} gal"
+            else:
+                quantidade = f"{fmt_num(litros, 1)} L"
+            basico.append(f"{txt_do_pais('label_imperm_item', sistema)}: {quantidade} "
+                          f"({C._texto_latas_galoes(latas, galoes, sistema)})")
     total = _soma(itens, "laje_premoldada_m2")
     if total > 0:
         linha = f"{txt('label_laje_pm_resumo')}: {fmt_num(total, 2)} m²"
@@ -111,20 +128,48 @@ def montar_lista_compras(itens):
                 acab.append(f"{txt(rotulo)}: {caixas} {txt('un_caixas')} ({pecas} {txt('un_pecas')})")
             else:
                 acab.append(f"{txt(rotulo)}: {pecas} {txt('un_pecas')}")
-    total = _soma(itens, "argamassa_sacos")
-    if total > 0:
-        acab.append(f"{txt('label_argamassa_resumo')}: {total} {txt('un_sacos_cal').replace(' de 20 kg', '').replace(' of 20 kg', '')}")
-    total = _soma(itens, "rodape_m")
-    if total > 0:
-        acab.append(f"{txt('label_rodape')}: {fmt_num(total, 2)} m")
-    total = _soma(itens, "rejunte_kg")
-    if total > 0:
-        latas_1 = _soma(itens, "rejunte_latas_1kg")
-        latas_2 = _soma(itens, "rejunte_latas_2kg")
-        acab.append(f"{txt('label_rejunte_resumo')}: {fmt_num(total, 2)} kg ({C._texto_latas(latas_1, latas_2)})")
+    # Argamassa colante: sacos de 20 kg (Brasil) ou de 50 lb (EUA); soma por país
+    for sistema in (METRICO, IMPERIAL):
+        itens_arg = [i for i in itens if i.get("argamassa_sacos", 0) > 0 and _sistema(i) == sistema]
+        total = _soma(itens_arg, "argamassa_sacos")
+        if total <= 0:
+            continue
+        if sistema == IMPERIAL:
+            unidade = txt_do_pais("un_saco_argamassa" if total == 1 else "un_sacos_argamassa", sistema)
+            acab.append(f"{txt_do_pais('label_argamassa_res', sistema)}: {total} {unidade}")
+        else:
+            acab.append(f"{txt_do_pais('label_argamassa_resumo', sistema)}: {total} "
+                        f"{txt_do_pais('un_sacos_cal', sistema).replace(' de 20 kg', '').replace(' of 20 kg', '')}")
+    # Rodapé: metros no Brasil, ft nos EUA
+    for sistema in (METRICO, IMPERIAL):
+        total = _soma([i for i in itens if _sistema(i) == sistema], "rodape_m")
+        if total > 0:
+            if sistema == IMPERIAL:
+                acab.append(f"{txt('label_rodape')}: {fmt_num(do_metrico(total, 'comprimento', IMPERIAL), 1)} ft")
+            else:
+                acab.append(f"{txt('label_rodape')}: {fmt_num(total, 2)} m")
+    for item in _do_tipo(itens, "rejunte"):
+        kg = item.get("rejunte_kg", 0)
+        if kg <= 0:
+            continue
+        sistema = _sistema(item)
+        tipo_rej = item.get("rejunte_tipo", "lata")
+        if tipo_rej == "lata":
+            # Orçamento antigo não tem "rejunte_grandes": usa as latas de 2 kg e de 1 kg
+            grandes = item.get("rejunte_grandes", item.get("rejunte_latas_2kg", 0))
+            pequenas = item.get("rejunte_pequenas", item.get("rejunte_latas_1kg", 0))
+            quantidade = f"{fmt_num(kg, 2)} kg"
+            rotulo = txt_do_pais("label_rejunte_resumo", sistema)
+        else:
+            grandes = item.get("rejunte_grandes", 0)
+            pequenas = item.get("rejunte_pequenas", 0)
+            quantidade = f"{fmt_num(do_metrico(kg, 'peso', IMPERIAL), 2)} lb"
+            rotulo = txt_do_pais("label_rejunte_" + tipo_rej, sistema)
+        acab.append(f"{rotulo}: {quantidade} ({C._texto_rejunte(tipo_rej, grandes, pequenas, sistema)})")
     for item in _do_tipo(itens, "pintura"):
+        sistema = _sistema(item)
         for produto, (latas, galoes) in item.get("pintura", {}).items():
-            acab.append(f"{txt('label_pint_' + produto)}: {C._texto_latas_galoes(latas, galoes)}")
+            acab.append(f"{txt_do_pais('label_pint_' + produto, sistema)}: {C._texto_latas_galoes(latas, galoes, sistema)}")
         if item.get("baldes_massa", 0) > 0:
             qtd = item["baldes_massa"]
             acab.append(f"{C._rotulo_massa(item['massa_tipo'])}: {qtd} {txt('un_balde_25') if qtd == 1 else txt('un_baldes_25')}")

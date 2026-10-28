@@ -18,18 +18,25 @@ import re
 METRICO = "metrico"    # Brasil
 IMPERIAL = "imperial"  # EUA
 
+# Fatores exatos usados também nas embalagens americanas (saco de 50 lb, balde de 5 gal...)
+KG_POR_LB = 0.45359237        # 1 lb = 0,45359237 kg
+L_POR_GAL = 3.785411784       # 1 galão americano = 3,785411784 L
+M2_POR_SQFT = 0.09290304      # 1 sq ft = 0,3048 x 0,3048 m²
+
 # Cada tipo de medida: (unidade métrica, unidade americana, quanto 1 unidade americana vale em métrico).
 # Todos os fatores são exatos (definição oficial), não aproximados.
 UNIDADES = {
     "comprimento": ("m", "ft", 0.3048),            # 1 ft = 0,3048 m
     "centimetro": ("cm", "in", 2.54),              # 1 in = 2,54 cm
     "milimetro": ("mm", "in", 25.4),               # 1 in = 25,4 mm
-    "area": ("m²", "sq ft", 0.09290304),           # 1 sq ft = 0,3048 x 0,3048 m²
+    "area": ("m²", "sq ft", M2_POR_SQFT),
     "volume": ("m³", "cu yd", 0.764554857984),     # 1 cu yd = (3 x 0,3048)³ m³
-    "peso": ("kg", "lb", 0.45359237),              # 1 lb = 0,45359237 kg
-    "litro": ("L", "gal", 3.785411784),            # 1 galão americano = 3,785411784 L
+    "peso": ("kg", "lb", KG_POR_LB),
+    "litro": ("L", "gal", L_POR_GAL),
     # Rendimento da tinta: 1 sq ft/gal = 0,09290304 m² / 3,785411784 L
-    "rendimento": ("m²/L", "sq ft/gal", 0.09290304 / 3.785411784),
+    "rendimento": ("m²/L", "sq ft/gal", M2_POR_SQFT / L_POR_GAL),
+    # Consumo por área (rejunte, argamassa): 1 lb/sq ft = 0,45359237 kg / 0,09290304 m²
+    "consumo": ("kg/m²", "lb/sq ft", KG_POR_LB / M2_POR_SQFT),
     # Preço por comprimento (mão de obra): $ 1 por ft = $ 3,28 por m (1 m tem 1/0,3048 ft)
     "preco_comprimento": ("/m", "/ft", 1 / 0.3048),
 }
@@ -128,6 +135,7 @@ if __name__ == "__main__":
     except ValueError:
         print("abc: dá erro, como esperado")
     print("400 sq ft/gal em m²/L:", round(para_metrico(400, "rendimento", IMPERIAL), 2))     # 9.82
+    print("3,5 kg/m² em lb/sq ft:", round(do_metrico(3.5, "consumo", IMPERIAL), 3))          # 0.717
     print("$ 8 por ft em $ por m:", round(para_metrico(8, "preco_comprimento", IMPERIAL), 2))  # 26.25
     print("0.375 in:", texto_polegadas(0.375))                   # 3/8
     print("1.5 in:", texto_polegadas(1.5))                       # 1 1/2

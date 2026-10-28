@@ -3,8 +3,10 @@
 
 kivy==2.3.1
 
-# KivyMD 2.x: ainda nao esta no PyPI, por isso vem direto do GitHub
-kivymd @ https://github.com/kivymd/KivyMD/archive/master.zip
+# KivyMD 2.x: ainda nao esta no PyPI, por isso vem direto do GitHub.
+# Versao TRAVADA (19/10/2026): as versoes mais novas usam um recurso
+# que so funciona no Python 3.10+ e quebram no nosso Python 3.9.
+kivymd @ https://github.com/kivymd/KivyMD/archive/a935f4c637fca6bd95999200e542d636e9fb19ca.zip
 
 # Geracao de PDF (orcamento e lista de compras)
 reportlab==4.2.5

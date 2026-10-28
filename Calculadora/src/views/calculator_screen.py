@@ -131,7 +131,7 @@ from src.calculators.tracos import (
 )
 from kivymd.uix.widget import MDWidget
 from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, txt, fmt_moeda, fmt_num, sistema_unidades
-from src.calculators.unidades import IMPERIAL, ler_numero
+from src.calculators.unidades import METRICO, IMPERIAL, ler_numero, para_metrico, do_metrico, texto_polegadas
 
 
 # --- TELA DE CÁLCULO COM ABAS (Navegação Interna) ---
@@ -187,6 +187,26 @@ CAMPOS_INICIAIS = {
     "pintura": ["parede", "teto"],
     "esquadrias": ["qtd", "larg", "alt"],
 }
+# Versão EUA: a unidade de cada campo com medida (os tipos estão em src/calculators/unidades.py).
+# Nos EUA, o que a pessoa digita nesses campos é convertido para métrico antes da conta.
+# Campo que não está aqui não muda (quantidades, perdas, barras, inclinação, demãos, pontos).
+# Esquadrias não está aqui: as medidas dela são convertidas ao tocar em "Adicionar à lista".
+UNIDADE_CAMPO = {
+    "brocas": {"prof": "comprimento", "diam": "centimetro", "esp_estribo": "centimetro", "mo": "preco_comprimento"},
+    "baldrame": {"comp": "comprimento", "larg": "centimetro", "alt": "centimetro",
+                 "esp_estribo": "centimetro", "mo": "preco_comprimento"},
+    "paredes": {"area": "area", "vaos": "area", "junta": "centimetro"},
+    "contrapiso": {"area": "area", "esp": "centimetro"},
+    "reboco": {"area": "area", "vaos": "area", "esp": "centimetro"},
+    "piso": {"area": "area", "larg": "centimetro", "alt": "centimetro", "caixa": "area", "rodape": "comprimento"},
+    "azulejo": {"area": "area", "larg": "centimetro", "alt": "centimetro", "vaos": "area", "caixa": "area"},
+    "rejunte": {"area": "area", "larg": "centimetro", "alt": "centimetro", "junta": "milimetro", "esp": "milimetro"},
+    "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro"},
+    "telhado": {"area": "area", "cumeeira": "comprimento"},
+    "eletrica": {chave: "comprimento" for chave in CAMPOS_ABA["eletrica"] if chave == "conduite" or chave.startswith("fio")},
+    "hidraulica": {chave: "comprimento" for chave in CAMPOS_ABA["hidraulica"] if chave.startswith("tubo_")},
+    "pintura": {"parede": "area", "teto": "area", "rend": "rendimento"},
+}
 
 
 class CalculatorScreen(MDScreen):
@@ -207,6 +227,7 @@ class CalculatorScreen(MDScreen):
         self.modo_somente_leitura = False
         self.estado_abas = {}        # texto digitado em cada aba
         self.textos_resultado = {}   # último resultado mostrado em cada aba
+        self._sistema_estado = sistema_unidades()  # em que unidades o texto do estado_abas está
         self.traco = {"brocas": TRACO_CONCRETO_PADRAO, "baldrame": TRACO_CONCRETO_PADRAO, "paredes": TRACO_MASSA_PADRAO, "contrapiso": TRACO_CONCRETO_PADRAO, "reboco": TRACO_MASSA_PADRAO, "laje": TRACO_CONCRETO_PADRAO}
         self.tijolo = {"paredes": TIJOLO_PADRAO}
         self.assent = {"paredes": ASSENTAMENTO_PADRAO}
@@ -222,7 +243,7 @@ class CalculatorScreen(MDScreen):
         self.selador = {"pintura": False}
         self.fundo = {"pintura": False}
         self.massa_tipo = "nenhuma"
-        self.esquadrias_itens = []   # lista de portas e janelas da aba Esquadrias
+        self.esquadrias_itens = []   # lista de portas e janelas da aba Esquadrias (medidas sempre em cm)
         self.esq_tipo = TIPO_ESQUADRIA_PADRAO
         self.esq_material = MATERIAL_PADRAO
         self.esq_fixacao = {"espuma": False, "parafusos": False, "argamassa": False}
@@ -241,7 +262,18 @@ class CalculatorScreen(MDScreen):
         if montar:
             self.montar_tela()
 
+    def _sincronizar_unidades(self):
+        """O país mudou nas Configurações: converte o que já foi digitado para as unidades novas."""
+        sistema = sistema_unidades()
+        if sistema == self._sistema_estado:
+            return
+        self._capturar_estado()  # guarda o texto da aba aberta antes de converter
+        self._converter_estado_abas(self._sistema_estado, sistema)
+        self._sistema_estado = sistema
+        self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi convertido
+
     def montar_tela(self):
+        self._sincronizar_unidades()
         self.layout_principal.clear_widgets()
 
         # --- TOPO (Botão Voltar + Título) ---
@@ -407,7 +439,7 @@ class CalculatorScreen(MDScreen):
         self.in_barras = MDTextField(MDTextFieldHintText(text=txt("hint_barras")), mode="outlined", write_tab=False, readonly=ro)
         self.in_esp_estribo = MDTextField(
             MDTextFieldHintText(text=txt("hint_esp_estribo")),
-            text=self._texto_campo(ESPACAMENTO_ESTRIBO_PADRAO_CM),
+            text=self._texto_padrao(ESPACAMENTO_ESTRIBO_PADRAO_CM, "centimetro"),
             mode="outlined", write_tab=False, readonly=ro
         )
         box_form.add_widget(self.lbl_armadura)
@@ -475,7 +507,7 @@ class CalculatorScreen(MDScreen):
         self.in_bal_barras = MDTextField(MDTextFieldHintText(text=txt("hint_barras_bal")), mode="outlined", write_tab=False, readonly=ro)
         self.in_bal_esp_estribo = MDTextField(
             MDTextFieldHintText(text=txt("hint_esp_estribo")),
-            text=self._texto_campo(ESPACAMENTO_ESTRIBO_PADRAO_CM),
+            text=self._texto_padrao(ESPACAMENTO_ESTRIBO_PADRAO_CM, "centimetro"),
             mode="outlined", write_tab=False, readonly=ro
         )
         box_form.add_widget(self.lbl_armadura_bal)
@@ -531,7 +563,7 @@ class CalculatorScreen(MDScreen):
         self.in_par_vaos = MDTextField(MDTextFieldHintText(text=txt("hint_vaos")), mode="outlined", write_tab=False, readonly=ro)
         self.in_par_junta = MDTextField(
             MDTextFieldHintText(text=txt("hint_junta")),
-            text=self._texto_campo(JUNTA_PADRAO_CM), mode="outlined", write_tab=False, readonly=ro
+            text=self._texto_padrao(JUNTA_PADRAO_CM, "centimetro"), mode="outlined", write_tab=False, readonly=ro
         )
         self.in_par_quebra = MDTextField(
             MDTextFieldHintText(text=txt("hint_quebra")),
@@ -624,7 +656,7 @@ class CalculatorScreen(MDScreen):
         self.in_reb_area = MDTextField(MDTextFieldHintText(text=txt("hint_area_reboco")), mode="outlined", write_tab=False, readonly=ro)
         self.in_reb_esp = MDTextField(
             MDTextFieldHintText(text=txt("hint_esp_reboco")),
-            text=self._texto_campo(ESPESSURA_REBOCO_PADRAO_CM), mode="outlined", write_tab=False, readonly=ro
+            text=self._texto_padrao(ESPESSURA_REBOCO_PADRAO_CM, "centimetro"), mode="outlined", write_tab=False, readonly=ro
         )
         box_form.add_widget(self.lbl_obrigatorio_reb)
         box_form.add_widget(self.in_reb_area)
@@ -764,7 +796,7 @@ class CalculatorScreen(MDScreen):
         # Os dois campos de espessura sempre existem (o que foi digitado não se perde ao trocar o tipo),
         # mas só aparece o do tipo escolhido
         self.in_laje_area = campo(txt("hint_area_laje"))
-        self.in_laje_capa = campo(txt("hint_capa_laje"), self._texto_campo(CAPA_PADRAO_CM))
+        self.in_laje_capa = campo(txt("hint_capa_laje"), self._texto_padrao(CAPA_PADRAO_CM, "centimetro"))
         self.in_laje_esp = campo(txt("hint_esp_laje"))
         self.in_laje_perda = campo(txt("hint_perda_bal"), self._texto_campo(PERDA_PADRAO_LAJE))
 
@@ -1031,7 +1063,7 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_pint_demaos)
 
         # --- Opcionais (já vêm com valor padrão) ---
-        self.in_pint_rend = campo(txt("hint_rendimento"), self._texto_campo(RENDIMENTO_PADRAO_M2_L))
+        self.in_pint_rend = campo(txt("hint_rendimento"), self._texto_padrao(RENDIMENTO_PADRAO_M2_L, "rendimento"))
         self.in_pint_perda = campo(txt("hint_perda"), self._texto_campo(PERDA_PADRAO_PINTURA))
         box_form.add_widget(self.in_pint_rend)
         self._montar_sim_nao(box_form, txt("label_selador"), self.selador, "pintura", "selador")
@@ -1174,10 +1206,17 @@ class CalculatorScreen(MDScreen):
 
     @staticmethod
     def _texto_item_esquadria(item):
-        """Ex.: '3x Porta 80 x 210 cm (Madeira)'."""
-        def n(v):
-            return fmt_num(v, 0 if float(v).is_integer() else 1)
-        texto = f"{item['qtd']}x {CalculatorScreen._rotulo_esq_tipo(item['tipo'])} {n(item['larg'])} x {n(item['alt'])} cm"
+        """Ex.: '3x Porta 80 x 210 cm (Madeira)' no Brasil, '3x Door 36 x 80 in' nos EUA.
+        As medidas ficam guardadas em cm; nos EUA só são mostradas em polegadas."""
+        if sistema_unidades() == IMPERIAL:
+            larg = texto_polegadas(do_metrico(item["larg"], "centimetro", IMPERIAL))
+            alt = texto_polegadas(do_metrico(item["alt"], "centimetro", IMPERIAL))
+            unidade = "in"
+        else:
+            def n(v):
+                return fmt_num(v, 0 if float(v).is_integer() else 1)
+            larg, alt, unidade = n(item["larg"]), n(item["alt"]), "cm"
+        texto = f"{item['qtd']}x {CalculatorScreen._rotulo_esq_tipo(item['tipo'])} {larg} x {alt} {unidade}"
         if item["material"] != MATERIAL_PADRAO:
             texto += f" ({CalculatorScreen._rotulo_material(item['material'])})"
         return texto
@@ -1193,6 +1232,10 @@ class CalculatorScreen(MDScreen):
         if qtd <= 0 or larg <= 0 or alt <= 0:
             self._lbl_resultado.text = txt("msg_erro_num")
             return
+        # Nos EUA a pessoa digita em polegadas; a lista guarda sempre em cm
+        sistema = sistema_unidades()
+        larg = round(para_metrico(larg, "centimetro", sistema), 4)
+        alt = round(para_metrico(alt, "centimetro", sistema), 4)
 
         # Mesmo tipo, material e tamanho: soma na quantidade em vez de repetir a linha
         for item in self.esquadrias_itens:
@@ -1239,7 +1282,7 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_rej_junta)
 
         # --- Opcionais (já vêm com valor padrão) ---
-        self.in_rej_esp = campo(txt("hint_esp_peca"), self._texto_campo(ESPESSURA_PADRAO_MM))
+        self.in_rej_esp = campo(txt("hint_esp_peca"), self._texto_padrao(ESPESSURA_PADRAO_MM, "milimetro"))
         self.in_rej_perda = campo(txt("hint_perda"), self._texto_campo(PERDA_PADRAO_REJUNTE))
         box_form.add_widget(self.in_rej_esp)
         box_form.add_widget(self.in_rej_perda)
@@ -1534,7 +1577,7 @@ class CalculatorScreen(MDScreen):
         if self.dialog_ajuda:
             self.dialog_ajuda.dismiss()
         texto = f"{txt(f'ajuda_{self.aba_atual}')}\n\n{txt('nota_opcionais')}"
-                # EUA + português: explica as siglas (ft, in, sq ft...) no fim da ajuda
+        # EUA + português: explica as siglas (ft, in, sq ft...) no fim da ajuda
         if sistema_unidades() == IMPERIAL and CONFIG_APP.get("idioma", "pt").lower() == "pt":
             texto += f"\n\n{txt('legenda_unidades')}"
         self.dialog_ajuda = MDDialog(
@@ -1545,6 +1588,75 @@ class CalculatorScreen(MDScreen):
             )
         )
         self.dialog_ajuda.open()
+
+    # ==========================================
+    # UNIDADES DA VERSÃO EUA (as contas são sempre em métrico; aqui só se traduz o texto)
+    # ==========================================
+    @staticmethod
+    def _formatar_medida(valor_metrico, tipo, sistema):
+        """Texto de uma medida (guardada em métrico) nas unidades do sistema.
+        Polegadas saem em fração (3/8, 1 1/2) quando o número permite."""
+        if sistema != IMPERIAL:
+            return CalculatorScreen._texto_campo(round(valor_metrico, 2))
+        convertido = do_metrico(valor_metrico, tipo, sistema)
+        if tipo in ("centimetro", "milimetro"):
+            return texto_polegadas(convertido)
+        return CalculatorScreen._texto_campo(round(convertido, 3))
+
+    @staticmethod
+    def _texto_padrao(valor_metrico, tipo):
+        """Valor que já vem preenchido no campo. Nos EUA, arredonda para um número "redondo" de lá:
+        1 cm -> 3/8 in, 15 cm -> 6 in, 8 mm -> 5/16 in, 10 m²/L -> 400 sq ft/gal."""
+        sistema = sistema_unidades()
+        if sistema != IMPERIAL:
+            return CalculatorScreen._texto_campo(valor_metrico)
+        convertido = do_metrico(valor_metrico, tipo, sistema)
+        if tipo in ("centimetro", "milimetro"):
+            if convertido >= 4:
+                return str(round(convertido))  # medida grande: polegada inteira
+            return texto_polegadas(convertido, aproximar=True, divisao=16 if tipo == "milimetro" else 8)
+        if tipo == "rendimento":
+            return str(int(round(convertido / 25.0) * 25))  # de 25 em 25 sq ft/gal
+        return CalculatorScreen._texto_campo(round(convertido, 2))
+
+    @staticmethod
+    def _texto_medida(aba, chave, valor):
+        """Valor salvo no Histórico (sempre em métrico) -> texto do campo nas unidades atuais."""
+        tipo = UNIDADE_CAMPO.get(aba, {}).get(chave)
+        sistema = sistema_unidades()
+        numero = isinstance(valor, (int, float)) and not isinstance(valor, bool)
+        if tipo is None or sistema != IMPERIAL or not numero:
+            return CalculatorScreen._texto_campo(valor)
+        return CalculatorScreen._formatar_medida(valor, tipo, sistema)
+
+    def _estado_metrico(self, aba, e):
+        """Cópia do texto digitado com as medidas já em métrico (é isso que vai para a conta).
+        No Brasil, devolve o mesmo texto. Número inválido dá ValueError (o _calcular_aba trata)."""
+        sistema = sistema_unidades()
+        if sistema != IMPERIAL:
+            return e
+        convertido = dict(e)
+        for chave, tipo in UNIDADE_CAMPO.get(aba, {}).items():
+            texto = (e.get(chave) or "").strip()
+            if texto:
+                convertido[chave] = repr(para_metrico(self._numero(texto), tipo, sistema))
+        return convertido
+
+    def _converter_estado_abas(self, antigo, novo):
+        """O país mudou com abas preenchidas: reescreve as medidas digitadas nas unidades novas
+        (ex.: 3 m vira 9.84 ft). Os resultados antigos são apagados (estavam na unidade velha)."""
+        separador = "," if antigo == METRICO else "."
+        for aba, estado in self.estado_abas.items():
+            for chave, tipo in UNIDADE_CAMPO.get(aba, {}).items():
+                texto = (estado.get(chave) or "").strip()
+                if not texto:
+                    continue
+                try:
+                    valor = ler_numero(texto, separador)
+                except ValueError:
+                    continue  # texto inválido fica como está (o Calcular avisa)
+                estado[chave] = self._formatar_medida(para_metrico(valor, tipo, antigo), tipo, novo)
+        self.textos_resultado.clear()
 
     # ==========================================
     # CÁLCULOS (a partir do texto digitado, sem depender dos campos na tela)
@@ -1562,6 +1674,7 @@ class CalculatorScreen(MDScreen):
     def _calcular_aba(self, aba, e):
         """Retorna {"erro": mensagem} ou {"texto": resultado na tela, "resultado": dados da etapa}."""
         try:
+            e = self._estado_metrico(aba, e)  # nos EUA: ft, in, sq ft... viram m, cm, m²...
             if aba == "baldrame":
                 return self._calcular_baldrame(e)
             if aba == "paredes":
@@ -2421,7 +2534,9 @@ class CalculatorScreen(MDScreen):
         return str(valor).replace('.', CONFIG_APP["separador_decimal"])
 
     def preencher_campos(self, inputs_dict: dict, modo_leitura: bool = False, tipo: str = "brocas"):
-        """Carrega os valores salvos de UMA aba (o Histórico chama uma vez por aba)."""
+        """Carrega os valores salvos de UMA aba (o Histórico chama uma vez por aba).
+        As medidas estão salvas em métrico; nos EUA, aparecem convertidas para ft, in, sq ft..."""
+        self._sincronizar_unidades()  # as outras abas já carregadas ficam nas unidades atuais
         aba = tipo if tipo in ABAS_ORDEM else ABAS_ORDEM[0]
         self.modo_somente_leitura = modo_leitura
         self.aba_atual = aba
@@ -2468,7 +2583,7 @@ class CalculatorScreen(MDScreen):
         for chave in CAMPOS_ABA[aba]:
             if chave in inputs_dict:
                 valor = inputs_dict[chave]
-                estado[chave] = "" if (chave == "esp_estribo" and not valor) else self._texto_campo(valor)
+                estado[chave] = "" if (chave == "esp_estribo" and not valor) else self._texto_medida(aba, chave, valor)
             elif chave == "esp_estribo":
                 estado[chave] = ""  # orçamento antigo: não tinha estribos
         self.estado_abas[aba] = estado

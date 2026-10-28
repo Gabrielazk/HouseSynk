@@ -6,11 +6,13 @@ Este arquivo só traduz os números:
 - saída: o resultado da conta (em métrico) vira ft, sq ft, cu yd... para mostrar na tela.
 
 Também lê o número digitado (ler_numero), aceitando decimal e fração (1/8, 2 1/2),
-porque nos EUA as medidas em polegadas costumam ser escritas em fração.
+e escreve polegadas em fração (texto_polegadas), porque nos EUA as medidas em
+polegadas costumam ser escritas assim.
 
 Não tem nada de tela aqui (igual aos outros arquivos de src/calculators).
 Quem decide se o sistema é métrico ou imperial é a tela, pelo país escolhido.
 """
+import math
 import re
 
 METRICO = "metrico"    # Brasil
@@ -26,6 +28,10 @@ UNIDADES = {
     "volume": ("m³", "cu yd", 0.764554857984),     # 1 cu yd = (3 x 0,3048)³ m³
     "peso": ("kg", "lb", 0.45359237),              # 1 lb = 0,45359237 kg
     "litro": ("L", "gal", 3.785411784),            # 1 galão americano = 3,785411784 L
+    # Rendimento da tinta: 1 sq ft/gal = 0,09290304 m² / 3,785411784 L
+    "rendimento": ("m²/L", "sq ft/gal", 0.09290304 / 3.785411784),
+    # Preço por comprimento (mão de obra): $ 1 por ft = $ 3,28 por m (1 m tem 1/0,3048 ft)
+    "preco_comprimento": ("/m", "/ft", 1 / 0.3048),
 }
 
 # Fração: "1/8", "2 1/2" ou "2-1/2" (a parte inteira é opcional)
@@ -85,6 +91,23 @@ def ler_numero(texto, separador_decimal=",", padrao=0.0):
     return int(inteiro or 0) + int(numerador) / int(denominador)
 
 
+def texto_polegadas(valor, aproximar=False, divisao=16):
+    """Escreve polegadas do jeito americano: 0.375 -> "3/8", 1.5 -> "1 1/2", 12.0 -> "12".
+    divisao: o menor pedaço usado (16 = até 1/16 in, 8 = até 1/8 in).
+    aproximar=True: arredonda para o pedaço mais próximo (usado nos valores que já vêm preenchidos).
+    aproximar=False: só vira fração se o número for exatamente um múltiplo do pedaço;
+    se não for, fica em decimal (ex.: 5.906), para não mudar o que a pessoa digitou."""
+    pedacos = round(valor * divisao)
+    if not aproximar and abs(valor * divisao - pedacos) > 0.01:
+        return f"{round(valor, 3):g}"
+    inteiro, resto = divmod(pedacos, divisao)
+    if resto == 0:
+        return str(inteiro)
+    divisor = math.gcd(resto, divisao)
+    fracao = f"{resto // divisor}/{divisao // divisor}"
+    return f"{inteiro} {fracao}" if inteiro else fracao
+
+
 if __name__ == "__main__":
     # Teste rápido: dentro da pasta Calculadora, rode
     #   py -m src.calculators.unidades
@@ -104,3 +127,12 @@ if __name__ == "__main__":
         ler_numero("abc")
     except ValueError:
         print("abc: dá erro, como esperado")
+    print("400 sq ft/gal em m²/L:", round(para_metrico(400, "rendimento", IMPERIAL), 2))     # 9.82
+    print("$ 8 por ft em $ por m:", round(para_metrico(8, "preco_comprimento", IMPERIAL), 2))  # 26.25
+    print("0.375 in:", texto_polegadas(0.375))                   # 3/8
+    print("1.5 in:", texto_polegadas(1.5))                       # 1 1/2
+    print("12 in:", texto_polegadas(12.0))                       # 12
+    print("5.906 in (sem aproximar):", texto_polegadas(5.906))   # 5.906
+    print("1 cm em in (aproximando):", texto_polegadas(do_metrico(1, "centimetro", IMPERIAL), aproximar=True))  # 3/8
+    print("1/16 in:", texto_polegadas(0.0625))                   # 1/16
+    print("8 mm em in (aproximando):", texto_polegadas(do_metrico(8, "milimetro", IMPERIAL), aproximar=True))  # 5/16

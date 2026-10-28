@@ -5,3 +5,4 @@ data/historico_obras.json
 .venv/
 venv/
 *.db
+env311/

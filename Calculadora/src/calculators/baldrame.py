@@ -17,6 +17,12 @@ from src.calculators.embalagens import grandes_e_pequenas
 # Perda padrão do concreto do baldrame (CONFIRMADO pelo engenheiro em Oct 27, 2026; a da broca é 10%)
 PERDA_PADRAO_BALDRAME = 5.0
 
+# Medidas mínimas da viga (CONFIRMADO pelo engenheiro em Oct 28, 2026: largura 20 cm, altura 30 cm).
+# Abaixo disso, a tela avisa para conferir (ex.: digitou 0,2 pensando em metros, mas o campo é em cm).
+# O comprimento não tem máximo: depende da obra (resposta do engenheiro).
+LARGURA_MINIMA_CM = 20.0
+ALTURA_MINIMA_CM = 30.0
+
 # Traspasse (emenda) do ferro quando a viga passa do tamanho da barra de 12 m:
 # as duas barras ficam sobrepostas por 40 vezes a bitola (ex.: ferro de 8 mm -> 32 cm).
 # O engenheiro deixou a escolha com a gente (Oct 27, 2026); 40 vezes é a regra mais usada na prática.

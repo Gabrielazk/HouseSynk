@@ -76,6 +76,8 @@ def ler_numero(texto, separador_decimal=",", padrao=0.0):
     Nos EUA (separador "."), "1,500" é mil e quinhentos; mas "2,5" continua sendo 2,5
     (para quem mora nos EUA e escreve do jeito brasileiro).
     No Brasil, fica como sempre foi: vírgula ou ponto viram decimal.
+    Número inteiro + fração: a fração tem que ser menor que 1 ("2 1/2" vale; "1 21/2" é
+    erro de digitação, porque ninguém escreve assim). Fração sozinha pode ser maior ("21/2" = 10,5).
     Campo vazio devolve o padrão. Texto inválido dá ValueError (as telas já tratam esse erro)."""
     texto = (texto or "").strip()
     if not texto:
@@ -95,6 +97,8 @@ def ler_numero(texto, separador_decimal=",", padrao=0.0):
     inteiro, numerador, denominador = partes.groups()
     if int(denominador) == 0:
         raise ValueError(f"Número inválido: {texto}")
+    if inteiro is not None and int(numerador) >= int(denominador):
+        raise ValueError(f"Número inválido: {texto}")  # ex.: "1 21/2" ou "2 2/2"
     return int(inteiro or 0) + int(numerador) / int(denominador)
 
 
@@ -126,14 +130,16 @@ if __name__ == "__main__":
     print("1/8:", ler_numero("1/8", "."))            # 0.125
     print("2 1/2:", ler_numero("2 1/2", "."))        # 2.5
     print("2-1/2:", ler_numero("2-1/2", "."))        # 2.5
+    print("21/2:", ler_numero("21/2", "."))          # 10.5 (fração sozinha pode ser maior que 1)
     print("0,125 (Brasil):", ler_numero("0,125"))    # 0.125
     print("1,500 (EUA):", ler_numero("1,500", "."))  # 1500.0
     print("2,5 (EUA):", ler_numero("2,5", "."))      # 2.5
     print("Vazio:", ler_numero(""))                  # 0.0
-    try:
-        ler_numero("abc")
-    except ValueError:
-        print("abc: dá erro, como esperado")
+    for errado in ("abc", "1-21/2", "1 21/2", "2 2/2"):
+        try:
+            ler_numero(errado)
+        except ValueError:
+            print(f"{errado}: dá erro, como esperado")
     print("400 sq ft/gal em m²/L:", round(para_metrico(400, "rendimento", IMPERIAL), 2))     # 9.82
     print("3,5 kg/m² em lb/sq ft:", round(do_metrico(3.5, "consumo", IMPERIAL), 3))          # 0.717
     print("$ 8 por ft em $ por m:", round(para_metrico(8, "preco_comprimento", IMPERIAL), 2))  # 26.25

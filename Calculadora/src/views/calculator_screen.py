@@ -27,7 +27,14 @@ from src.calculators.brocas import (
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
     PROFUNDIDADE_MAXIMA_M,
 )
-from src.calculators.baldrame import calcular_baldrame, PERDA_PADRAO_BALDRAME, PRECO_IMPERM_LITRO, PRECO_IMPERM_LITRO_EUA
+from src.calculators.baldrame import (
+    calcular_baldrame,
+    PERDA_PADRAO_BALDRAME,
+    PRECO_IMPERM_LITRO,
+    PRECO_IMPERM_LITRO_EUA,
+    LARGURA_MINIMA_CM,
+    ALTURA_MINIMA_CM,
+)
 from src.calculators.reboco import (
     calcular_reboco,
     ESPESSURA_PADRAO_CM as ESPESSURA_REBOCO_PADRAO_CM,
@@ -1927,6 +1934,16 @@ class CalculatorScreen(MDScreen):
         bitola = self.bitola["baldrame"]
         imperm = self.imperm["baldrame"]
 
+        # Viga pequena demais (ex.: 0,2 digitado pensando em metros, mas o campo é em cm): avisa.
+        # Zero e negativo continuam com a mensagem do baldrame.py ("maiores que zero").
+        # Os mínimos são em cm; nos EUA a mensagem mostra em polegadas inteiras (8 in e 12 in).
+        if (0 < larg < LARGURA_MINIMA_CM) or (0 < alt < ALTURA_MINIMA_CM):
+            unidade = "in" if sistema_unidades() == IMPERIAL else "cm"
+            return {"erro": txt("msg_viga_min").format(
+                larg=f"{self._texto_padrao(LARGURA_MINIMA_CM, 'centimetro')} {unidade}",
+                alt=f"{self._texto_padrao(ALTURA_MINIMA_CM, 'centimetro')} {unidade}",
+            )}
+
         res = calcular_baldrame(
             comprimento_m=comp, largura_cm=larg, altura_cm=alt,
             perda_percentual=perda, traco=self.traco["baldrame"],
@@ -1953,7 +1970,7 @@ class CalculatorScreen(MDScreen):
 
         texto_res = (
             f"{txt('label_traco_curto')}: {res['traco']}\n"
-            f"{txt('label_volume')} ({fmt_num(perda, 0)}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
+            f"{txt('label_volume')} ({self._num_curto(perda)}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
             f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
@@ -1969,7 +1986,7 @@ class CalculatorScreen(MDScreen):
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
-                    f"c/ {fmt_num(res['espacamento_estribo_cm'], 0)} cm: "
+                    f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({res['barras_12m_estribos']} {txt('un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"

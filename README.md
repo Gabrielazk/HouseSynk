@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.9-3776AB?logo=python&logoColor=white" alt="Python 3.9">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11">
   <img src="https://img.shields.io/badge/Kivy-2.3.1-2E5E7E" alt="Kivy 2.3.1">
   <img src="https://img.shields.io/badge/KivyMD-2.x-2E5E7E" alt="KivyMD 2.x">
   <img src="https://img.shields.io/badge/status-em%20desenvolvimento-orange" alt="Em desenvolvimento">
@@ -67,7 +67,7 @@ O app está sendo preparado para a **App Store**.
 
 ## 🛠️ Tecnologias
 
-- **Python 3.9**
+- **Python 3.11**
 - **Kivy 2.3.1** e **KivyMD 2.x** (interface)
 - **SQLite** (banco local: usuários e orçamentos)
 - **ReportLab** (geração do PDF)

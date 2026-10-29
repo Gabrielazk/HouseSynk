@@ -4,6 +4,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivy.metrics import dp
 from kivy.clock import Clock
+from kivy.core.window import Window
 from kivymd.uix.button import (
     MDButton,
     MDButtonText,
@@ -137,6 +138,10 @@ from src.calculators.paredes import (
     ASSENTAMENTO_PADRAO,
     JUNTA_PADRAO_CM,
     QUEBRA_PADRAO_PERCENTUAL,
+    AREA_MAXIMA_M2,
+    JUNTA_MINIMA_CM,
+    JUNTA_MAXIMA_CM,
+    QUEBRA_MAXIMA_PERCENTUAL,
 )
 from src.calculators.tracos import (
     TRACOS_CONCRETO,
@@ -147,7 +152,7 @@ from src.calculators.tracos import (
 from kivymd.uix.widget import MDWidget
 from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, sistema_unidades
 from src.views.textos_eua import TEXTOS_EUA
-from src.calculators.unidades import METRICO, IMPERIAL, ler_numero, para_metrico, do_metrico, texto_polegadas
+from src.calculators.unidades import METRICO, IMPERIAL, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade
 
 
 def txt_do_pais(chave, sistema=None):
@@ -163,6 +168,25 @@ def txt_do_pais(chave, sistema=None):
         if texto_eua is not None:
             return texto_eua
     return TEXTOS.get(lang, TEXTOS.get("pt", {})).get(chave, chave)
+
+
+class MenuAlinhado(MDDropdownMenu):
+    """Menu (dropdown) que abre embaixo do botão, começando na borda esquerda dele, e nunca sai da janela.
+
+    O MDDropdownMenu do KivyMD mede o espaço a partir do MEIO do botão: um menu largo (nomes compridos,
+    como "Tijolo baiano 9 furos (9x14x19)") ficava estreito e cortava o texto, ou crescia para a
+    esquerda e saía da tela. Aqui a gente troca só duas funções dele (o resto continua igual)."""
+
+    def adjust_width(self):
+        # A largura pedida, mas nunca maior que a janela (com a margem dos dois lados)
+        largura_pedida = getattr(self, "_initial_width", self.width)  # getattr: funciona em versões do KivyMD sem esse nome
+        self.width = min(largura_pedida, Window.width - 2 * self.border_margin)
+
+    def set_menu_pos(self, *args):
+        super().set_menu_pos(*args)  # o KivyMD calcula a altura (embaixo do botão)
+        x_botao = self.caller.to_window(self.caller.x, self.caller.y)[0]
+        # Começa na borda esquerda do botão; se não couber, encosta na margem da direita
+        self.x = max(self.border_margin, min(x_botao, Window.width - self.width - self.border_margin))
 
 
 # --- TELA DE CÁLCULO COM ABAS (Navegação Interna) ---
@@ -295,6 +319,10 @@ class CalculatorScreen(MDScreen):
         self.menu_ativo = None
         self.dialog_ajuda = None
         self.dialog_limpar = None
+        self.dialog_aviso = None
+        # Avisos de limite que a pessoa já aceitou ("Continuar"), por aba. O texto do aviso tem o valor
+        # digitado, então se a pessoa mudar o número, o aviso aparece de novo.
+        self._avisos_aceitos = {}
         if montar:
             self.montar_tela()
 
@@ -1506,6 +1534,7 @@ class CalculatorScreen(MDScreen):
         aba = self.aba_atual
         self.estado_abas.pop(aba, None)
         self.textos_resultado.pop(aba, None)
+        self._avisos_aceitos.pop(aba, None)
         self.traco[aba] = self._tabela_traco(aba)[1]
         if aba in self.tijolo:
             self.tijolo[aba] = TIJOLO_PADRAO
@@ -1580,13 +1609,19 @@ class CalculatorScreen(MDScreen):
     def _abrir_menu(self, caller, opcoes, ao_escolher, rotulo, largura=200):
         if self.menu_ativo:
             self.menu_ativo.dismiss()
-        # largura=None: o menu fica da largura do botão (não passa da tela)
-        largura_menu = dp(largura) if largura else getattr(caller, "width", dp(300))
+        # largura=None: o menu vai da borda esquerda do botão até perto da borda da janela,
+        # para nomes compridos não serem cortados (ex.: "Tijolo baiano 9 furos (9x14x19)").
+        # O MenuAlinhado garante que ele não sai da janela.
+        if largura:
+            largura_menu = dp(largura)
+        else:
+            x_botao = caller.to_window(caller.x, caller.y)[0]  # onde o botão começa, na janela
+            largura_menu = max(caller.width, Window.width - x_botao - dp(16))
         itens = [
             {"text": rotulo(opcao), "on_release": lambda *args, o=opcao: self._escolher_no_menu(ao_escolher, o)}
             for opcao in opcoes
         ]
-        self.menu_ativo = MDDropdownMenu(caller=caller, items=itens, width=largura_menu, position="bottom")
+        self.menu_ativo = MenuAlinhado(caller=caller, items=itens, width=largura_menu, position="bottom")
         self.menu_ativo.open()
 
     def _escolher_no_menu(self, ao_escolher, opcao):
@@ -1607,17 +1642,23 @@ class CalculatorScreen(MDScreen):
             return TRACOS_CONCRETO, TRACO_PADRAO_CONTRAPISO, "label_traco"  # contrapiso usa 1:3:3
         return TRACOS_CONCRETO, TRACO_CONCRETO_PADRAO, "label_traco"
 
+    @staticmethod
+    def _rotulo_traco(nome):
+        """Traço na tela com o separador decimal do país: "1:0,5:6" no Brasil, "1:0.5:6" nos EUA.
+        Por dentro, a chave continua "1:0.5:6" (é assim que fica no tracos.py e no Histórico)."""
+        return nome.replace(".", CONFIG_APP["separador_decimal"])
+
     def _montar_seletor_traco(self, box_form, aba):
         tabela, _, titulo = self._tabela_traco(aba)
         self._botoes_traco[aba] = self._montar_dropdown(
             box_form, txt(titulo), list(tabela.keys()), self.traco[aba],
-            lambda nome: self._escolher_traco(aba, nome)
+            lambda nome: self._escolher_traco(aba, nome), rotulo=self._rotulo_traco
         )
 
     def _escolher_traco(self, aba, nome):
         self.traco[aba] = nome
         if aba in self._botoes_traco:
-            self._botoes_traco[aba].text = nome
+            self._botoes_traco[aba].text = self._rotulo_traco(nome)
 
     # --- Bitola do ferro ---
     def _montar_seletor_bitola(self, box_form, aba):
@@ -1798,10 +1839,57 @@ class CalculatorScreen(MDScreen):
         return ler_numero(texto, CONFIG_APP["separador_decimal"], padrao)
 
     @staticmethod
-    def _num_curto(valor):
-        """Número para o texto do resultado, sem casas quando é inteiro: 10 -> "10", 2,5 -> "2,5".
+    def _num_curto(valor, casas=2):
+        """Número sem zeros sobrando: 10 -> "10", 2,5 -> "2,5", 29,75 -> "29,75".
         (Antes a perda 2,5% aparecia como "2%" e o espaçamento 12,5 cm como "12 cm".)"""
-        return fmt_num(valor, 0 if float(valor).is_integer() else 1)
+        texto = f"{round(float(valor), casas):.{casas}f}".rstrip("0").rstrip(".")
+        return texto.replace(".", CONFIG_APP["separador_decimal"])
+
+    def _med_curto(self, valor_metrico, tipo, casas=2):
+        """Medida curta para os avisos, na unidade do país: "300 m", "0,2 cm", "98,43 ft", "12 in"."""
+        sistema = sistema_unidades()
+        valor = do_metrico(valor_metrico, tipo, sistema)
+        if sistema == IMPERIAL and tipo in ("centimetro", "milimetro"):
+            return f"{texto_polegadas(valor)} in"
+        return f"{self._num_curto(valor, casas)} {nome_unidade(tipo, sistema)}"
+
+    def _limite_cm(self, valor_cm):
+        """Limite em cm para os avisos: "20 cm" no Brasil, "8 in" (arredondado) nos EUA."""
+        unidade = "in" if sistema_unidades() == IMPERIAL else "cm"
+        return f"{self._texto_padrao(valor_cm, 'centimetro')} {unidade}"
+
+    # ==========================================
+    # AVISOS DE LIMITE ("passou do limite, deseja continuar?")
+    # Passar do limite não impede a conta: pode existir obra de qualquer tamanho.
+    # A pessoa vê o aviso e escolhe Cancelar (corrige o número) ou Continuar (calcula assim mesmo).
+    # ==========================================
+    def _avisos_pendentes(self, aba, avisos):
+        """Só os avisos que a pessoa ainda não aceitou nesta aba. Retorna {"aviso": [...]} ou None."""
+        aceitos = self._avisos_aceitos.get(aba, set())
+        pendentes = [aviso for aviso in avisos if aviso not in aceitos]
+        return {"aviso": pendentes} if pendentes else None
+
+    def _pedir_confirmacao(self, aba, avisos, depois):
+        """Mostra os avisos com Cancelar / Continuar. Continuar guarda o aceite e faz de novo
+        o que a pessoa tinha pedido (depois = Calcular ou Finalizar)."""
+        if self.dialog_aviso:
+            self.dialog_aviso.dismiss()
+
+        def continuar(*args):
+            self._avisos_aceitos.setdefault(aba, set()).update(avisos)
+            self.dialog_aviso.dismiss()
+            depois()
+
+        texto = "\n\n".join(avisos) + f"\n\n{txt('aviso_continuar')}"
+        self.dialog_aviso = MDDialog(
+            MDDialogHeadlineText(text=txt("aviso_titulo")),
+            MDDialogSupportingText(text=texto),
+            MDDialogButtonContainer(
+                MDButton(MDButtonText(text=txt("btn_cancelar")), on_release=lambda x: self.dialog_aviso.dismiss()),
+                MDButton(MDButtonText(text=txt("btn_continuar")), on_release=continuar)
+            )
+        )
+        self.dialog_aviso.open()
 
     def _aba_iniciada(self, aba, estado):
         if aba == "esquadrias" and self.esquadrias_itens:
@@ -1854,10 +1942,15 @@ class CalculatorScreen(MDScreen):
         preco_mo = self._numero(e.get("mo"), 0.0)
         bitola = self.bitola["brocas"]
 
-        # Profundidade absurda (ex.: 300 no lugar de 3,00): avisa em vez de calcular.
-        # O limite é em metros; nos EUA a mensagem mostra em ft (o _med converte).
+        # Profundidade acima do limite do engenheiro (ex.: 300 no lugar de 3,00): pergunta se quer continuar.
+        # O limite é em metros; nos EUA o aviso mostra em ft.
+        avisos = []
         if prof > PROFUNDIDADE_MAXIMA_M:
-            return {"erro": txt("msg_prof_max").format(max=self._med(PROFUNDIDADE_MAXIMA_M, "comprimento", 0))}
+            avisos.append(txt("aviso_prof_max").format(
+                valor=self._med_curto(prof, "comprimento"), max=self._med_curto(PROFUNDIDADE_MAXIMA_M, "comprimento")))
+        pendentes = self._avisos_pendentes("brocas", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_brocas(
             quantidade=qtd, profundidade_m=prof, diametro_cm=diam,
@@ -1880,7 +1973,7 @@ class CalculatorScreen(MDScreen):
         custo_total = custo_mat + custo_mo
 
         texto_res = (
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._num_curto(res['perda_percentual'])}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
@@ -1934,15 +2027,18 @@ class CalculatorScreen(MDScreen):
         bitola = self.bitola["baldrame"]
         imperm = self.imperm["baldrame"]
 
-        # Viga pequena demais (ex.: 0,2 digitado pensando em metros, mas o campo é em cm): avisa.
-        # Zero e negativo continuam com a mensagem do baldrame.py ("maiores que zero").
-        # Os mínimos são em cm; nos EUA a mensagem mostra em polegadas inteiras (8 in e 12 in).
+        # Viga menor que o mínimo do engenheiro (ex.: 0,2 digitado pensando em metros, mas o campo é em cm):
+        # pergunta se quer continuar. Zero e negativo continuam com o erro do baldrame.py ("maiores que zero").
+        # Os mínimos são em cm; nos EUA o aviso mostra em polegadas inteiras (8 in e 12 in).
+        avisos = []
         if (0 < larg < LARGURA_MINIMA_CM) or (0 < alt < ALTURA_MINIMA_CM):
-            unidade = "in" if sistema_unidades() == IMPERIAL else "cm"
-            return {"erro": txt("msg_viga_min").format(
-                larg=f"{self._texto_padrao(LARGURA_MINIMA_CM, 'centimetro')} {unidade}",
-                alt=f"{self._texto_padrao(ALTURA_MINIMA_CM, 'centimetro')} {unidade}",
-            )}
+            avisos.append(txt("aviso_viga_min").format(
+                larg=self._med_curto(larg, "centimetro"), alt=self._med_curto(alt, "centimetro"),
+                larg_min=self._limite_cm(LARGURA_MINIMA_CM), alt_min=self._limite_cm(ALTURA_MINIMA_CM),
+            ))
+        pendentes = self._avisos_pendentes("baldrame", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_baldrame(
             comprimento_m=comp, largura_cm=larg, altura_cm=alt,
@@ -1969,7 +2065,7 @@ class CalculatorScreen(MDScreen):
         custo_total = custo_mat + custo_mo
 
         texto_res = (
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._num_curto(perda)}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
@@ -2050,7 +2146,7 @@ class CalculatorScreen(MDScreen):
         if dois_lados:
             texto_res += f"{txt('label_area_rebocar')} ({txt('txt_dois_lados')}): {fmt_num(res['area_rebocada_m2'], 2)} m²\n"
         texto_res += (
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume_reboco')} ({fmt_num(perda, 0)}% perda): {fmt_num(res['volume_reboco_m3'], 3)} m³\n"
         )
         if chapisco:
@@ -2308,7 +2404,7 @@ class CalculatorScreen(MDScreen):
         else:
             texto_res += f"{txt('label_espessura_laje')}: {n(res['espessura_cm'])} cm\n"
         texto_res += (
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({txt('label_com_perda').format(p=fmt_num(perda, 0))}): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
         )
         if premoldada:
@@ -2704,7 +2800,7 @@ class CalculatorScreen(MDScreen):
 
         texto_res = (
             f"{txt('label_area_contrapiso')}: {fmt_num(res['area_m2'], 2)} m²\n"
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({fmt_num(perda, 0)}% perda): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
             f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
@@ -2733,6 +2829,25 @@ class CalculatorScreen(MDScreen):
         tijolo = self.tijolo["paredes"]
         assent = self.assent["paredes"]
 
+        # Limites de conferência (paredes.py): passar deles pergunta se quer continuar.
+        # Número negativo não entra aqui: continua com o erro do paredes.py.
+        avisos = []
+        if area > AREA_MAXIMA_M2:
+            avisos.append(txt("aviso_area_max").format(
+                valor=self._med_curto(area, "area"), max=self._med_curto(AREA_MAXIMA_M2, "area", 0)))
+        if 0 <= junta < JUNTA_MINIMA_CM or junta > JUNTA_MAXIMA_CM:
+            avisos.append(txt("aviso_junta").format(
+                valor=self._med_curto(junta, "centimetro"),
+                min=self._med_curto(JUNTA_MINIMA_CM, "centimetro") if sistema_unidades() != IMPERIAL else "3/16 in",
+                max=self._med_curto(JUNTA_MAXIMA_CM, "centimetro") if sistema_unidades() != IMPERIAL else "1 1/4 in",
+            ))
+        if quebra > QUEBRA_MAXIMA_PERCENTUAL:
+            avisos.append(txt("aviso_quebra_max").format(
+                valor=self._num_curto(quebra), max=self._num_curto(QUEBRA_MAXIMA_PERCENTUAL)))
+        pendentes = self._avisos_pendentes("paredes", avisos)
+        if pendentes:
+            return pendentes
+
         res = calcular_paredes(
             area_bruta_m2=area, tijolo=tijolo, assentamento=assent,
             desconto_vaos_m2=vaos, junta_cm=junta, quebra_percentual=quebra,
@@ -2754,14 +2869,18 @@ class CalculatorScreen(MDScreen):
             texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
         texto_res += (
             f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
-            f"{txt('label_traco_curto')}: {res['traco']}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"• {self._rotulo_tijolo(tijolo)}: {res['unidades']} {txt('un_unidades')} "
             f"({milheiros} {un_milheiro}) ({fmt_moeda(custo_tijolo)})\n"
-            f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_cal')}: {res['sacos_cal']} {txt('un_sacos_cal')} ({fmt_moeda(custo_cal)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
-            f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
+        # Material que deu zero não aparece (ex.: traço 1:0:3 não tem cal)
+        if res['sacos_cimento'] > 0:
+            texto_res += f"• {txt('label_cimento')}: {res['sacos_cimento']} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
+        if res['sacos_cal'] > 0:
+            texto_res += f"• {txt('label_cal')}: {res['sacos_cal']} {txt('un_sacos_cal')} ({fmt_moeda(custo_cal)})\n"
+        if res['areia_m3'] > 0:
+            texto_res += f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         resultado = {
             "etapa": txt("secao_paredes"),
@@ -2782,6 +2901,9 @@ class CalculatorScreen(MDScreen):
         self._capturar_estado()
         aba = self.aba_atual
         r = self._calcular_aba(aba, self.estado_abas.get(aba, {}))
+        if "aviso" in r:  # passou de um limite: pergunta se quer continuar
+            self._pedir_confirmacao(aba, r["aviso"], self.executar_calculo)
+            return
         if "erro" in r:
             self.textos_resultado.pop(aba, None)
             self._lbl_resultado.text = r["erro"]
@@ -2871,6 +2993,11 @@ class CalculatorScreen(MDScreen):
             if not self._aba_iniciada(aba, estado):
                 continue
             r = self._calcular_aba(aba, estado)
+            if "aviso" in r:  # passou de um limite: abre a aba e pergunta (Continuar volta a finalizar)
+                if aba != self.aba_atual:
+                    self.trocar_aba(aba)
+                self._pedir_confirmacao(aba, r["aviso"], self.finalizar_e_ir_resumo)
+                return
             if "erro" in r:
                 if aba != self.aba_atual:
                     self.trocar_aba(aba)

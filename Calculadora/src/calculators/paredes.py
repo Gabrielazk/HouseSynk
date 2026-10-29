@@ -28,6 +28,17 @@ ASSENTAMENTO_PADRAO = "em_pe"
 JUNTA_PADRAO_CM = 1.0
 QUEBRA_PADRAO_PERCENTUAL = 5.0
 
+# Perda da massa de assentar (decidido pela Gabriela em Oct 29, 2026: 10%, igual ao reboco).
+# Não é um campo da tela: entra sempre, igual à perda do ferro nas Brocas.
+PERDA_MASSA_PERCENTUAL = 10.0
+
+# Limites de conferência (criados pelo Leo em Oct 29, 2026; o engenheiro não tinha um número).
+# Passar deles NÃO impede a conta: a tela mostra um aviso e pergunta se a pessoa quer continuar.
+AREA_MAXIMA_M2 = 2000.0           # uma casa grande fica bem abaixo disso
+JUNTA_MINIMA_CM = 0.5             # junta normal: de 0,5 a 3 cm
+JUNTA_MAXIMA_CM = 3.0
+QUEBRA_MAXIMA_PERCENTUAL = 20.0
+
 
 def calcular_paredes(
     area_bruta_m2: float,
@@ -69,15 +80,15 @@ def calcular_paredes(
     unidades = math.ceil(area_liquida_m2 * pecas_por_m2 * (1 + quebra_percentual / 100.0))
     milheiros = unidades / 1000.0
 
-    # Volume de massa = o que sobra na parede depois de tirar o volume dos tijolos
+    # Volume de massa = o que sobra na parede depois de tirar o volume dos tijolos, mais a perda da massa
     area_face_peca_m2 = (face_comprimento_cm / 100.0) * (face_altura_cm / 100.0)
     massa_por_m2_m3 = (espessura_cm / 100.0) * (1.0 - pecas_por_m2 * area_face_peca_m2)
-    volume_massa_m3 = massa_por_m2_m3 * area_liquida_m2
+    volume_massa_m3 = massa_por_m2_m3 * area_liquida_m2 * (1 + PERDA_MASSA_PERCENTUAL / 100.0)
 
     # Mesma conta da massa do Reboco (fica no tracos.py, com o inchamento da areia)
     materiais = materiais_da_massa(volume_massa_m3, traco)
-    sacos_cimento = math.ceil(materiais["cimento_kg"] / SACO_CIMENTO_KG)
-    sacos_cal = math.ceil(materiais["cal_kg"] / SACO_CAL_KG)
+    sacos_cimento = math.ceil(materiais["cimento_kg"] / SACO_CIMENTO_KG - 1e-9)
+    sacos_cal = math.ceil(materiais["cal_kg"] / SACO_CAL_KG - 1e-9)
     areia_m3 = round(materiais["areia_m3"], 2)
 
     return {
@@ -93,6 +104,7 @@ def calcular_paredes(
         "milheiros": round(milheiros, 2),
         "preco_unitario": dados["preco"],
         "traco": traco,
+        "perda_massa_percentual": PERDA_MASSA_PERCENTUAL,
         "volume_massa_m3": round(volume_massa_m3, 3),
         "sacos_cimento": sacos_cimento,
         "sacos_cal": sacos_cal,

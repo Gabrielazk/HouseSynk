@@ -25,7 +25,10 @@ GALOES_POR_LATA = 5  # 5 galões = 1 lata; a partir daí compensa comprar a lata
 RENDIMENTO_SELADOR_M2_L = 8.0
 RENDIMENTO_FUNDO_M2_L = 10.0
 TIPOS_MASSA = ["nenhuma", "corrida", "acrilica"]   # corrida: área interna seca; acrílica: externa ou úmida
-CONSUMO_MASSA_KG_M2 = 0.5                         # 2 demãos finas
+# Massa: 0,5 kg/m² por demão (o engenheiro confirmou em Oct 29, 2026 que os 0,5 são de UMA demão),
+# em 2 demãos, como indicam os fabricantes (decidido pela Gabi): 1,0 kg/m² no total
+CONSUMO_MASSA_KG_M2_POR_DEMAO = 0.5
+DEMAOS_MASSA = 2
 BALDE_MASSA_KG = 25.0
 
 # --- EUA ---
@@ -117,7 +120,7 @@ def calcular_pintura(
     if fundo:
         itens["fundo"] = produto(area_total / rendimento_fundo * fator)
 
-    massa_kg = area_total * CONSUMO_MASSA_KG_M2 * fator if massa != "nenhuma" else 0.0
+    massa_kg = area_total * CONSUMO_MASSA_KG_M2_POR_DEMAO * DEMAOS_MASSA * fator if massa != "nenhuma" else 0.0
     baldes_massa = math.ceil(massa_kg / BALDE_MASSA_KG - 1e-9) if massa_kg > 0 else 0
 
     return {

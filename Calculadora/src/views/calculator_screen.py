@@ -220,7 +220,7 @@ CAMPOS_ABA = {
     "rejunte": ["area", "larg", "alt", "junta", "esp", "perda"],
     "laje": ["area", "capa", "esp", "perda"],
     "telhado": ["area", "incl", "cumeeira", "perda"],
-    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
+    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100", "perda"],
     "pintura": ["parede", "teto", "demaos", "rend", "perda"],
     "esquadrias": ["qtd", "larg", "alt"],  # campos do formulário "Nova porta ou janela"; a lista fica em self.esquadrias_itens
@@ -237,7 +237,7 @@ CAMPOS_INICIAIS = {
     "rejunte": ["area", "larg", "alt", "junta"],
     "laje": ["area", "esp"],
     "telhado": ["area", "cumeeira"],
-    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
+    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100"],
     "pintura": ["parede", "teto"],
     "esquadrias": ["qtd", "larg", "alt"],
@@ -1037,11 +1037,13 @@ class CalculatorScreen(MDScreen):
         self.in_ele_tomadas = campo(txt("hint_tomadas"))
         self.in_ele_interruptores = campo(txt("hint_interruptores"))
         self.in_ele_luzes = campo(txt("hint_luzes"))
-        self.in_ele_chuveiros = campo(txt("hint_chuveiros"))
+        self.in_ele_chuveiros = campo(txt("hint_chuveiros"))      # acima de 5.500 W: fio 6 mm²
+        self.in_ele_chuveiros4 = campo(txt("hint_chuveiros4"))    # até 5.500 W: fio 4 mm²
         box_form.add_widget(self.in_ele_tomadas)
         box_form.add_widget(self.in_ele_interruptores)
         box_form.add_widget(self.in_ele_luzes)
         box_form.add_widget(self.in_ele_chuveiros)
+        box_form.add_widget(self.in_ele_chuveiros4)
 
         # --- Opcionais: metragens de quem já tem o projeto (vazio = o app estima) ---
         box_form.add_widget(MDLabel(text=txt("secao_projeto"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
@@ -1049,7 +1051,8 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_ele_conduite)
         self._campos = {
             "tomadas": self.in_ele_tomadas, "interruptores": self.in_ele_interruptores,
-            "luzes": self.in_ele_luzes, "chuveiros": self.in_ele_chuveiros, "conduite": self.in_ele_conduite,
+            "luzes": self.in_ele_luzes, "chuveiros": self.in_ele_chuveiros,
+            "chuveiros4": self.in_ele_chuveiros4, "conduite": self.in_ele_conduite,
         }
         for bitola in BITOLAS_FIO:
             campo_fio = campo(txt("hint_fio").format(b=self._rotulo_bitola_fio(bitola)))
@@ -2705,7 +2708,8 @@ class CalculatorScreen(MDScreen):
         tomadas = inteiro("tomadas")
         interruptores = inteiro("interruptores")
         luzes = inteiro("luzes")
-        chuveiros = inteiro("chuveiros")
+        chuveiros = inteiro("chuveiros")      # acima de 5.500 W (fio 6 mm²)
+        chuveiros4 = inteiro("chuveiros4")    # até 5.500 W (fio 4 mm²)
         conduite = metros("conduite")
         fios_projeto = {}
         for bitola in BITOLAS_FIO:
@@ -2714,7 +2718,7 @@ class CalculatorScreen(MDScreen):
                 fios_projeto[bitola] = valor
         perda = self._numero(e.get("perda"), PERDA_PADRAO_ELETRICA)
 
-        res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda, chuveiros)
+        res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda, chuveiros, chuveiros4)
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
 
@@ -2740,6 +2744,8 @@ class CalculatorScreen(MDScreen):
         )
         if chuveiros > 0:
             texto_res += f"{txt('label_chuveiros')}: {chuveiros}\n"
+        if chuveiros4 > 0:
+            texto_res += f"{txt('label_chuveiros4')}: {chuveiros4}\n"
         texto_res += "\n"
         if res['rolos_conduite'] > 0:
             texto_res += (
@@ -2763,7 +2769,8 @@ class CalculatorScreen(MDScreen):
 
         inputs = {
             "tomadas": tomadas if tomadas else "", "interruptores": interruptores if interruptores else "",
-            "luzes": luzes if luzes else "", "chuveiros": chuveiros if chuveiros else "", "conduite": conduite if conduite is not None else "", "perda": perda,
+            "luzes": luzes if luzes else "", "chuveiros": chuveiros if chuveiros else "",
+            "chuveiros4": chuveiros4 if chuveiros4 else "", "conduite": conduite if conduite is not None else "", "perda": perda,
         }
         for bitola in BITOLAS_FIO:
             inputs[self._chave_fio(bitola)] = fios_projeto.get(bitola, "")
@@ -2774,7 +2781,7 @@ class CalculatorScreen(MDScreen):
             "rolos_conduite": res['rolos_conduite'],
             "fios": {str(b): f['rolos'] for b, f in res['fios'].items()},
             "caixas_4x2": res['caixas_4x2'], "caixas_octogonais": res['caixas_octogonais'],
-            "tomadas": tomadas, "interruptores": interruptores, "chuveiros": chuveiros,
+            "tomadas": tomadas, "interruptores": interruptores, "chuveiros": chuveiros, "chuveiros4": chuveiros4,
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": inputs,

@@ -20,7 +20,9 @@ BITOLA_PADRAO = 8.0
 # Estribos (CONFIRMADO pelo engenheiro em Oct 27, 2026)
 BITOLA_ESTRIBO_MM = 5.0
 ESPACAMENTO_ESTRIBO_PADRAO_CM = 20.0
-COBRIMENTO_CM = 2.0        # concreto que cobre o estribo
+# Cobrimento: concreto que cobre o estribo. Broca e baldrame ficam enterrados, então o engenheiro
+# indicou de 3 a 5 cm (Oct 29, 2026). A Gabi escolheu 3 cm: a gaiola fica maior, então sobra ferro e nunca falta.
+COBRIMENTO_CM = 3.0
 GANCHO_ESTRIBO_CM = 5.0    # sobra para fechar o estribo (nas Brocas, uma em cada ponta da espiral)
 
 # Perda do ferro: cortes e sobras (CONFIRMADO pelo engenheiro em Oct 27, 2026)

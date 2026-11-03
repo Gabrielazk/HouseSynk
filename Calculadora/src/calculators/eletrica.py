@@ -21,6 +21,9 @@ FIO_POR_LUZ_M = {1.5: 10.0}          # neutro e retorno (2 fios x 5 m)
 # com uns 10 m cada, e 10 m de conduíte.
 CONDUITE_POR_CHUVEIRO_M = 10.0
 FIO_POR_CHUVEIRO_M = {6.0: 30.0}
+# Chuveiro mais fraco (até 5.500 W): usa fio de 4 mm² (o engenheiro aprovou a opção em Oct 29, 2026).
+# Mesmo circuito: 3 fios de uns 10 m e 10 m de conduíte.
+FIO_POR_CHUVEIRO_ATE_5500W_M = {4.0: 30.0}
 
 # Preços PROVISÓRIOS (R$) até a tabela de preços ser refeita
 PRECO_ROLO_CONDUITE = 75.00
@@ -39,12 +42,14 @@ def calcular_eletrica(
     fios_m: dict = None,
     perda_percentual: float = PERDA_PADRAO_ELETRICA,
     chuveiros: int = 0,
+    chuveiros_ate_5500w: int = 0,
 ) -> dict:
-    """conduite_m e fios_m são opcionais (quem tem o projeto).
+    """chuveiros: acima de 5.500 W (fio 6 mm²); chuveiros_ate_5500w: até 5.500 W (fio 4 mm²).
+    conduite_m e fios_m são opcionais (quem tem o projeto).
     Em fios_m, só as bitolas informadas substituem a estimativa; as outras continuam estimadas."""
-    if tomadas < 0 or interruptores < 0 or pontos_luz < 0 or chuveiros < 0:
+    if tomadas < 0 or interruptores < 0 or pontos_luz < 0 or chuveiros < 0 or chuveiros_ate_5500w < 0:
         return {"erro": "As quantidades não podem ser negativas."}
-    if tomadas + interruptores + pontos_luz + chuveiros <= 0:
+    if tomadas + interruptores + pontos_luz + chuveiros + chuveiros_ate_5500w <= 0:
         return {"erro": "Informe pelo menos uma tomada, interruptor, ponto de luz ou chuveiro."}
     if perda_percentual < 0 or (conduite_m is not None and conduite_m < 0):
         return {"erro": "Os valores não podem ser negativos."}
@@ -54,10 +59,11 @@ def calcular_eletrica(
 
     fator = 1 + perda_percentual / 100.0
     pontos = tomadas + interruptores + pontos_luz
+    todos_chuveiros = chuveiros + chuveiros_ate_5500w
 
     # Conduíte: do projeto ou estimado por ponto (e por chuveiro)
     conduite_estimado = conduite_m is None
-    conduite_base = (pontos * CONDUITE_POR_PONTO_M + chuveiros * CONDUITE_POR_CHUVEIRO_M) if conduite_estimado else conduite_m
+    conduite_base = (pontos * CONDUITE_POR_PONTO_M + todos_chuveiros * CONDUITE_POR_CHUVEIRO_M) if conduite_estimado else conduite_m
     conduite_total = conduite_base * fator
     rolos_conduite = math.ceil(conduite_total / ROLO_CONDUITE_M - 1e-9) if conduite_total > 0 else 0
 
@@ -70,7 +76,8 @@ def calcular_eletrica(
             base = (tomadas * FIO_POR_TOMADA_M.get(bitola, 0.0)
                     + interruptores * FIO_POR_INTERRUPTOR_M.get(bitola, 0.0)
                     + pontos_luz * FIO_POR_LUZ_M.get(bitola, 0.0)
-                    + chuveiros * FIO_POR_CHUVEIRO_M.get(bitola, 0.0))
+                    + chuveiros * FIO_POR_CHUVEIRO_M.get(bitola, 0.0)
+                    + chuveiros_ate_5500w * FIO_POR_CHUVEIRO_ATE_5500W_M.get(bitola, 0.0))
         total = base * fator
         if total > 0:
             fios[bitola] = {
@@ -84,6 +91,7 @@ def calcular_eletrica(
         "interruptores": interruptores,
         "pontos_luz": pontos_luz,
         "chuveiros": chuveiros,
+        "chuveiros_ate_5500w": chuveiros_ate_5500w,
         "perda_percentual": perda_percentual,
         "conduite_estimado": conduite_estimado,
         "conduite_m": round(conduite_total, 1),

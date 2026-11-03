@@ -15,9 +15,12 @@ ARGAMASSA_PADRAO_PISO = "AC-I"
 ARGAMASSA_PADRAO_AZULEJO = "AC-II"  # AC-III para áreas molhadas (o cliente escolhe)
 SACO_ARGAMASSA_KG = 20.0
 
-# Consumo de argamassa colante: 3,5 kg/m² para qualquer tamanho de peça
-# (CONFIRMADO pelo engenheiro em Oct 27, 2026; antes era 5 kg/m², ou 8 kg/m² para peças grandes)
-CONSUMO_ARGAMASSA_KG_M2 = 3.5
+# Consumo de argamassa colante (números dos fabricantes; o engenheiro aprovou em Oct 29, 2026):
+# 5 kg/m² na peça normal e 8 kg/m² na peça grande, que leva dupla colagem (argamassa na peça e no chão).
+# Peça grande: maior lado acima de 60 cm (a confirmar com o engenheiro).
+CONSUMO_ARGAMASSA_KG_M2 = 5.0
+CONSUMO_ARGAMASSA_PECA_GRANDE_KG_M2 = 8.0
+LADO_PECA_GRANDE_CM = 60.0
 
 # --- EUA: argamassa colante (thinset) em saco de 50 lb ---
 # Tipos pela norma americana (ANSI): A118.1 = não modificada; A118.4 = modificada com polímero.
@@ -66,6 +69,13 @@ def desempenadeira_eua(largura_cm: float, altura_cm: float):
         if maior_lado <= limite_cm + 1e-6:
             return desempenadeira, rendimento
     return DESEMPENADEIRA_GRANDE_EUA
+
+
+def consumo_argamassa_kg_m2(largura_cm: float, altura_cm: float) -> float:
+    """Brasil: kg de argamassa colante por m². Peça com o maior lado acima de 60 cm leva dupla colagem."""
+    if max(largura_cm, altura_cm) > LADO_PECA_GRANDE_CM:
+        return CONSUMO_ARGAMASSA_PECA_GRANDE_KG_M2
+    return CONSUMO_ARGAMASSA_KG_M2
 
 
 def perda_automatica(largura_cm: float, altura_cm: float, desenho: bool = False) -> float:
@@ -122,7 +132,7 @@ def _calcular_ceramica(
         consumo_kg_m2 = saco_kg / (sqft_por_saco * M2_POR_SQFT)
     else:
         saco_kg = SACO_ARGAMASSA_KG
-        consumo_kg_m2 = CONSUMO_ARGAMASSA_KG_M2
+        consumo_kg_m2 = consumo_argamassa_kg_m2(largura_cm, altura_cm)
     argamassa_kg = area_com_perda * consumo_kg_m2
     sacos = math.ceil(argamassa_kg / saco_kg - 1e-9)
 

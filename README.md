@@ -40,28 +40,35 @@ O app está sendo preparado para a **App Store**.
 - Etapas e abas clicáveis no topo, com destaque na etapa e na aba abertas.
 - Botões **Anterior**, **Próximo**, **Avançar para a próxima etapa**, **Limpar** (só a aba aberta) e **Finalizar**.
 - Ajuda **"?"** em cada aba, explicando os campos.
+- Aceita número com vírgula, ponto ou fração (2,5 · 2.5 · 2 1/2).
+- Avisos de conferência: se um valor passa do normal (ex.: broca de 300 m), o app pergunta se a pessoa quer continuar, sem travar a conta.
+- Resultados na unidade de compra, com perdas já incluídas (concreto, ferro, massa, peças).
 
 ### 📊 Resumo da obra
 
 - **Orçamento:** custo de cada etapa, subtotal de materiais e de mão de obra e total da obra.
 - **Reserva para imprevistos:** obra tranquila (+10%) ou reforma antiga (+15%), sempre numa linha separada.
 - **Lista de compras:** os materiais de todas as abas somados e separados por loja: material básico, acabamento, elétrica, hidráulica e esquadrias (para cotação).
+- **WhatsApp:** envia a lista de compras ou um resumo do orçamento com um toque.
 
 ### 📄 PDF
 
 - Orçamento, lista de compras ou os dois juntos.
 - Cabeçalho com logo, responsável, data e região; tabelas com os materiais e custos.
 - Lista de compras com um quadradinho para marcar o que já foi comprado.
+- Gráfico **"Onde vai o dinheiro"**: o custo de cada etapa, da mais cara para a mais barata.
 
 ### 👤 Conta e histórico
 
 - Login e cadastro, ou uso como visitante.
-- Histórico de orçamentos: visualizar, editar, renomear, duplicar e excluir.
+- Histórico de orçamentos: visualizar, abrir o resumo, editar, renomear, duplicar e excluir.
 
 ### 🌎 Idioma e região
 
 - Português e inglês.
+- Idioma escolhido separado do país.
 - Brasil (R$) e Estados Unidos (US$), com preços por região editáveis.
+- Nos Estados Unidos, as medidas são digitadas em ft, in e sq ft (com fração, como 3/8 in), e parte das abas já calcula nas embalagens americanas (thinset, grout, galões de tinta).
 
 ---
 
@@ -148,7 +155,7 @@ O app está sendo preparado para a **App Store**.
 git clone https://github.com/Gabrielazk/BuildCalc.git
 cd BuildCalc/Calculadora
 
-# 2. (Opcional) crie um ambiente virtual
+# 2. (Opcional) crie um ambiente virtual (Python 3.11)
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 # source .venv/bin/activate   # macOS / Linux
@@ -184,10 +191,13 @@ As contas ficam separadas das telas: a mesma conta pode ser usada no app, no PDF
 
 ## 🗺️ Próximos passos
 
-- [ ] Compartilhar a lista de compras pelo WhatsApp
-- [ ] Gráficos de custo por etapa no PDF
-- [ ] Versão para os Estados Unidos (unidades e embalagens locais)
+- [x] Compartilhar a lista de compras pelo WhatsApp
+- [x] Gráfico de custo por etapa no PDF
+- [x] Versão para os Estados Unidos: medidas americanas (ft, in, sq ft) e embalagens de piso, azulejo, rejunte, pintura e impermeabilização
+- [ ] Versão para os Estados Unidos: embalagens das outras abas (concreto, ferro, blocos, telhas, fios e tubos)
+- [ ] Abas só dos Estados Unidos: estrutura de madeira, OSB e drywall
 - [ ] Tabela de preços atualizada por estado (referência SINAPI)
+- [ ] Cronograma estimado da obra
 - [ ] Publicação na App Store
 
 ---

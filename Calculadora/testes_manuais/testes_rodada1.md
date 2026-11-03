@@ -1,6 +1,6 @@
-# Testes da Rodada 1 (Brasil, português): Brocas até Esquadrias (menos a Laje)
+# Testes da Rodada 1 (Brasil, português): Brocas até Esquadrias
 
-Mesmo modelo dos testes da Laje. Os resultados foram tirados rodando as contas do código, com os preços iniciais do app (cimento R$ 36, cal R$ 18, areia R$ 110, brita R$ 120).
+Os resultados foram tirados rodando as contas do código, com os preços iniciais do app (cimento R$ 36, cal R$ 18, areia R$ 110, brita R$ 120).
 
 **Importante:** os resultados já são os do código novo (cobrimento de 3 cm nas Brocas e no Baldrame, argamassa de 5 e 8 kg/m², massa em 2 demãos e o chuveiro de até 5.500 W). Cole os 6 arquivos novos antes de testar Brocas, Baldrame, Elétrica, Piso, Azulejo e Pintura.
 
@@ -317,6 +317,155 @@ O que os ⚠️ significam:
 - Menu do tijolo: os 5 nomes inteiros, alinhado no botão, sem sair da janela.
 - Menu do traço com vírgula: 1:2:8, 1:0,5:6, 1,5:1:8, 1:0:3, 1,5:0:4.
 - Títulos "Tipo e tamanho do tijolo ou bloco" e "Traço da massa (cimento:cal:areia) (Opcional)" perto do campo de cima e do botão.
+
+---
+
+# LAJE
+
+Preços dos testes: cimento R$ 36, areia R$ 110, brita R$ 120; laje pré-moldada R$ 75,00/m² com isopor e R$ 65,00/m² com lajota cerâmica; tela soldada R$ 95,00 o painel de 2 x 3 m (provisórios).
+
+### Teste A: pré-moldada, todos os campos, opcionais trocados
+
+| Campo | Digite / escolha |
+|---|---|
+| Área | 50 |
+| Tipo de laje | Pré-moldada treliçada |
+| Enchimento | Lajota cerâmica |
+| Capa de concreto | 5 |
+| Tela soldada | Sim |
+| Traço | 1:3:3 |
+| Perda | 8 |
+
+```
+Área: 50,00 m²
+Tipo de laje: Pré-moldada treliçada
+Enchimento: Lajota cerâmica
+Capa de concreto: 5 cm
+Traço: 1:3:3
+Volume Total (com 8% de perda): 3,348 m³
+• Laje pré-moldada (vigotas + enchimento): 50,00 m² (R$ 3.250,00)
+  (Lajotas cerâmicas: 648 un)
+• Tela soldada: 55,00 m² = 10 painéis de 2 x 3 m (R$ 950,00)
+• Cimento: 22 sacos de 50 kg (R$ 792,00)
+• Areia: 2,15 m³ (R$ 236,50)
+• Brita: 2,15 m³ (R$ 258,00)
+
+Custo Estimado da Etapa: R$ 5.486,50
+```
+
+Pra entender: o concreto é a capa (5 cm) + 1,2 cm entre as vigotas = 6,2 cm × 50 m² = 3,1 m³, com 8% de perda = 3,348 m³. As lajotas são 12 por m² × 50 × 1,08 = 648. A tela leva 10% a mais (55 m²) ÷ 6 m² por painel = 10 painéis.
+
+### Teste A2: maciça, todos os campos
+
+| Campo | Digite / escolha |
+|---|---|
+| Área | 30 |
+| Tipo de laje | Maciça |
+| Espessura total | 10 |
+| Traço | 1,5:5:5 |
+| Perda | 7 |
+
+```
+Área: 30,00 m²
+Tipo de laje: Maciça
+Espessura: 10 cm
+Traço: 1,5:5:5
+Volume Total (com 7% de perda): 3,210 m³
+• Cimento: 19 sacos de 50 kg (R$ 684,00)
+• Areia: 2,09 m³ (R$ 229,90)
+• Brita: 2,09 m³ (R$ 250,80)
+
+Custo Estimado da Etapa: R$ 1.164,70
+```
+
+### Teste B: pré-moldada, só os obrigatórios
+
+Área 50. O resto como vem (pré-moldada, isopor, capa 4, tela Não, traço 1:2:3, perda 5).
+
+```
+Área: 50,00 m²
+Tipo de laje: Pré-moldada treliçada
+Enchimento: Isopor (EPS)
+Capa de concreto: 4 cm
+Traço: 1:2:3
+Volume Total (com 5% de perda): 2,730 m³
+• Laje pré-moldada (vigotas + enchimento): 50,00 m² (R$ 3.750,00)
+• Cimento: 21 sacos de 50 kg (R$ 756,00)
+• Areia: 1,37 m³ (R$ 150,70)
+• Brita: 2,05 m³ (R$ 246,00)
+
+Custo Estimado da Etapa: R$ 4.902,70
+```
+
+**B2:** maciça, só os obrigatórios. Área 30, Tipo Maciça, Espessura 10:
+
+```
+Área: 30,00 m²
+Tipo de laje: Maciça
+Espessura: 10 cm
+Traço: 1:2:3
+Volume Total (com 5% de perda): 3,150 m³
+• Cimento: 24 sacos de 50 kg (R$ 864,00)
+• Areia: 1,58 m³ (R$ 173,80)
+• Brita: 2,36 m³ (R$ 283,20)
+
+Custo Estimado da Etapa: R$ 1.321,00
+```
+
+Pra conferir o resto, use o Teste B (área 50) e mude só o indicado:
+
+| # | Mudar | O que muda no resultado | Custo |
+|---|---|---|---|
+| B3 | Tela soldada: Sim | Aparece "• Tela soldada: 55,00 m² = 10 painéis de 2 x 3 m (R$ 950,00)" | R$ 5.852,70 |
+| B4 | Enchimento: Lajota cerâmica | Enchimento: Lajota cerâmica; laje a R$ 3.250,00; aparece "(Lajotas cerâmicas: 630 un)" | R$ 4.402,70 |
+
+### Teste C: erros de digitação
+
+Base: pré-moldada, Área 50. Mude só o indicado.
+
+| # | O que mudar | Esperado na tela |
+|---|---|---|
+| C1 | Área vazia | Por favor, digite números válidos nos campos! |
+| C2 | Área = cinquenta | (mesma mensagem) |
+| C3 | Área = 0 | Erro: A área deve ser maior que zero. |
+| C4 | Área = -50 | (mesma do C3) |
+| C5, C6, C7 | Área = 50,5, depois 50.5, depois 50 1/2 (com espaço) | Os três: 2,757 m³, 21 sacos, Areia 1,38 m³, Brita 2,07 m³, laje R$ 3.787,50, Custo R$ 4.943,70 |
+| C8 | Perda = -5 | Erro: A perda não pode ser negativa. |
+| C9 | Perda = 2,5 | Volume Total (com 2% de perda): 2,665 m³, 20 sacos, R$ 4.856,30 ⚠️ |
+| C10 | Capa = 0 | Erro: A espessura da capa deve ser maior que zero. |
+| C11 | Capa vazia | Igual ao Teste B (usa o padrão de 4 cm) |
+| C12 | Capa = -4 | (mesma do C10) |
+| C13 | Maciça + Espessura vazia | Por favor, digite números válidos nos campos! |
+| C14 | Maciça + Espessura = 0 | Erro: Informe a espessura total da laje maciça. |
+| C15 | Maciça + Espessura = dez | Por favor, digite números válidos nos campos! |
+| C16 | Área = 1-21/2 | Por favor, digite números válidos nos campos! |
+| C17 | Área = 5 + Tela Sim | "Tela soldada: 5,50 m² = 1 painel de 2 x 3 m (R$ 95,00)" (no singular), R$ 617,40 |
+| C18 | Capa = 4,5 | "Capa de concreto: 4,5 cm", 2,992 m³, 23 sacos, R$ 5.011,80 |
+| C19 | Área = 100000 | 5460,000 m³, 40950 sacos, R$ 9.765.900,00 ⚠️ |
+| C20 | Capa = 50 | 26,880 m³, 202 sacos, R$ 14.919,60 ⚠️ |
+| C21 | Maciça + Espessura = 200 | 105,000 m³, 788 sacos, R$ 43.593,00 ⚠️ |
+
+Troca de tipo (sem perder dados):
+
+C22: preencha o Teste A (pré-moldada) e troque para Maciça. Aparece o campo "Espessura total" e somem o enchimento, a capa e a tela. Volte para Pré-moldada: a capa 5 e a área 50 continuam lá, e o resultado antigo some (porque era do outro tipo).
+
+O que os ⚠️ significam (já sei que vai dar assim):
+
+- C9: o mesmo arredondamento da perda das outras abas ("2%" em vez de "2,5%"). Já entra na correção da Laje.
+- C19, C20 e C21: passam sem aviso. Pela regra nova, isso vira a janela "Confira os valores" com Continuar. Minha sugestão de limites:
+  - área até 2000 m² (igual à Paredes)
+  - capa de 3 a 8 cm
+  - espessura da maciça de 8 a 20 cm
+  - Se quiser perguntar pro seu irmão a capa e a espessura, é uma boa. Se ele não souber, eu uso esses.
+
+### Visual (Laje)
+
+- Botões: Limpar, Anterior, Próximo e Finalizar. O Anterior volta pra Paredes e o Próximo vai pro Telhado.
+- Limpar: volta pré-moldada, isopor, capa 4, tela Não, traço 1:2:3 e perda 5.
+- O "?" fala dos dois tipos de laje e da tela soldada (painéis de 2 x 3 m com 10% a mais), e termina com a nota dos valores padrão.
+- Menus (tipo de laje, enchimento, tela, traço) alinhados no botão, com os títulos perto do campo de cima.
+- Menu do traço com vírgula: 1:2:3, 1:3:3, 1:4:3, 1,5:5:5.
+- Na maciça, não aparece a opção de tela soldada.
 
 ---
 

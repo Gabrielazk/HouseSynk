@@ -3,6 +3,7 @@
 USUARIO_LOGADO fica aqui. Nas telas, use sempre comum.USUARIO_LOGADO (ler e trocar),
 nunca "from src.views.comum import USUARIO_LOGADO", senão a tela fica com uma cópia antiga."""
 import os
+from decimal import Decimal, ROUND_HALF_UP
 from src.models.material import TabelaPrecos
 from src.calculators.unidades import METRICO, IMPERIAL
 from src.views.textos_eua import TEXTOS_EUA
@@ -910,5 +911,19 @@ def fmt_moeda(valor: float) -> str:
     return f"{moeda} {texto}"
 
 def fmt_num(valor: float, casas: int = 2) -> str:
+    """Número com as casas pedidas e separador de milhar: 2363 -> "2.363", 100000 -> "100.000,00"
+    (Brasil) ou "100,000.00" (EUA). Arredonda do jeito da escola: 1,575 -> 1,58 e 215,25 -> 215,3.
+
+    Por que não usar só o round() do Python: o computador guarda 1,575 como 1,57499999...,
+    então o round() arredondava para baixo (1,57). O round(valor, 9) primeiro tira esse "lixo"
+    do fim do número, e o Decimal faz o arredondamento certo (ROUND_HALF_UP = 5 sobe)."""
     sep = CONFIG_APP["separador_decimal"]
-    return f"{valor:.{casas}f}".replace('.', sep)
+    milhar = "." if sep == "," else ","
+    numero = Decimal(str(round(float(valor), 9)))
+    arredondado = numero.quantize(Decimal(1).scaleb(-casas), rounding=ROUND_HALF_UP)
+    texto = f"{arredondado:,.{casas}f}"  # 100,000.00 (padrão do Python)
+    return texto.replace(",", "#").replace(".", sep).replace("#", milhar)
+
+def fmt_int(valor) -> str:
+    """Quantidade inteira (sacos, peças, unidades) com separador de milhar: 2363 -> "2.363"."""
+    return fmt_num(valor, 0)

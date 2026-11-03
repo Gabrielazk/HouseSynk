@@ -8,7 +8,7 @@ from src.calculators.hidraulica import BARRA_TUBO_M
 from src.calculators.baldrame import EMBALAGENS_IMPERM_L
 from src.calculators.embalagens import grandes_e_pequenas
 from src.calculators.unidades import METRICO, IMPERIAL, do_metrico
-from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_moeda
+from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_int, fmt_moeda
 from src.calculators.reserva import calcular_reserva
 from src.views.calculator_screen import CalculatorScreen, txt_do_pais
 from src.views import comum
@@ -53,13 +53,13 @@ def montar_lista_compras(itens):
     basico = grupos["basico"]
     total = _soma(itens, "tijolos")
     if total > 0:
-        basico.append(f"{txt('label_tijolos_resumo')}: {total} {txt('un_unidades')}")
+        basico.append(f"{txt('label_tijolos_resumo')}: {fmt_int(total)} {txt('un_unidades')}")
     total = _soma(itens, "cimento")
     if total > 0:
-        basico.append(f"{txt('label_cimento')}: {total} {txt('un_sacos')}")
+        basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {txt('un_sacos')}")
     total = _soma(itens, "cal")
     if total > 0:
-        basico.append(f"{txt('label_cal')}: {total} {txt('un_sacos_cal')}")
+        basico.append(f"{txt('label_cal')}: {fmt_int(total)} {txt('un_sacos_cal')}")
     total = _soma(itens, "areia")
     if total > 0:
         basico.append(f"{txt('label_areia')}: {fmt_num(total, 2)} m³")
@@ -68,7 +68,7 @@ def montar_lista_compras(itens):
         basico.append(f"{txt('label_pedra')}: {fmt_num(total, 2)} m³")
     total = _soma(itens, "aco_kg")
     if total > 0:
-        basico.append(f"{txt('label_aco')}: {fmt_num(total, 1)} kg ({_soma(itens, 'barras_12m')} {txt('un_barras12')})")
+        basico.append(f"{txt('label_aco')}: {fmt_num(total, 1)} kg ({fmt_int(_soma(itens, 'barras_12m'))} {txt('un_barras12')})")
     total = _soma(itens, "arame_kg")
     if total > 0:
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
@@ -91,15 +91,15 @@ def montar_lista_compras(itens):
         linha = f"{txt('label_laje_pm_resumo')}: {fmt_num(total, 2)} m²"
         lajotas = _soma(itens, "lajotas")
         if lajotas > 0:
-            linha += f" ({txt('label_lajotas')}: {lajotas} {txt('un_unidades')})"
+            linha += f" ({txt('label_lajotas')}: {fmt_int(lajotas)} {txt('un_unidades')})"
         basico.append(linha)
     total = _soma(itens, "tela_paineis")
     if total > 0:
-        basico.append(f"{txt('label_tela_res')}: {total} {txt('un_painel_tela') if total == 1 else txt('un_paineis_tela')}")
+        basico.append(f"{txt('label_tela_res')}: {fmt_int(total)} {txt('un_painel_tela') if total == 1 else txt('un_paineis_tela')}")
     for item in _do_tipo(itens, "telhado"):
-        linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {item['telhas']} {txt('un_unidades')}"
+        linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {fmt_int(item['telhas'])} {txt('un_unidades')}"
         if item.get("cumeeiras", 0) > 0:
-            linha += f" + {item['cumeeiras']} {txt('un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"
+            linha += f" + {fmt_int(item['cumeeiras'])} {txt('un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"
         basico.append(linha)
         madeira = [
             f"{txt('label_' + chave).lower()} {fmt_num(item.get(chave + '_m', 0), 1)} m"
@@ -110,12 +110,12 @@ def montar_lista_compras(itens):
     for item in _do_tipo(itens, "esquadrias"):  # insumos de fixação das portas e janelas
         if item.get("tubos_espuma", 0) > 0:
             qtd = item["tubos_espuma"]
-            basico.append(f"{txt('label_res_espuma')}: {qtd} {txt('un_tubo_500') if qtd == 1 else txt('un_tubos_500')}")
+            basico.append(f"{txt('label_res_espuma')}: {fmt_int(qtd)} {txt('un_tubo_500') if qtd == 1 else txt('un_tubos_500')}")
         if item.get("parafusos", 0) > 0:
-            basico.append(f"{txt('label_res_parafusos')}: {item['parafusos']} {txt('un_unidades')}")
+            basico.append(f"{txt('label_res_parafusos')}: {fmt_int(item['parafusos'])} {txt('un_unidades')}")
         if item.get("sacos_argamassa_fix", 0) > 0:
             qtd = item["sacos_argamassa_fix"]
-            basico.append(f"{txt('label_res_argamassa_fix')}: {qtd} {txt('un_saco_20') if qtd == 1 else txt('un_sacos_20')}")
+            basico.append(f"{txt('label_res_argamassa_fix')}: {fmt_int(qtd)} {txt('un_saco_20') if qtd == 1 else txt('un_sacos_20')}")
 
     # ---------------- ACABAMENTO ----------------
     acab = grupos["acabamento"]
@@ -125,9 +125,9 @@ def montar_lista_compras(itens):
             caixas = _soma(itens_c, "caixas")
             pecas = _soma(itens_c, "pecas")
             if caixas > 0:
-                acab.append(f"{txt(rotulo)}: {caixas} {txt('un_caixas')} ({pecas} {txt('un_pecas')})")
+                acab.append(f"{txt(rotulo)}: {fmt_int(caixas)} {txt('un_caixas')} ({fmt_int(pecas)} {txt('un_pecas')})")
             else:
-                acab.append(f"{txt(rotulo)}: {pecas} {txt('un_pecas')}")
+                acab.append(f"{txt(rotulo)}: {fmt_int(pecas)} {txt('un_pecas')}")
     # Argamassa colante: sacos de 20 kg (Brasil) ou de 50 lb (EUA); soma por país
     for sistema in (METRICO, IMPERIAL):
         itens_arg = [i for i in itens if i.get("argamassa_sacos", 0) > 0 and _sistema(i) == sistema]
@@ -136,9 +136,9 @@ def montar_lista_compras(itens):
             continue
         if sistema == IMPERIAL:
             unidade = txt_do_pais("un_saco_argamassa" if total == 1 else "un_sacos_argamassa", sistema)
-            acab.append(f"{txt_do_pais('label_argamassa_res', sistema)}: {total} {unidade}")
+            acab.append(f"{txt_do_pais('label_argamassa_res', sistema)}: {fmt_int(total)} {unidade}")
         else:
-            acab.append(f"{txt_do_pais('label_argamassa_resumo', sistema)}: {total} "
+            acab.append(f"{txt_do_pais('label_argamassa_resumo', sistema)}: {fmt_int(total)} "
                         f"{txt_do_pais('un_sacos_cal', sistema).replace(' de 20 kg', '').replace(' of 20 kg', '')}")
     # Rodapé: metros no Brasil, ft nos EUA
     for sistema in (METRICO, IMPERIAL):
@@ -172,20 +172,20 @@ def montar_lista_compras(itens):
             acab.append(f"{txt_do_pais('label_pint_' + produto, sistema)}: {C._texto_latas_galoes(latas, galoes, sistema)}")
         if item.get("baldes_massa", 0) > 0:
             qtd = item["baldes_massa"]
-            acab.append(f"{C._rotulo_massa(item['massa_tipo'])}: {qtd} {txt('un_balde_25') if qtd == 1 else txt('un_baldes_25')}")
+            acab.append(f"{C._rotulo_massa(item['massa_tipo'])}: {fmt_int(qtd)} {txt('un_balde_25') if qtd == 1 else txt('un_baldes_25')}")
 
     # ---------------- ELÉTRICA ----------------
     ele = grupos["eletrica"]
     for item in _do_tipo(itens, "eletrica"):
         if item.get("rolos_conduite", 0) > 0:
             qtd = item["rolos_conduite"]
-            ele.append(f"{txt('label_conduite')}: {qtd} {txt('un_rolo_conduite') if qtd == 1 else txt('un_rolos_conduite')}")
+            ele.append(f"{txt('label_conduite')}: {fmt_int(qtd)} {txt('un_rolo_conduite') if qtd == 1 else txt('un_rolos_conduite')}")
         for bitola, qtd in item.get("fios", {}).items():
-            ele.append(f"{txt('label_fio').format(b=C._rotulo_bitola_fio(float(bitola)))}: {qtd} {txt('un_rolo_fio') if qtd == 1 else txt('un_rolos_fio')}")
+            ele.append(f"{txt('label_fio').format(b=C._rotulo_bitola_fio(float(bitola)))}: {fmt_int(qtd)} {txt('un_rolo_fio') if qtd == 1 else txt('un_rolos_fio')}")
         for chave, rotulo in (("caixas_4x2", "label_caixa_4x2"), ("caixas_octogonais", "label_caixa_oct"),
                               ("tomadas", "label_tomadas"), ("interruptores", "label_interruptores")):
             if item.get(chave, 0) > 0:
-                ele.append(f"{txt(rotulo)}: {item[chave]} {txt('un_unidades')}")
+                ele.append(f"{txt(rotulo)}: {fmt_int(item[chave])} {txt('un_unidades')}")
 
     # ---------------- HIDRÁULICA ----------------
     hid = grupos["hidraulica"]
@@ -193,9 +193,9 @@ def montar_lista_compras(itens):
         for tubo, barras in item.get("tubos", {}).items():
             hid.append(f"{txt('label_tubo_' + tubo)}: {C._texto_barras(barras, BARRA_TUBO_M[tubo])}")
         for tipo, qtd in item.get("conexoes", {}).items():
-            hid.append(f"{txt('label_conexoes_' + tipo)}: {qtd} {txt('un_unidades')}")
+            hid.append(f"{txt('label_conexoes_' + tipo)}: {fmt_int(qtd)} {txt('un_unidades')}")
         if item.get("registros", 0) > 0:
-            hid.append(f"{txt('label_registros')}: {item['registros']} {txt('un_unidades')}")
+            hid.append(f"{txt('label_registros')}: {fmt_int(item['registros'])} {txt('un_unidades')}")
 
     # ---------------- ESQUADRIAS (para cotação) ----------------
     for item in _do_tipo(itens, "esquadrias"):

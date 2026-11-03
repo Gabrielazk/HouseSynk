@@ -97,7 +97,7 @@ TEXTOS_EUA = {
     },
     "en": {
         # --- Drilled shafts and grade beam ---
-        "hint_prof": "Average depth, ft (ex: 10)",claud
+        "hint_prof": "Average depth, ft (ex: 10)",
         "hint_diam": "Diameter, in (ex: 12)",
         "hint_esp_estribo": "Stirrup spacing, in (ex: 8)",
         "hint_mo": "Labor cost per ft (optional, ex: 8.00)",

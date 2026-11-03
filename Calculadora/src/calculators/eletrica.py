@@ -1,4 +1,5 @@
 import math
+from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
 # Perda padrão (sobras de fio e conduíte)
 PERDA_PADRAO_ELETRICA = 10.0
@@ -81,7 +82,7 @@ def calcular_eletrica(
         total = base * fator
         if total > 0:
             fios[bitola] = {
-                "metros": round(total, 1),
+                "metros": arredondar(total, 1),
                 "rolos": math.ceil(total / ROLO_FIO_M - 1e-9),
                 "do_projeto": bitola in fios_m,
             }
@@ -94,7 +95,7 @@ def calcular_eletrica(
         "chuveiros_ate_5500w": chuveiros_ate_5500w,
         "perda_percentual": perda_percentual,
         "conduite_estimado": conduite_estimado,
-        "conduite_m": round(conduite_total, 1),
+        "conduite_m": arredondar(conduite_total, 1),
         "rolos_conduite": rolos_conduite,
         "fios": fios,
         "caixas_4x2": tomadas + interruptores,

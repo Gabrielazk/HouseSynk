@@ -1,5 +1,6 @@
 import math
 from src.calculators.unidades import METRICO, IMPERIAL, KG_POR_LB, M2_POR_SQFT
+from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
 # Perda de piso e azulejo (recortes e quebras) pelo tamanho da peça (CONFIRMADO pelo engenheiro em Oct 27, 2026).
 # Vale o MAIOR lado da peça: até 70 cm, 10%; de 70 a 90 cm, 15%; acima de 90 cm, 20%.
@@ -143,10 +144,10 @@ def _calcular_ceramica(
     rodape_pecas = math.ceil(rodape_com_perda / rodape_peca_m - 1e-9) if rodape_m > 0 and rodape_peca_m > 0 else 0
 
     return {
-        "area_bruta_m2": round(area_m2, 2),
-        "desconto_vaos_m2": round(desconto_vaos_m2, 2),
-        "area_liquida_m2": round(area_liquida, 2),
-        "area_com_perda_m2": round(area_com_perda, 2),
+        "area_bruta_m2": arredondar(area_m2, 2),
+        "desconto_vaos_m2": arredondar(desconto_vaos_m2, 2),
+        "area_liquida_m2": arredondar(area_liquida, 2),
+        "area_com_perda_m2": arredondar(area_com_perda, 2),
         "perda_percentual": perda,
         "perda_automatica": perda_auto,
         "desenho": desenho,
@@ -156,11 +157,11 @@ def _calcular_ceramica(
         "m2_por_caixa": m2_por_caixa,
         "caixas": caixas,
         "tipo_argamassa": tipo_argamassa,
-        "argamassa_kg": round(argamassa_kg, 1),
+        "argamassa_kg": arredondar(argamassa_kg, 1),
         "sacos_argamassa": sacos,
-        "consumo_argamassa_kg_m2": round(consumo_kg_m2, 3),
+        "consumo_argamassa_kg_m2": arredondar(consumo_kg_m2, 3),
         "desempenadeira": desempenadeira,   # só nos EUA (ex.: "1/4 x 3/8"); vazio no Brasil
-        "rodape_m": round(rodape_com_perda, 2),
+        "rodape_m": arredondar(rodape_com_perda, 2),
         "rodape_peca_m": rodape_peca_m,
         "rodape_pecas": rodape_pecas,
     }

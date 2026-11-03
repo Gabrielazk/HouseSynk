@@ -152,7 +152,7 @@ from src.calculators.tracos import (
 from kivymd.uix.widget import MDWidget
 from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, fmt_int, sistema_unidades
 from src.views.textos_eua import TEXTOS_EUA
-from src.calculators.unidades import METRICO, IMPERIAL, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade
+from src.calculators.unidades import METRICO, IMPERIAL, arredondar, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade
 
 
 def txt_do_pais(chave, sistema=None):
@@ -1338,6 +1338,15 @@ class CalculatorScreen(MDScreen):
             texto += f" ({CalculatorScreen._rotulo_material(item['material'])})"
         return texto
 
+    def _texto_total_esquadrias(self, portas, janelas):
+        """Ex.: "4 portas e 5 janelas", "1 porta" (o que for zero não aparece)."""
+        partes = []
+        if portas > 0:
+            partes.append(f"{fmt_int(portas)} {self._unidade(portas, 'un_porta', 'un_portas')}")
+        if janelas > 0:
+            partes.append(f"{fmt_int(janelas)} {self._unidade(janelas, 'un_janela', 'un_janelas')}")
+        return f" {txt('un_e')} ".join(partes)
+
     def _adicionar_esquadria(self, instance=None):
         try:
             qtd = int(self.in_esq_qtd.text.strip())
@@ -1853,6 +1862,41 @@ class CalculatorScreen(MDScreen):
         return texto
 
     @staticmethod
+    def _unidade(qtd, singular, plural, sistema=None):
+        """Escolhe o singular ou o plural da unidade: "1 saco", "2 sacos".
+        Com número quebrado, o singular vai até menos de 2, como se fala em português:
+        "0,79 milheiro", "1,58 milheiro", "2,5 milheiros". Zero fica no plural ("0 sacos").
+        singular e plural são as chaves dos textos (ex.: "un_saco" e "un_sacos")."""
+        return txt_do_pais(singular if 0 < abs(qtd) < 2 else plural, sistema)
+
+    def _linhas_concreto(self, res, custo_cimento, custo_areia, custo_pedra):
+        """Linhas do cimento, da areia e da brita (Brocas, Baldrame, Laje e Contrapiso).
+        O material que dá zero não aparece (regra 14): ex.: viga minúscula com 0,00 m³ de areia."""
+        linhas = ""
+        if res['sacos_cimento'] > 0:
+            qtd = res['sacos_cimento']
+            linhas += f"• {txt('label_cimento')}: {fmt_int(qtd)} {self._unidade(qtd, 'un_saco', 'un_sacos')} ({fmt_moeda(custo_cimento)})\n"
+        if arredondar(res['areia_m3'], 2) > 0:
+            linhas += f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
+        if arredondar(res['pedra_m3'], 2) > 0:
+            linhas += f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
+        return linhas
+
+    def _linhas_massa(self, res, custo_cimento, custo_cal, custo_areia):
+        """Linhas do cimento, da cal e da areia da massa (Paredes e Reboco).
+        O que dá zero não aparece (regra 14): ex.: o traço 1:0:3 não tem cal."""
+        linhas = ""
+        if res['sacos_cimento'] > 0:
+            qtd = res['sacos_cimento']
+            linhas += f"• {txt('label_cimento')}: {fmt_int(qtd)} {self._unidade(qtd, 'un_saco', 'un_sacos')} ({fmt_moeda(custo_cimento)})\n"
+        if res['sacos_cal'] > 0:
+            qtd = res['sacos_cal']
+            linhas += f"• {txt('label_cal')}: {fmt_int(qtd)} {self._unidade(qtd, 'un_saco_cal', 'un_sacos_cal')} ({fmt_moeda(custo_cal)})\n"
+        if arredondar(res['areia_m3'], 2) > 0:
+            linhas += f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
+        return linhas
+
+    @staticmethod
     def _txt_perda(perda):
         """Texto da perda, igual em todas as abas: "com 2,5% de perda" (inglês: "with 2.5% waste")."""
         return txt("label_com_perda").format(p=CalculatorScreen._num_curto(perda))
@@ -1987,21 +2031,19 @@ class CalculatorScreen(MDScreen):
         texto_res = (
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._txt_perda(res['perda_percentual'])}): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
-            f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
-            f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
+            f"{self._linhas_concreto(res, custo_cimento, custo_areia, custo_pedra)}"
         )
         if res['incluiu_ferragem']:
             texto_res += f"{txt('label_gaiola').format(m=fmt_num(res['altura_gaiola_m'], 2))}\n"
             texto_res += (
                 f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
-                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({fmt_int(res['barras_12m_longitudinal'])} {txt('un_barras12')})\n"
+                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({fmt_int(res['barras_12m_longitudinal'])} {self._unidade(res['barras_12m_longitudinal'], 'un_barra12', 'un_barras12')})\n"
             )
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
                     f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
-                    f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {txt('un_barras12')})\n"
+                    f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {self._unidade(res['barras_12m_estribos'], 'un_barra12', 'un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
             texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
@@ -2079,14 +2121,12 @@ class CalculatorScreen(MDScreen):
         texto_res = (
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._txt_perda(perda)}): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
-            f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
-            f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
+            f"{self._linhas_concreto(res, custo_cimento, custo_areia, custo_pedra)}"
         )
         if res['incluiu_ferragem']:
             linha_ferro = (
                 f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
-                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({fmt_int(res['barras_12m_longitudinal'])} {txt('un_barras12')})"
+                f"{fmt_num(res['kg_longitudinal'], 1)} kg ({fmt_int(res['barras_12m_longitudinal'])} {self._unidade(res['barras_12m_longitudinal'], 'un_barra12', 'un_barras12')})"
             )
             if res['traspasse_m'] > 0:  # viga maior que 12 m: as barras têm emendas
                 linha_ferro += f" ({txt('label_traspasse').format(m=fmt_num(res['traspasse_m'], 2))})"
@@ -2095,7 +2135,7 @@ class CalculatorScreen(MDScreen):
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
                     f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
-                    f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {txt('un_barras12')})\n"
+                    f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {self._unidade(res['barras_12m_estribos'], 'un_barra12', 'un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
             texto_res += f"• {txt('label_arame')}: {fmt_num(res['arame_kg'], 1)} kg ({fmt_moeda(custo_arame)})\n"
@@ -2164,9 +2204,7 @@ class CalculatorScreen(MDScreen):
         if chapisco:
             texto_res += f"{txt('label_chapisco_res')}: {txt('txt_chapisco_incluido')} ({CHAPISCO_TRACO_RODAPE}, {fmt_num(CHAPISCO_ESPESSURA_CM, 1)} cm)\n"
         texto_res += (
-            f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_cal')}: {fmt_int(res['sacos_cal'])} {txt('un_sacos_cal')} ({fmt_moeda(custo_cal)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
+            f"{self._linhas_massa(res, custo_cimento, custo_cal, custo_areia)}"
             f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
 
@@ -2243,10 +2281,10 @@ class CalculatorScreen(MDScreen):
         if res['caixas'] > 0:
             # Por caixa: m² no Brasil, sq ft nos EUA (o número que a pessoa digitou)
             por_caixa = fmt_num(do_metrico(caixa, "area", sistema), 2)
-            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {txt('un_pecas')}\n"
-            texto_res += f"• {txt('label_caixas')}: {fmt_int(res['caixas'])} {txt('un_caixas')} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
+            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {self._unidade(res['pecas'], 'un_peca', 'un_pecas')}\n"
+            texto_res += f"• {txt('label_caixas')}: {fmt_int(res['caixas'])} {self._unidade(res['caixas'], 'un_caixa', 'un_caixas')} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
         else:
-            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {txt('un_pecas')}{custo_txt}\n"
+            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {self._unidade(res['pecas'], 'un_peca', 'un_pecas')}{custo_txt}\n"
         if eua:
             # Ex.: "Argamassa colante (thinset) Modificada (ANSI A118.4): 3 sacos de 50 lb (150 lb)"
             qtd = res['sacos_argamassa']
@@ -2259,13 +2297,13 @@ class CalculatorScreen(MDScreen):
             )
         else:
             texto_res += (
-                f"• {txt('label_argamassa_res')} {tipo_arg}: {fmt_int(res['sacos_argamassa'])} {txt('un_sacos_cal')} "
+                f"• {txt('label_argamassa_res')} {tipo_arg}: {fmt_int(res['sacos_argamassa'])} {self._unidade(res['sacos_argamassa'], 'un_saco_cal', 'un_sacos_cal')} "
                 f"({fmt_num(res['argamassa_kg'], 1)} kg) ({fmt_moeda(custo_arg)})\n"
             )
         if res['rodape_m'] > 0:
             linha_rodape = f"• {txt('label_rodape')}: {self._med(mostra['rodape'], 'comprimento')}"
             if res['rodape_pecas'] > 0:  # só quando o cliente informa o tamanho da peça
-                linha_rodape += f" ({fmt_int(res['rodape_pecas'])} {txt('un_pecas')} {txt('un_de')} {self._med(res['rodape_peca_m'], 'comprimento')})"
+                linha_rodape += f" ({fmt_int(res['rodape_pecas'])} {self._unidade(res['rodape_pecas'], 'un_peca', 'un_pecas')} {txt('un_de')} {self._med(res['rodape_peca_m'], 'comprimento')})"
             texto_res += f"{linha_rodape} ({fmt_moeda(custo_rodape)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
@@ -2430,9 +2468,7 @@ class CalculatorScreen(MDScreen):
                     f"{fmt_int(qtd)} {txt('un_painel_tela') if qtd == 1 else txt('un_paineis_tela')} ({fmt_moeda(custo_tela)})\n"
                 )
         texto_res += (
-            f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
-            f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
+            f"{self._linhas_concreto(res, custo_cimento, custo_areia, custo_pedra)}"
             f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
 
@@ -2481,14 +2517,14 @@ class CalculatorScreen(MDScreen):
             f"{txt('label_area_planta')}: {fmt_num(res['area_planta_m2'], 2)} m²\n"
             f"{txt('label_inclinacao')}: {n(res['inclinacao_percentual'])}%\n"
             f"{txt('label_area_real')}: {fmt_num(res['area_real_m2'], 2)} m²\n"
-            f"{txt('label_tipo_telha')}: {self._rotulo_telha(tipo)}\n\n"
+            f"{txt('label_tipo_telha')}: {self._rotulo_telha(tipo)}\n"
             f"• {txt('label_telhas')} ({self._txt_perda(perda)}): "
             f"{fmt_int(res['telhas'])} {txt('un_unidades')} ({fmt_moeda(custo_telhas)})\n"
         )
         if res['cumeeiras'] > 0:
             texto_res += (
                 f"• {txt('label_cumeeira')}: {fmt_num(res['cumeeira_m'], 2)} m = "
-                f"{fmt_int(res['cumeeiras'])} {txt('un_pecas')} ({fmt_moeda(custo_cumeeira)})\n"
+                f"{fmt_int(res['cumeeiras'])} {self._unidade(res['cumeeiras'], 'un_peca', 'un_pecas')} ({fmt_moeda(custo_cumeeira)})\n"
             )
         if res['incluiu_madeiramento']:
             texto_res += f"• {txt('label_madeiramento_res')}:\n"
@@ -2539,7 +2575,7 @@ class CalculatorScreen(MDScreen):
                 texto_res += f"• {self._texto_item_esquadria(item)}: {fmt_num(area, 2)} m² {txt('label_cada')}\n"
             texto_res += "\n"
         texto_res += (
-            f"{txt('label_portas')}: {fmt_int(res['portas'])} | {txt('label_janelas')}: {fmt_int(res['janelas'])}\n"
+            f"{txt('label_total')}: {self._texto_total_esquadrias(res['portas'], res['janelas'])}\n"
             f"{txt('label_area_vaos')}: {fmt_num(res['area_vaos_m2'], 2)} m²\n"
         )
         if res['tubos_espuma'] or res['parafusos'] or res['sacos_argamassa']:
@@ -2618,7 +2654,7 @@ class CalculatorScreen(MDScreen):
             texto_rend = f"{n(rend)} m²/L"
         texto_res += (
             f"{txt('label_demaos')}: {demaos}\n"
-            f"{txt('label_rendimento')}: {texto_rend}\n\n"
+            f"{txt('label_rendimento')}: {texto_rend}\n"
         )
         perda_txt = self._txt_perda(perda)
         for item, d in res['itens'].items():
@@ -2674,8 +2710,8 @@ class CalculatorScreen(MDScreen):
 
         texto_res = ""
         for chave in ("fria", "quente", "esgoto"):
-            texto_res += f"{txt('label_pontos_' + chave)}: {fmt_int(pontos[chave])}\n"
-        texto_res += "\n"
+            if pontos[chave] > 0:  # ponto com zero não aparece
+                texto_res += f"{txt('label_pontos_' + chave)}: {fmt_int(pontos[chave])}\n"
         for tubo, dados in res['tubos'].items():
             origem = txt("label_do_projeto") if dados['do_projeto'] else txt("label_estimado")
             texto_res += (
@@ -2746,16 +2782,12 @@ class CalculatorScreen(MDScreen):
         def rolos(qtd, un1, un2):
             return f"{fmt_int(qtd)} {txt(un1) if qtd == 1 else txt(un2)}"
 
-        texto_res = (
-            f"{txt('label_tomadas')}: {fmt_int(tomadas)}\n"
-            f"{txt('label_interruptores')}: {fmt_int(interruptores)}\n"
-            f"{txt('label_luzes')}: {fmt_int(luzes)}\n"
-        )
-        if chuveiros > 0:
-            texto_res += f"{txt('label_chuveiros')}: {fmt_int(chuveiros)}\n"
-        if chuveiros4 > 0:
-            texto_res += f"{txt('label_chuveiros4')}: {fmt_int(chuveiros4)}\n"
-        texto_res += "\n"
+        # Quantidades do topo: o que for zero não aparece
+        texto_res = ""
+        for qtd, rotulo in ((tomadas, "label_tomadas"), (interruptores, "label_interruptores"), (luzes, "label_luzes"),
+                            (chuveiros, "label_chuveiros"), (chuveiros4, "label_chuveiros4")):
+            if qtd > 0:
+                texto_res += f"{txt(rotulo)}: {fmt_int(qtd)}\n"
         if res['rolos_conduite'] > 0:
             texto_res += (
                 f"• {txt('label_conduite')} ({origem(not res['conduite_estimado'])}, {self._txt_perda(perda)}): "
@@ -2818,9 +2850,7 @@ class CalculatorScreen(MDScreen):
             f"{txt('label_area_contrapiso')}: {fmt_num(res['area_m2'], 2)} m²\n"
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._txt_perda(perda)}): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
-            f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-            f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
-            f"• {txt('label_pedra')}: {fmt_num(res['pedra_m3'], 2)} m³ ({fmt_moeda(custo_pedra)})\n"
+            f"{self._linhas_concreto(res, custo_cimento, custo_areia, custo_pedra)}"
             f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
 
@@ -2879,7 +2909,7 @@ class CalculatorScreen(MDScreen):
         custo_mat = custo_tijolo + custo_cimento + custo_cal + custo_areia
 
         milheiros = fmt_num(res['milheiros'], 2)
-        un_milheiro = txt('un_milheiro') if res['milheiros'] == 1 else txt('un_milheiros')
+        un_milheiro = self._unidade(res['milheiros'], 'un_milheiro', 'un_milheiros')  # 0,79 e 1,58 milheiro; 2,5 milheiros
         texto_res = f"{txt('label_area_bruta')}: {fmt_num(res['area_bruta_m2'], 2)} m²\n"
         if res['desconto_vaos_m2'] > 0:
             texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
@@ -2890,12 +2920,7 @@ class CalculatorScreen(MDScreen):
             f"({milheiros} {un_milheiro}) ({fmt_moeda(custo_tijolo)})\n"
         )
         # Material que deu zero não aparece (ex.: traço 1:0:3 não tem cal)
-        if res['sacos_cimento'] > 0:
-            texto_res += f"• {txt('label_cimento')}: {fmt_int(res['sacos_cimento'])} {txt('un_sacos')} ({fmt_moeda(custo_cimento)})\n"
-        if res['sacos_cal'] > 0:
-            texto_res += f"• {txt('label_cal')}: {fmt_int(res['sacos_cal'])} {txt('un_sacos_cal')} ({fmt_moeda(custo_cal)})\n"
-        if res['areia_m3'] > 0:
-            texto_res += f"• {txt('label_areia')}: {fmt_num(res['areia_m3'], 2)} m³ ({fmt_moeda(custo_areia)})\n"
+        texto_res += self._linhas_massa(res, custo_cimento, custo_cal, custo_areia)
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         resultado = {

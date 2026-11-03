@@ -3,9 +3,8 @@
 USUARIO_LOGADO fica aqui. Nas telas, use sempre comum.USUARIO_LOGADO (ler e trocar),
 nunca "from src.views.comum import USUARIO_LOGADO", senão a tela fica com uma cópia antiga."""
 import os
-from decimal import Decimal, ROUND_HALF_UP
 from src.models.material import TabelaPrecos
-from src.calculators.unidades import METRICO, IMPERIAL
+from src.calculators.unidades import METRICO, IMPERIAL, arredondar
 from src.views.textos_eua import TEXTOS_EUA
 
 # Imagens do app (pasta Calculadora/assets). O caminho é montado a partir deste arquivo,
@@ -55,6 +54,7 @@ TEXTOS = {
         "label_ferro": "Ferro",
         "label_estribos": "Estribos",
         "un_barras12": "barras de 12 m",
+        "un_barra12": "barra de 12 m",
         "label_gaiola": "Gaiola de ferro: {m} m de cada broca",
         "label_traspasse": "inclui {m} m de emendas",
         "titulo_ajuda": "Ajuda",
@@ -89,6 +89,7 @@ TEXTOS = {
         "label_mo": "Mão de Obra",
         "label_custo": "Custo Estimado da Etapa",
         "un_sacos": "sacos de 50 kg",
+        "un_saco": "saco de 50 kg",
         "titulo_resumo": "Orçamento Consolidado",
         "resumo_titulo": "ORÇAMENTO CONSOLIDADO DA OBRA",
         "resumo_regiao": "Região / Estado",
@@ -217,6 +218,7 @@ TEXTOS = {
         "tj_bloco_19": "Bloco de concreto (19x19x39)",
         "label_cal": "Cal",
         "un_sacos_cal": "sacos de 20 kg",
+        "un_saco_cal": "saco de 20 kg",
         "un_unidades": "un",
         "un_milheiro": "milheiro",
         "un_milheiros": "milheiros",
@@ -253,7 +255,9 @@ TEXTOS = {
         "label_azulejo_resumo": "Azulejo",
         "label_argamassa_resumo": "Argamassa colante 20kg",
         "un_pecas": "peças",
+        "un_peca": "peça",
         "un_caixas": "caixas",
+        "un_caixa": "caixa",
         "un_caixa_m2": "m² por caixa",
         "un_de": "de",
         "aba_rejunte": "Rejunte",
@@ -416,6 +420,11 @@ TEXTOS = {
         "label_argamassa_fix": "Argamassa de fixação (Opcional)",
         "label_portas": "Portas",
         "label_janelas": "Janelas",
+        "label_total": "Total",
+        "un_porta": "porta",
+        "un_portas": "portas",
+        "un_janela": "janela",
+        "un_janelas": "janelas",
         "label_area_vaos": "Área total dos vãos",
         "label_res_espuma": "Espuma expansiva",
         "label_res_parafusos": "Parafusos com bucha",
@@ -469,6 +478,7 @@ TEXTOS = {
         "label_ferro": "Rebar",
         "label_estribos": "Stirrups",
         "un_barras12": "bars of 12 m",
+        "un_barra12": "bar of 12 m",
         "label_gaiola": "Rebar cage: {m} m of each pile",
         "label_traspasse": "includes {m} m of lap splices",
         "titulo_ajuda": "Help",
@@ -503,6 +513,7 @@ TEXTOS = {
         "label_mo": "Labor Cost",
         "label_custo": "Estimated Stage Cost",
         "un_sacos": "bags of 50 kg",
+        "un_saco": "bag of 50 kg",
         "titulo_resumo": "Consolidated Estimate",
         "resumo_titulo": "CONSOLIDATED PROJECT ESTIMATE",
         "resumo_regiao": "Region / State",
@@ -631,6 +642,7 @@ TEXTOS = {
         "tj_bloco_19": "Concrete block (19x19x39)",
         "label_cal": "Lime",
         "un_sacos_cal": "bags of 20 kg",
+        "un_saco_cal": "bag of 20 kg",
         "un_unidades": "un",
         "un_milheiro": "thousand",
         "un_milheiros": "thousand",
@@ -667,7 +679,9 @@ TEXTOS = {
         "label_azulejo_resumo": "Wall tile",
         "label_argamassa_resumo": "Tile adhesive 20kg",
         "un_pecas": "tiles",
+        "un_peca": "tile",
         "un_caixas": "boxes",
+        "un_caixa": "box",
         "un_caixa_m2": "m² per box",
         "un_de": "of",
         "aba_rejunte": "Grout",
@@ -830,6 +844,11 @@ TEXTOS = {
         "label_argamassa_fix": "Fixing mortar (Optional)",
         "label_portas": "Doors",
         "label_janelas": "Windows",
+        "label_total": "Total",
+        "un_porta": "door",
+        "un_portas": "doors",
+        "un_janela": "window",
+        "un_janelas": "windows",
         "label_area_vaos": "Total opening area",
         "label_res_espuma": "Expanding foam",
         "label_res_parafusos": "Screws and anchors",
@@ -912,16 +931,11 @@ def fmt_moeda(valor: float) -> str:
 
 def fmt_num(valor: float, casas: int = 2) -> str:
     """Número com as casas pedidas e separador de milhar: 2363 -> "2.363", 100000 -> "100.000,00"
-    (Brasil) ou "100,000.00" (EUA). Arredonda do jeito da escola: 1,575 -> 1,58 e 215,25 -> 215,3.
-
-    Por que não usar só o round() do Python: o computador guarda 1,575 como 1,57499999...,
-    então o round() arredondava para baixo (1,57). O round(valor, 9) primeiro tira esse "lixo"
-    do fim do número, e o Decimal faz o arredondamento certo (ROUND_HALF_UP = 5 sobe)."""
+    (Brasil) ou "100,000.00" (EUA). Arredonda do jeito da escola (1,575 -> 1,58): ver arredondar(),
+    no unidades.py, que explica por que o round() do Python não serve."""
     sep = CONFIG_APP["separador_decimal"]
     milhar = "." if sep == "," else ","
-    numero = Decimal(str(round(float(valor), 9)))
-    arredondado = numero.quantize(Decimal(1).scaleb(-casas), rounding=ROUND_HALF_UP)
-    texto = f"{arredondado:,.{casas}f}"  # 100,000.00 (padrão do Python)
+    texto = f"{arredondar(valor, casas):,.{casas}f}"  # 100,000.00 (padrão do Python)
     return texto.replace(",", "#").replace(".", sep).replace("#", milhar)
 
 def fmt_int(valor) -> str:

@@ -6,6 +6,7 @@ from src.calculators.tracos import (
     SACO_CAL_KG,
     materiais_da_massa,
 )
+from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
 # Tijolos e blocos: medidas em cm, na ordem do nome (largura x altura x comprimento).
 # ATENÇÃO (conferir com engenheiro): medidas e preços são premissas de trabalho.
@@ -89,23 +90,23 @@ def calcular_paredes(
     materiais = materiais_da_massa(volume_massa_m3, traco)
     sacos_cimento = math.ceil(materiais["cimento_kg"] / SACO_CIMENTO_KG - 1e-9)
     sacos_cal = math.ceil(materiais["cal_kg"] / SACO_CAL_KG - 1e-9)
-    areia_m3 = round(materiais["areia_m3"], 2)
+    areia_m3 = arredondar(materiais["areia_m3"], 2)
 
     return {
-        "area_bruta_m2": round(area_bruta_m2, 2),
-        "desconto_vaos_m2": round(desconto_vaos_m2, 2),
-        "area_liquida_m2": round(area_liquida_m2, 2),
+        "area_bruta_m2": arredondar(area_bruta_m2, 2),
+        "desconto_vaos_m2": arredondar(desconto_vaos_m2, 2),
+        "area_liquida_m2": arredondar(area_liquida_m2, 2),
         "tijolo": tijolo,
         "assentamento": assentamento,
         "junta_cm": junta_cm,
         "quebra_percentual": quebra_percentual,
-        "pecas_por_m2": round(pecas_por_m2, 2),
+        "pecas_por_m2": arredondar(pecas_por_m2, 2),
         "unidades": unidades,
-        "milheiros": round(milheiros, 2),
+        "milheiros": arredondar(milheiros, 2),
         "preco_unitario": dados["preco"],
         "traco": traco,
         "perda_massa_percentual": PERDA_MASSA_PERCENTUAL,
-        "volume_massa_m3": round(volume_massa_m3, 3),
+        "volume_massa_m3": arredondar(volume_massa_m3, 3),
         "sacos_cimento": sacos_cimento,
         "sacos_cal": sacos_cal,
         "areia_m3": areia_m3,

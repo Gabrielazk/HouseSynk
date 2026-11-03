@@ -56,10 +56,10 @@ def montar_lista_compras(itens):
         basico.append(f"{txt('label_tijolos_resumo')}: {fmt_int(total)} {txt('un_unidades')}")
     total = _soma(itens, "cimento")
     if total > 0:
-        basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {txt('un_sacos')}")
+        basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {C._unidade(total, 'un_saco', 'un_sacos')}")
     total = _soma(itens, "cal")
     if total > 0:
-        basico.append(f"{txt('label_cal')}: {fmt_int(total)} {txt('un_sacos_cal')}")
+        basico.append(f"{txt('label_cal')}: {fmt_int(total)} {C._unidade(total, 'un_saco_cal', 'un_sacos_cal')}")
     total = _soma(itens, "areia")
     if total > 0:
         basico.append(f"{txt('label_areia')}: {fmt_num(total, 2)} m³")
@@ -68,7 +68,7 @@ def montar_lista_compras(itens):
         basico.append(f"{txt('label_pedra')}: {fmt_num(total, 2)} m³")
     total = _soma(itens, "aco_kg")
     if total > 0:
-        basico.append(f"{txt('label_aco')}: {fmt_num(total, 1)} kg ({fmt_int(_soma(itens, 'barras_12m'))} {txt('un_barras12')})")
+        basico.append(f"{txt('label_aco')}: {fmt_num(total, 1)} kg ({fmt_int(_soma(itens, 'barras_12m'))} {C._unidade(_soma(itens, 'barras_12m'), 'un_barra12', 'un_barras12')})")
     total = _soma(itens, "arame_kg")
     if total > 0:
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
@@ -99,7 +99,7 @@ def montar_lista_compras(itens):
     for item in _do_tipo(itens, "telhado"):
         linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {fmt_int(item['telhas'])} {txt('un_unidades')}"
         if item.get("cumeeiras", 0) > 0:
-            linha += f" + {fmt_int(item['cumeeiras'])} {txt('un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"
+            linha += f" + {fmt_int(item['cumeeiras'])} {C._unidade(item['cumeeiras'], 'un_peca', 'un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"
         basico.append(linha)
         madeira = [
             f"{txt('label_' + chave).lower()} {fmt_num(item.get(chave + '_m', 0), 1)} m"
@@ -125,9 +125,9 @@ def montar_lista_compras(itens):
             caixas = _soma(itens_c, "caixas")
             pecas = _soma(itens_c, "pecas")
             if caixas > 0:
-                acab.append(f"{txt(rotulo)}: {fmt_int(caixas)} {txt('un_caixas')} ({fmt_int(pecas)} {txt('un_pecas')})")
+                acab.append(f"{txt(rotulo)}: {fmt_int(caixas)} {C._unidade(caixas, 'un_caixa', 'un_caixas')} ({fmt_int(pecas)} {C._unidade(pecas, 'un_peca', 'un_pecas')})")
             else:
-                acab.append(f"{txt(rotulo)}: {fmt_int(pecas)} {txt('un_pecas')}")
+                acab.append(f"{txt(rotulo)}: {fmt_int(pecas)} {C._unidade(pecas, 'un_peca', 'un_pecas')}")
     # Argamassa colante: sacos de 20 kg (Brasil) ou de 50 lb (EUA); soma por país
     for sistema in (METRICO, IMPERIAL):
         itens_arg = [i for i in itens if i.get("argamassa_sacos", 0) > 0 and _sistema(i) == sistema]
@@ -139,7 +139,7 @@ def montar_lista_compras(itens):
             acab.append(f"{txt_do_pais('label_argamassa_res', sistema)}: {fmt_int(total)} {unidade}")
         else:
             acab.append(f"{txt_do_pais('label_argamassa_resumo', sistema)}: {fmt_int(total)} "
-                        f"{txt_do_pais('un_sacos_cal', sistema).replace(' de 20 kg', '').replace(' of 20 kg', '')}")
+                        f"{C._unidade(total, 'un_saco_cal', 'un_sacos_cal', sistema).replace(' de 20 kg', '').replace(' of 20 kg', '')}")
     # Rodapé: metros no Brasil, ft nos EUA
     for sistema in (METRICO, IMPERIAL):
         total = _soma([i for i in itens if _sistema(i) == sistema], "rodape_m")

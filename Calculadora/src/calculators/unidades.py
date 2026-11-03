@@ -14,6 +14,7 @@ Quem decide se o sistema é métrico ou imperial é a tela, pelo país escolhido
 """
 import math
 import re
+from decimal import Decimal, ROUND_HALF_UP
 
 METRICO = "metrico"    # Brasil
 IMPERIAL = "imperial"  # EUA
@@ -45,6 +46,16 @@ UNIDADES = {
 _FRACAO = re.compile(r"(?:(\d+)[\s-]+)?(\d+)\s*/\s*(\d+)")
 # Milhar no jeito americano: "1,500" ou "12,000.5" (vírgula seguida de grupos de 3 dígitos)
 _MILHAR_EUA = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
+
+
+def arredondar(valor, casas=0):
+    """Arredonda do jeito da escola (5 sobe): 1,575 -> 1,58 e 215,25 -> 215,3.
+
+    O round() do Python erra nesses casos: o computador guarda 1,575 como 1,57499999...,
+    e o round() arredonda para baixo (1,57). Aqui, o round(valor, 9) primeiro tira esse
+    "lixo" do fim do número, e o Decimal faz o arredondamento certo (ROUND_HALF_UP)."""
+    numero = Decimal(str(round(float(valor), 9)))
+    return float(numero.quantize(Decimal(1).scaleb(-casas), rounding=ROUND_HALF_UP))
 
 
 def para_metrico(valor, tipo, sistema):

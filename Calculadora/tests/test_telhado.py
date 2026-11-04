@@ -100,22 +100,22 @@ def test_telhado_cumeeira_pequena():
 def test_telhado_area_zero():
     # Área zero
     resultado = calcular_telhado(0)
-    assert resultado == {"erro": 'A área deve ser maior que zero.'}
+    assert resultado == {"erro": "erro_area_zero"}
 
 
 def test_telhado_inclinacao_negativa():
     # Inclinação negativa
     resultado = calcular_telhado(80, inclinacao_percentual=-30)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_telhado_cumeeira_negativa():
     # Cumeeira negativa
     resultado = calcular_telhado(80, cumeeira_m=-10)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_telhado_telha_invalida():
     # Telha que não existe
     resultado = calcular_telhado(80, "abc")
-    assert resultado == {"erro": 'Tipo de telha inválido.'}
+    assert resultado == {"erro": "erro_telha_invalida"}

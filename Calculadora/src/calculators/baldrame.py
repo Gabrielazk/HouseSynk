@@ -14,6 +14,9 @@ from src.calculators.brocas import (
 from src.calculators.unidades import METRICO, IMPERIAL, L_POR_GAL
 from src.calculators.embalagens import grandes_e_pequenas
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda padrão do concreto do baldrame (CONFIRMADO pelo engenheiro em Oct 27, 2026; a da broca é 10%)
 PERDA_PADRAO_BALDRAME = 5.0
 
@@ -62,13 +65,13 @@ def calcular_baldrame(
     sistema: str = METRICO,
 ) -> dict:
     if comprimento_m <= 0 or largura_cm <= 0 or altura_cm <= 0:
-        return {"erro": "Valores devem ser maiores que zero."}
+        return {"erro": "erro_valores_zero"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
     if num_barras_longitudinais < 0 or espacamento_estribo_cm < 0:
-        return {"erro": "Barras e espaçamento dos estribos não podem ser negativos."}
+        return {"erro": "erro_barras_estribos_negativos"}
     if bitola_mm not in PESO_POR_METRO:
-        return {"erro": "Bitola do ferro inválida."}
+        return {"erro": "erro_bitola_invalida"}
 
     largura_m = largura_cm / 100.0
     altura_m = altura_cm / 100.0
@@ -78,7 +81,7 @@ def calcular_baldrame(
 
     consumo = consumo_concreto_por_m3(traco)
     if consumo is None:
-        return {"erro": "Traço de concreto inválido."}
+        return {"erro": "erro_traco_concreto_invalido"}
 
     sacos_cimento = math.ceil(volume_com_perda * consumo["sacos_cimento"])
     areia_m3 = round(volume_com_perda * consumo["areia_m3"], 2)
@@ -108,7 +111,7 @@ def calcular_baldrame(
             largura_interna_cm = largura_cm - 2 * COBRIMENTO_CM
             altura_interna_cm = altura_cm - 2 * COBRIMENTO_CM
             if largura_interna_cm <= 0 or altura_interna_cm <= 0:
-                return {"erro": "Viga muito pequena para colocar estribos."}
+                return {"erro": "erro_viga_pequena_estribos"}
             comprimento_estribo_m = (2 * (largura_interna_cm + altura_interna_cm) + GANCHO_ESTRIBO_CM) / 100.0
             total_estribos = int(comprimento_m * 100.0 // espacamento_estribo_cm) + 1
             total_metros_estribos = total_estribos * comprimento_estribo_m * fator_aco

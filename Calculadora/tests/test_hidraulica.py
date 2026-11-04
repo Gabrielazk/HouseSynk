@@ -76,22 +76,22 @@ def test_hidraulica_perda_2_virgula_5():
 def test_hidraulica_tudo_zero():
     # Tudo zero
     resultado = calcular_hidraulica(0, 0, 0)
-    assert resultado == {"erro": 'Informe pelo menos um ponto de água fria, água quente ou esgoto.'}
+    assert resultado == {"erro": "erro_pontos_hidraulica"}
 
 
 def test_hidraulica_pontos_negativos():
     # Pontos negativos
     resultado = calcular_hidraulica(-10, 3, 8)
-    assert resultado == {"erro": 'As quantidades não podem ser negativas.'}
+    assert resultado == {"erro": "erro_quantidades_negativas"}
 
 
 def test_hidraulica_perda_negativa():
     # Perda negativa
     resultado = calcular_hidraulica(10, 3, 8, perda_percentual=-5)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_hidraulica_tubo_negativo():
     # Tubo negativo
     resultado = calcular_hidraulica(10, 3, 8, tubos_m={"fria": -10})
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}

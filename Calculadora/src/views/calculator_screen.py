@@ -2037,6 +2037,13 @@ class CalculatorScreen(MDScreen):
             return True  # a lista já tem itens (mesmo com o formulário vazio)
         return any((estado.get(chave) or "").strip() for chave in CAMPOS_INICIAIS[aba])
 
+    @staticmethod
+    def _txt_erro(chave):
+        """Mensagem de erro de uma conta (src/calculators), no idioma escolhido.
+        As contas devolvem uma chave (ex.: 'erro_perda_negativa'); aqui ela vira a frase:
+        'Erro: A perda não pode ser negativa.' / 'Error: Waste cannot be negative.'"""
+        return f"{txt('label_erro')}: {txt(chave)}"
+
     def _calcular_aba(self, aba, e):
         """Retorna {"erro": mensagem} ou {"texto": resultado na tela, "resultado": dados da etapa}."""
         try:
@@ -2101,7 +2108,7 @@ class CalculatorScreen(MDScreen):
             espacamento_estribo_cm=esp_estribo
         )
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
@@ -2127,7 +2134,7 @@ class CalculatorScreen(MDScreen):
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
-                    f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
+                    f"{txt('label_estribo_cada')} {self._num_curto(res['espacamento_estribo_cm'])} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {self._unidade(res['barras_12m_estribos'], 'un_barra12', 'un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
@@ -2187,7 +2194,7 @@ class CalculatorScreen(MDScreen):
             sistema=sistema_unidades()
         )
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
@@ -2219,7 +2226,7 @@ class CalculatorScreen(MDScreen):
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
-                    f"c/ {self._num_curto(res['espacamento_estribo_cm'])} cm: "
+                    f"{txt('label_estribo_cada')} {self._num_curto(res['espacamento_estribo_cm'])} cm: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {self._unidade(res['barras_12m_estribos'], 'un_barra12', 'un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
@@ -2277,7 +2284,7 @@ class CalculatorScreen(MDScreen):
             traco=self.traco["reboco"]
         )
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_cal = res['sacos_cal'] * TABELA_PRECOS_GLOBAL.cal_20kg
@@ -2350,7 +2357,7 @@ class CalculatorScreen(MDScreen):
         else:
             res = calcular_azulejo(area, larg, alt, vaos, caixa, tipo_arg, perda_digitada, desenho, sistema)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
         perda = res['perda_percentual']
 
         preco_m2 = PRECO_PISO_M2 if piso else PRECO_AZULEJO_M2
@@ -2478,7 +2485,7 @@ class CalculatorScreen(MDScreen):
         sistema = sistema_unidades()
         res = calcular_rejunte(area, larg, alt, junta, esp, perda, sistema)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         tipo_rej = res['tipo_rejunte']  # "lata" (Brasil), "com_areia" ou "sem_areia" (EUA)
         if tipo_rej == "lata":
@@ -2556,7 +2563,7 @@ class CalculatorScreen(MDScreen):
         res = calcular_laje(area, self.laje_tipo, self.laje_enchimento, capa, esp, perda, self.traco["laje"],
                             tela_soldada=self.tela["laje"])
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
@@ -2634,7 +2641,7 @@ class CalculatorScreen(MDScreen):
 
         res = calcular_telhado(area, tipo, incl, cumeeira, madeira, perda)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_telhas = res['telhas'] * PRECO_TELHA[tipo]
         custo_cumeeira = res['cumeeiras'] * PRECO_CUMEEIRA[tipo]
@@ -2691,7 +2698,7 @@ class CalculatorScreen(MDScreen):
         fix = self.esq_fixacao
         res = calcular_esquadrias(self.esquadrias_itens, fix["espuma"], fix["parafusos"], fix["argamassa"])
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_espuma = res['tubos_espuma'] * PRECO_TUBO_ESPUMA
         custo_parafusos = res['parafusos'] * PRECO_PARAFUSO
@@ -2774,7 +2781,7 @@ class CalculatorScreen(MDScreen):
 
         res = calcular_pintura(parede, teto, demaos, rend, perda, selador, massa, fundo, sistema)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         tabela_precos = PRECO_TINTA_EUA if eua else PRECO_TINTA
         custos = {
@@ -2864,7 +2871,7 @@ class CalculatorScreen(MDScreen):
 
         res = calcular_hidraulica(pontos["fria"], pontos["quente"], pontos["esgoto"], tubos_projeto, perda)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_tubos = {t: d['barras'] * PRECO_BARRA_TUBO[t] for t, d in res['tubos'].items()}
         custo_conexoes = {t: q * PRECO_CONEXAO[t] for t, q in res['conexoes'].items()}
@@ -2938,7 +2945,7 @@ class CalculatorScreen(MDScreen):
 
         res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda, chuveiros, chuveiros4)
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_conduite = res['rolos_conduite'] * PRECO_ROLO_CONDUITE
         custo_fios = {b: f['rolos'] * PRECO_ROLO_FIO[b] for b, f in res['fios'].items()}
@@ -3020,7 +3027,7 @@ class CalculatorScreen(MDScreen):
 
         res = calcular_contrapiso(area_m2=area, espessura_cm=esp, perda_percentual=perda, traco=self.traco["contrapiso"])
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
@@ -3082,7 +3089,7 @@ class CalculatorScreen(MDScreen):
             traco=self.traco["paredes"]
         )
         if "erro" in res:
-            return {"erro": f"Erro: {res['erro']}"}
+            return {"erro": self._txt_erro(res['erro'])}
 
         custo_tijolo = res['unidades'] * res['preco_unitario']
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg

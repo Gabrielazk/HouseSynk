@@ -2,6 +2,9 @@ import math
 from src.calculators.unidades import METRICO, IMPERIAL, KG_POR_LB, M2_POR_SQFT
 from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda de piso e azulejo (recortes e quebras) pelo tamanho da peça (CONFIRMADO pelo engenheiro em Oct 27, 2026).
 # Vale o MAIOR lado da peça: até 70 cm, 10%; de 70 a 90 cm, 15%; acima de 90 cm, 20%.
 # Assentamento com desenho (diagonal ou paginado): 25%, qualquer que seja o tamanho.
@@ -111,15 +114,15 @@ def _calcular_ceramica(
     sistema: str = METRICO,
 ) -> dict:
     if area_m2 <= 0 or largura_cm <= 0 or altura_cm <= 0:
-        return {"erro": "Área e tamanho da peça devem ser maiores que zero."}
+        return {"erro": "erro_area_peca_zero"}
     if desconto_vaos_m2 < 0 or m2_por_caixa < 0 or rodape_m < 0 or rodape_peca_m < 0:
-        return {"erro": "Os valores não podem ser negativos."}
+        return {"erro": "erro_valores_negativos"}
     if perda_percentual is not None and perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
     if desconto_vaos_m2 >= area_m2:
-        return {"erro": "O desconto de vãos deve ser menor que a área."}
+        return {"erro": "erro_desconto_vaos"}
     if tipo_argamassa not in tipos_argamassa(sistema):
-        return {"erro": "Tipo de argamassa inválido."}
+        return {"erro": "erro_argamassa_invalida"}
 
     # Perda: a que o cliente digitou ou, se ficou vazia (None), a automática pelo tamanho da peça
     perda_auto = perda_percentual is None

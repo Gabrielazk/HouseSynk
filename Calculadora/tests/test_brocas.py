@@ -81,40 +81,40 @@ def test_brocas_profundidade_30m():
 def test_brocas_quantidade_zero():
     # Quantidade zero
     resultado = calcular_brocas(0, 3, 20)
-    assert resultado == {"erro": 'Quantidade, profundidade e diâmetro devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_qtd_prof_diam"}
 
 
 def test_brocas_profundidade_negativa():
     # Profundidade negativa
     resultado = calcular_brocas(10, -3, 20)
-    assert resultado == {"erro": 'Quantidade, profundidade e diâmetro devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_qtd_prof_diam"}
 
 
 def test_brocas_perda_negativa():
     # Perda negativa
     resultado = calcular_brocas(10, 3, 20, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_brocas_diametro_pequeno_com_ferro():
     # Diâmetro 4 cm com ferro: não cabe o estribo
     resultado = calcular_brocas(10, 3, 4, incluir_ferragem=True, num_barras_longitudinais=4)
-    assert resultado == {"erro": 'Diâmetro muito pequeno para colocar estribos.'}
+    assert resultado == {"erro": "erro_diametro_pequeno_estribos"}
 
 
 def test_brocas_barras_negativas():
     # Barras negativas
     resultado = calcular_brocas(10, 3, 20, incluir_ferragem=True, num_barras_longitudinais=-4)
-    assert resultado == {"erro": 'Barras e espaçamento dos estribos não podem ser negativos.'}
+    assert resultado == {"erro": "erro_barras_estribos_negativos"}
 
 
 def test_brocas_traco_invalido():
     # Traço que não existe
     resultado = calcular_brocas(10, 3, 20, traco="abc")
-    assert resultado == {"erro": 'Traço de concreto inválido.'}
+    assert resultado == {"erro": "erro_traco_concreto_invalido"}
 
 
 def test_brocas_bitola_invalida():
     # Bitola que não existe
     resultado = calcular_brocas(10, 3, 20, incluir_ferragem=True, num_barras_longitudinais=4, bitola_mm=7.0)
-    assert resultado == {"erro": 'Bitola do ferro inválida.'}
+    assert resultado == {"erro": "erro_bitola_invalida"}

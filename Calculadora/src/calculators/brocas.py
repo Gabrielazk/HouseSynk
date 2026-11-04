@@ -1,6 +1,9 @@
 import math
 from src.calculators.tracos import consumo_concreto_por_m3, TRACO_CONCRETO_PADRAO
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Peso (kg por metro) das bitolas comerciais de aço (mm -> kg/m).
 # ATENÇÃO (conferir na revisão dos cálculos): valores de tabela de trabalho.
 PESO_POR_METRO = {
@@ -56,13 +59,13 @@ def calcular_brocas(
     espacamento_estribo_cm: float = ESPACAMENTO_ESTRIBO_PADRAO_CM
 ) -> dict:
     if quantidade <= 0 or profundidade_m <= 0 or diametro_cm <= 0:
-        return {"erro": "Quantidade, profundidade e diâmetro devem ser maiores que zero."}
+        return {"erro": "erro_qtd_prof_diam"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
     if num_barras_longitudinais < 0 or espacamento_estribo_cm < 0:
-        return {"erro": "Barras e espaçamento dos estribos não podem ser negativos."}
+        return {"erro": "erro_barras_estribos_negativos"}
     if bitola_mm not in PESO_POR_METRO:
-        return {"erro": "Bitola do ferro inválida."}
+        return {"erro": "erro_bitola_invalida"}
 
     raio_m = (diametro_cm / 100.0) / 2.0
     area_base_m2 = math.pi * (raio_m ** 2)
@@ -74,7 +77,7 @@ def calcular_brocas(
 
     consumo = consumo_concreto_por_m3(traco)
     if consumo is None:
-        return {"erro": "Traço de concreto inválido."}
+        return {"erro": "erro_traco_concreto_invalido"}
 
     sacos_cimento = math.ceil(volume_total_m3 * consumo["sacos_cimento"])
     areia_m3 = round(volume_total_m3 * consumo["areia_m3"], 2)
@@ -100,7 +103,7 @@ def calcular_brocas(
         if espacamento_estribo_cm > 0:
             diametro_interno_cm = diametro_cm - 2 * COBRIMENTO_CM
             if diametro_interno_cm <= 0:
-                return {"erro": "Diâmetro muito pequeno para colocar estribos."}
+                return {"erro": "erro_diametro_pequeno_estribos"}
             # Estribo em ESPIRAL (resposta do engenheiro): um fio contínuo que dá voltas pela gaiola.
             # Cada volta sobe o espaçamento (passo); o comprimento de uma volta é a hipotenusa
             # entre a circunferência e o passo. Mais um gancho em cada ponta.

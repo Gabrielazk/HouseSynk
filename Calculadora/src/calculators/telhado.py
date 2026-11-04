@@ -1,5 +1,8 @@
 import math
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Tipos de telha
 TIPOS_TELHA = ["ceramica", "concreto", "fibrocimento"]
 TIPO_TELHA_PADRAO = "ceramica"
@@ -45,13 +48,13 @@ def calcular_telhado(
     perda_percentual: float = PERDA_PADRAO_TELHADO,
 ) -> dict:
     if tipo_telha not in TIPOS_TELHA:
-        return {"erro": "Tipo de telha inválido."}
+        return {"erro": "erro_telha_invalida"}
     if inclinacao_percentual is None:
         inclinacao_percentual = INCLINACAO_PADRAO[tipo_telha]
     if area_m2 <= 0:
-        return {"erro": "A área deve ser maior que zero."}
+        return {"erro": "erro_area_zero"}
     if inclinacao_percentual < 0 or cumeeira_m < 0 or perda_percentual < 0:
-        return {"erro": "Os valores não podem ser negativos."}
+        return {"erro": "erro_valores_negativos"}
 
     # A área informada é a da planta (vista de cima); a inclinação aumenta a área real do telhado
     area_real = area_m2 * math.sqrt(1 + (inclinacao_percentual / 100.0) ** 2)

@@ -92,40 +92,40 @@ def test_paredes_junta_zero():
 def test_paredes_area_zero():
     # Área zero
     resultado = calcular_paredes(0)
-    assert resultado == {"erro": 'A área da parede deve ser maior que zero.'}
+    assert resultado == {"erro": "erro_area_parede_zero"}
 
 
 def test_paredes_vaos_igual_area():
     # Vãos iguais à área
     resultado = calcular_paredes(30, desconto_vaos_m2=30)
-    assert resultado == {"erro": 'O desconto de vãos deve ser menor que a área.'}
+    assert resultado == {"erro": "erro_desconto_vaos"}
 
 
 def test_paredes_vaos_negativos():
     # Vãos negativos
     resultado = calcular_paredes(30, desconto_vaos_m2=-5)
-    assert resultado == {"erro": 'Desconto, junta e quebra não podem ser negativos.'}
+    assert resultado == {"erro": "erro_desconto_junta_quebra_negativos"}
 
 
 def test_paredes_quebra_negativa():
     # Quebra negativa
     resultado = calcular_paredes(30, quebra_percentual=-5)
-    assert resultado == {"erro": 'Desconto, junta e quebra não podem ser negativos.'}
+    assert resultado == {"erro": "erro_desconto_junta_quebra_negativos"}
 
 
 def test_paredes_tijolo_invalido():
     # Tijolo que não existe
     resultado = calcular_paredes(30, tijolo="abc")
-    assert resultado == {"erro": 'Tipo de tijolo ou bloco inválido.'}
+    assert resultado == {"erro": "erro_tijolo_invalido"}
 
 
 def test_paredes_assentamento_invalido():
     # Assentamento que não existe
     resultado = calcular_paredes(30, assentamento="abc")
-    assert resultado == {"erro": 'Assentamento inválido.'}
+    assert resultado == {"erro": "erro_assentamento_invalido"}
 
 
 def test_paredes_traco_invalido():
     # Traço que não existe
     resultado = calcular_paredes(30, traco="abc")
-    assert resultado == {"erro": 'Traço da massa inválido.'}
+    assert resultado == {"erro": "erro_traco_massa_invalido"}

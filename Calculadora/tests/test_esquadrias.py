@@ -72,22 +72,22 @@ def test_esquadrias_uma_porta():
 def test_esquadrias_lista_vazia():
     # Lista vazia
     resultado = calcular_esquadrias([])
-    assert resultado == {"erro": 'Adicione pelo menos uma porta ou janela à lista.'}
+    assert resultado == {"erro": "erro_lista_esquadrias_vazia"}
 
 
 def test_esquadrias_tipo_invalido():
     # Tipo que não existe
     resultado = calcular_esquadrias([{"tipo": "abc", "material": "nao_informado", "qtd": 1, "larg": 80, "alt": 210}])
-    assert resultado == {"erro": 'Tipo ou material inválido.'}
+    assert resultado == {"erro": "erro_tipo_material_invalido"}
 
 
 def test_esquadrias_quantidade_zero():
     # Quantidade zero
     resultado = calcular_esquadrias([{"tipo": "porta", "material": "nao_informado", "qtd": 0, "larg": 80, "alt": 210}])
-    assert resultado == {"erro": 'Quantidade, largura e altura devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_qtd_larg_alt_zero"}
 
 
 def test_esquadrias_largura_zero():
     # Largura zero
     resultado = calcular_esquadrias([{"tipo": "porta", "material": "nao_informado", "qtd": 1, "larg": 0, "alt": 210}])
-    assert resultado == {"erro": 'Quantidade, largura e altura devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_qtd_larg_alt_zero"}

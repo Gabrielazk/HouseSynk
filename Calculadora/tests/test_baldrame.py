@@ -96,34 +96,34 @@ def test_baldrame_perda_2_virgula_5():
 def test_baldrame_altura_zero():
     # Altura zero
     resultado = calcular_baldrame(12.5, 20, 0)
-    assert resultado == {"erro": 'Valores devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_valores_zero"}
 
 
 def test_baldrame_comprimento_negativo():
     # Comprimento negativo
     resultado = calcular_baldrame(-5, 20, 30)
-    assert resultado == {"erro": 'Valores devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_valores_zero"}
 
 
 def test_baldrame_perda_negativa():
     # Perda negativa
     resultado = calcular_baldrame(12.5, 20, 30, perda_percentual=-2)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_baldrame_viga_pequena_com_ferro():
     # Largura 4 cm com ferro: não cabe o estribo
     resultado = calcular_baldrame(12.5, 4, 30, num_barras_longitudinais=4)
-    assert resultado == {"erro": 'Viga muito pequena para colocar estribos.'}
+    assert resultado == {"erro": "erro_viga_pequena_estribos"}
 
 
 def test_baldrame_barras_negativas():
     # Barras negativas
     resultado = calcular_baldrame(12.5, 20, 30, num_barras_longitudinais=-4)
-    assert resultado == {"erro": 'Barras e espaçamento dos estribos não podem ser negativos.'}
+    assert resultado == {"erro": "erro_barras_estribos_negativos"}
 
 
 def test_baldrame_traco_invalido():
     # Traço que não existe
     resultado = calcular_baldrame(12.5, 20, 30, traco="abc")
-    assert resultado == {"erro": 'Traço de concreto inválido.'}
+    assert resultado == {"erro": "erro_traco_concreto_invalido"}

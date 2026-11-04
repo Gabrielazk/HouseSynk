@@ -115,28 +115,28 @@ def test_piso_peca_90():
 def test_piso_area_zero():
     # Área zero
     resultado = calcular_piso(0, 60, 60)
-    assert resultado == {"erro": 'Área e tamanho da peça devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_peca_zero"}
 
 
 def test_piso_peca_zero():
     # Peça com lado zero
     resultado = calcular_piso(40, 0, 60)
-    assert resultado == {"erro": 'Área e tamanho da peça devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_peca_zero"}
 
 
 def test_piso_perda_negativa():
     # Perda negativa
     resultado = calcular_piso(40, 60, 60, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_piso_caixa_negativa():
     # m² por caixa negativo
     resultado = calcular_piso(40, 60, 60, m2_por_caixa=-2)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_piso_argamassa_invalida():
     # Argamassa que não existe
     resultado = calcular_piso(40, 60, 60, tipo_argamassa="abc")
-    assert resultado == {"erro": 'Tipo de argamassa inválido.'}
+    assert resultado == {"erro": "erro_argamassa_invalida"}

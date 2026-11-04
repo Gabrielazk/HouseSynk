@@ -87,22 +87,22 @@ def test_eletrica_perda_2_virgula_5():
 def test_eletrica_tudo_zero():
     # Tudo zero
     resultado = calcular_eletrica(0, 0, 0)
-    assert resultado == {"erro": 'Informe pelo menos uma tomada, interruptor, ponto de luz ou chuveiro.'}
+    assert resultado == {"erro": "erro_pontos_eletrica"}
 
 
 def test_eletrica_tomadas_negativas():
     # Tomadas negativas
     resultado = calcular_eletrica(-5, 10, 12)
-    assert resultado == {"erro": 'As quantidades não podem ser negativas.'}
+    assert resultado == {"erro": "erro_quantidades_negativas"}
 
 
 def test_eletrica_perda_negativa():
     # Perda negativa
     resultado = calcular_eletrica(20, 10, 12, perda_percentual=-5)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_eletrica_conduite_negativo():
     # Conduíte negativo
     resultado = calcular_eletrica(20, 10, 12, conduite_m=-10)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}

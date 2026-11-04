@@ -84,22 +84,22 @@ def test_azulejo_perda_digitada():
 def test_azulejo_area_zero():
     # Área zero
     resultado = calcular_azulejo(0, 30, 60)
-    assert resultado == {"erro": 'Área e tamanho da peça devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_peca_zero"}
 
 
 def test_azulejo_vaos_igual_area():
     # Vãos iguais à área
     resultado = calcular_azulejo(30, 30, 60, desconto_vaos_m2=30)
-    assert resultado == {"erro": 'O desconto de vãos deve ser menor que a área.'}
+    assert resultado == {"erro": "erro_desconto_vaos"}
 
 
 def test_azulejo_vaos_negativos():
     # Vãos negativos
     resultado = calcular_azulejo(30, 30, 60, desconto_vaos_m2=-4)
-    assert resultado == {"erro": 'Os valores não podem ser negativos.'}
+    assert resultado == {"erro": "erro_valores_negativos"}
 
 
 def test_azulejo_perda_negativa():
     # Perda negativa
     resultado = calcular_azulejo(30, 30, 60, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}

@@ -112,14 +112,14 @@ def test_contrapiso_sem_perda():
 ])
 def test_contrapiso_area_ou_espessura_invalida(area, espessura):
     resultado = calcular_contrapiso(area, espessura)
-    assert resultado == {"erro": "Área e espessura devem ser maiores que zero."}
+    assert resultado == {"erro": "erro_area_espessura_zero"}
 
 
 def test_contrapiso_perda_negativa():
     resultado = calcular_contrapiso(40, 5, -5)
-    assert resultado == {"erro": "A perda não pode ser negativa."}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_contrapiso_traco_invalido():
     resultado = calcular_contrapiso(40, 5, 5, "abc")
-    assert resultado == {"erro": "Traço de concreto inválido."}
+    assert resultado == {"erro": "erro_traco_concreto_invalido"}

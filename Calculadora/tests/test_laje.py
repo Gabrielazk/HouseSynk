@@ -87,40 +87,40 @@ def test_laje_perda_2_virgula_5():
 def test_laje_area_zero():
     # Área zero
     resultado = calcular_laje(0)
-    assert resultado == {"erro": 'A área deve ser maior que zero.'}
+    assert resultado == {"erro": "erro_area_zero"}
 
 
 def test_laje_capa_zero():
     # Capa zero
     resultado = calcular_laje(50, capa_cm=0)
-    assert resultado == {"erro": 'A espessura da capa deve ser maior que zero.'}
+    assert resultado == {"erro": "erro_capa_zero"}
 
 
 def test_laje_macica_sem_espessura():
     # Maciça sem espessura
     resultado = calcular_laje(50, "macica")
-    assert resultado == {"erro": 'Informe a espessura total da laje maciça.'}
+    assert resultado == {"erro": "erro_espessura_macica"}
 
 
 def test_laje_perda_negativa():
     # Perda negativa
     resultado = calcular_laje(50, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_laje_tipo_invalido():
     # Tipo que não existe
     resultado = calcular_laje(50, "abc")
-    assert resultado == {"erro": 'Tipo de laje inválido.'}
+    assert resultado == {"erro": "erro_tipo_laje_invalido"}
 
 
 def test_laje_enchimento_invalido():
     # Enchimento que não existe
     resultado = calcular_laje(50, enchimento="abc")
-    assert resultado == {"erro": 'Tipo de enchimento inválido.'}
+    assert resultado == {"erro": "erro_enchimento_invalido"}
 
 
 def test_laje_traco_invalido():
     # Traço que não existe
     resultado = calcular_laje(50, traco="abc")
-    assert resultado == {"erro": 'Traço de concreto inválido.'}
+    assert resultado == {"erro": "erro_traco_concreto_invalido"}

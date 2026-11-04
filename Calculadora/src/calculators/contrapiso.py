@@ -1,6 +1,9 @@
 import math
 from src.calculators.tracos import consumo_concreto_por_m3
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda padrão do contrapiso
 PERDA_PADRAO_CONTRAPISO = 5.0
 
@@ -22,13 +25,13 @@ def calcular_contrapiso(
     traco: str = TRACO_PADRAO_CONTRAPISO,
 ) -> dict:
     if area_m2 <= 0 or espessura_cm <= 0:
-        return {"erro": "Área e espessura devem ser maiores que zero."}
+        return {"erro": "erro_area_espessura_zero"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
 
     consumo = consumo_concreto_por_m3(traco)
     if consumo is None:
-        return {"erro": "Traço de concreto inválido."}
+        return {"erro": "erro_traco_concreto_invalido"}
 
     volume = area_m2 * (espessura_cm / 100.0)
     volume_com_perda = volume * (1 + perda_percentual / 100.0)

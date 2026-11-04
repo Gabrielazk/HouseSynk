@@ -2,6 +2,9 @@ import math
 from src.calculators.unidades import METRICO, IMPERIAL, KG_POR_LB
 from src.calculators.embalagens import grandes_e_pequenas
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda padrão do rejunte (sobras e limpeza da junta)
 PERDA_PADRAO_REJUNTE = 10.0
 
@@ -62,11 +65,11 @@ def calcular_rejunte(
     sistema: str = METRICO,
 ) -> dict:
     if area_m2 <= 0 or largura_cm <= 0 or altura_cm <= 0 or junta_mm <= 0:
-        return {"erro": "Área, tamanho da peça e junta devem ser maiores que zero."}
+        return {"erro": "erro_area_peca_junta_zero"}
     if espessura_mm <= 0:
-        return {"erro": "A espessura da peça deve ser maior que zero."}
+        return {"erro": "erro_espessura_peca_zero"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
 
     # Fórmula usada pelos fabricantes de rejunte:
     # kg/m² = ((C + L) / (C x L)) x junta x espessura x densidade   (C e L da peça em mm)

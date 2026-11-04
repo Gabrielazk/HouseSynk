@@ -83,34 +83,34 @@ def test_reboco_perda_2_virgula_5():
 def test_reboco_area_zero():
     # Área zero
     resultado = calcular_reboco(0)
-    assert resultado == {"erro": 'Área e espessura devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_espessura_zero"}
 
 
 def test_reboco_espessura_zero():
     # Espessura zero
     resultado = calcular_reboco(30, espessura_cm=0)
-    assert resultado == {"erro": 'Área e espessura devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_espessura_zero"}
 
 
 def test_reboco_vaos_igual_area():
     # Vãos iguais à área
     resultado = calcular_reboco(30, desconto_vaos_m2=30)
-    assert resultado == {"erro": 'O desconto de vãos deve ser menor que a área.'}
+    assert resultado == {"erro": "erro_desconto_vaos"}
 
 
 def test_reboco_vaos_negativos():
     # Vãos negativos
     resultado = calcular_reboco(30, desconto_vaos_m2=-5)
-    assert resultado == {"erro": 'Desconto e perda não podem ser negativos.'}
+    assert resultado == {"erro": "erro_desconto_perda_negativos"}
 
 
 def test_reboco_perda_negativa():
     # Perda negativa
     resultado = calcular_reboco(30, perda_percentual=-5)
-    assert resultado == {"erro": 'Desconto e perda não podem ser negativos.'}
+    assert resultado == {"erro": "erro_desconto_perda_negativos"}
 
 
 def test_reboco_traco_invalido():
     # Traço que não existe
     resultado = calcular_reboco(30, traco="abc")
-    assert resultado == {"erro": 'Traço da massa inválido.'}
+    assert resultado == {"erro": "erro_traco_massa_invalido"}

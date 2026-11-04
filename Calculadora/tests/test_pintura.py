@@ -97,34 +97,34 @@ def test_pintura_perda_2_virgula_5():
 def test_pintura_sem_area():
     # Sem parede e sem teto
     resultado = calcular_pintura(0, 0)
-    assert resultado == {"erro": 'Informe a área de parede ou a área de teto.'}
+    assert resultado == {"erro": "erro_area_parede_ou_teto"}
 
 
 def test_pintura_area_negativa():
     # Área negativa
     resultado = calcular_pintura(-100, 0)
-    assert resultado == {"erro": 'As áreas não podem ser negativas.'}
+    assert resultado == {"erro": "erro_areas_negativas"}
 
 
 def test_pintura_demaos_zero():
     # Demãos zero
     resultado = calcular_pintura(100, 0, demaos=0)
-    assert resultado == {"erro": 'Demãos e rendimento devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_demaos_rendimento_zero"}
 
 
 def test_pintura_rendimento_zero():
     # Rendimento zero
     resultado = calcular_pintura(100, 0, rendimento_m2_l=0)
-    assert resultado == {"erro": 'Demãos e rendimento devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_demaos_rendimento_zero"}
 
 
 def test_pintura_perda_negativa():
     # Perda negativa
     resultado = calcular_pintura(100, 0, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}
 
 
 def test_pintura_massa_invalida():
     # Massa que não existe
     resultado = calcular_pintura(100, 0, massa="abc")
-    assert resultado == {"erro": 'Tipo de massa inválido.'}
+    assert resultado == {"erro": "erro_massa_invalida"}

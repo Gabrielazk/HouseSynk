@@ -1,6 +1,9 @@
 import math
 from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda padrão (sobras de fio e conduíte)
 PERDA_PADRAO_ELETRICA = 10.0
 
@@ -56,14 +59,14 @@ def calcular_eletrica(
     conduite_m e fios_m são opcionais (quem tem o projeto).
     Em fios_m, só as bitolas informadas substituem a estimativa; as outras continuam estimadas."""
     if tomadas < 0 or interruptores < 0 or pontos_luz < 0 or chuveiros < 0 or chuveiros_ate_5500w < 0:
-        return {"erro": "As quantidades não podem ser negativas."}
+        return {"erro": "erro_quantidades_negativas"}
     if tomadas + interruptores + pontos_luz + chuveiros + chuveiros_ate_5500w <= 0:
-        return {"erro": "Informe pelo menos uma tomada, interruptor, ponto de luz ou chuveiro."}
+        return {"erro": "erro_pontos_eletrica"}
     if perda_percentual < 0 or (conduite_m is not None and conduite_m < 0):
-        return {"erro": "Os valores não podem ser negativos."}
+        return {"erro": "erro_valores_negativos"}
     fios_m = fios_m or {}
     if any(v < 0 for v in fios_m.values()):
-        return {"erro": "Os valores não podem ser negativos."}
+        return {"erro": "erro_valores_negativos"}
 
     fator = 1 + perda_percentual / 100.0
     pontos = tomadas + interruptores + pontos_luz

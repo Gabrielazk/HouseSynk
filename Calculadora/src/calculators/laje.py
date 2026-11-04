@@ -1,6 +1,9 @@
 import math
 from src.calculators.tracos import consumo_concreto_por_m3, TRACO_CONCRETO_PADRAO
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Tipos de laje
 TIPOS_LAJE = ["premoldada", "macica"]
 TIPO_LAJE_PADRAO = "premoldada"
@@ -51,26 +54,26 @@ def calcular_laje(
     tela_soldada: bool = False,
 ) -> dict:
     if area_m2 <= 0:
-        return {"erro": "A área deve ser maior que zero."}
+        return {"erro": "erro_area_zero"}
     if tipo not in TIPOS_LAJE:
-        return {"erro": "Tipo de laje inválido."}
+        return {"erro": "erro_tipo_laje_invalido"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
 
     if tipo == "premoldada":
         if enchimento not in ENCHIMENTOS:
-            return {"erro": "Tipo de enchimento inválido."}
+            return {"erro": "erro_enchimento_invalido"}
         if capa_cm <= 0:
-            return {"erro": "A espessura da capa deve ser maior que zero."}
+            return {"erro": "erro_capa_zero"}
         volume = area_m2 * (capa_cm / 100.0 + CONCRETO_NERVURAS_M3_M2)
     else:
         if espessura_cm <= 0:
-            return {"erro": "Informe a espessura total da laje maciça."}
+            return {"erro": "erro_espessura_macica"}
         volume = area_m2 * (espessura_cm / 100.0)
 
     consumo = consumo_concreto_por_m3(traco)
     if consumo is None:
-        return {"erro": "Traço de concreto inválido."}
+        return {"erro": "erro_traco_concreto_invalido"}
 
     fator = 1 + perda_percentual / 100.0
     volume_com_perda = volume * fator

@@ -8,6 +8,9 @@ from src.calculators.tracos import (
 )
 from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Tijolos e blocos: medidas em cm, na ordem do nome (largura x altura x comprimento).
 # ATENÇÃO (conferir com engenheiro): medidas e preços são premissas de trabalho.
 # O preço aqui é PROVISÓRIO: vai para a tabela de preços (por país e estado) na etapa de preços.
@@ -51,19 +54,19 @@ def calcular_paredes(
     traco: str = TRACO_MASSA_PADRAO,
 ) -> dict:
     if area_bruta_m2 <= 0:
-        return {"erro": "A área da parede deve ser maior que zero."}
+        return {"erro": "erro_area_parede_zero"}
     if desconto_vaos_m2 < 0 or junta_cm < 0 or quebra_percentual < 0:
-        return {"erro": "Desconto, junta e quebra não podem ser negativos."}
+        return {"erro": "erro_desconto_junta_quebra_negativos"}
     if tijolo not in TIJOLOS:
-        return {"erro": "Tipo de tijolo ou bloco inválido."}
+        return {"erro": "erro_tijolo_invalido"}
     if assentamento not in ASSENTAMENTOS:
-        return {"erro": "Assentamento inválido."}
+        return {"erro": "erro_assentamento_invalido"}
     if traco not in TRACOS_MASSA:
-        return {"erro": "Traço da massa inválido."}
+        return {"erro": "erro_traco_massa_invalido"}
 
     area_liquida_m2 = area_bruta_m2 - desconto_vaos_m2
     if area_liquida_m2 <= 0:
-        return {"erro": "O desconto de vãos deve ser menor que a área."}
+        return {"erro": "erro_desconto_vaos"}
 
     dados = TIJOLOS[tijolo]
     if assentamento == "em_pe":

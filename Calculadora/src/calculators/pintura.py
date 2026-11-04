@@ -2,6 +2,9 @@ import math
 from src.calculators.unidades import METRICO, IMPERIAL, L_POR_GAL, para_metrico
 from src.calculators.embalagens import grandes_e_pequenas
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Valores padrão
 DEMAOS_PADRAO = 2
 # Mais que isso é quase sempre erro de digitação (ex.: "22" no lugar de "2"): a tela abre a janela
@@ -91,15 +94,15 @@ def calcular_pintura(
     sistema: str = METRICO,
 ) -> dict:
     if area_parede_m2 < 0 or area_teto_m2 < 0:
-        return {"erro": "As áreas não podem ser negativas."}
+        return {"erro": "erro_areas_negativas"}
     if area_parede_m2 + area_teto_m2 <= 0:
-        return {"erro": "Informe a área de parede ou a área de teto."}
+        return {"erro": "erro_area_parede_ou_teto"}
     if demaos <= 0 or rendimento_m2_l <= 0:
-        return {"erro": "Demãos e rendimento devem ser maiores que zero."}
+        return {"erro": "erro_demaos_rendimento_zero"}
     if perda_percentual < 0:
-        return {"erro": "A perda não pode ser negativa."}
+        return {"erro": "erro_perda_negativa"}
     if massa not in TIPOS_MASSA:
-        return {"erro": "Tipo de massa inválido."}
+        return {"erro": "erro_massa_invalida"}
 
     eua = (sistema == IMPERIAL)
     if eua:  # nos EUA só existe o primer (escolha "fundo"); selador e massa não entram

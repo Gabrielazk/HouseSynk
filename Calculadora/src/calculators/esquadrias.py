@@ -1,5 +1,8 @@
 import math
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Tipos e materiais (o material é só informação para a cotação, não muda a conta)
 TIPOS_ESQUADRIA = ["porta", "janela"]
 TIPO_ESQUADRIA_PADRAO = "porta"
@@ -39,12 +42,12 @@ def calcular_esquadrias(
 ) -> dict:
     """itens: lista de {"tipo", "material", "qtd", "larg", "alt"} (larguras e alturas em cm)."""
     if not itens:
-        return {"erro": "Adicione pelo menos uma porta ou janela à lista."}
+        return {"erro": "erro_lista_esquadrias_vazia"}
     for item in itens:
         if item.get("tipo") not in TIPOS_ESQUADRIA or item.get("material") not in MATERIAIS:
-            return {"erro": "Tipo ou material inválido."}
+            return {"erro": "erro_tipo_material_invalido"}
         if item.get("qtd", 0) <= 0 or item.get("larg", 0) <= 0 or item.get("alt", 0) <= 0:
-            return {"erro": "Quantidade, largura e altura devem ser maiores que zero."}
+            return {"erro": "erro_qtd_larg_alt_zero"}
 
     totais = {"porta": 0, "janela": 0}
     area_total = 0.0

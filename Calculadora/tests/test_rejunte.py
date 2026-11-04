@@ -80,22 +80,22 @@ def test_rejunte_area_1m2():
 def test_rejunte_area_zero():
     # Área zero
     resultado = calcular_rejunte(0, 60, 60, 3)
-    assert resultado == {"erro": 'Área, tamanho da peça e junta devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_peca_junta_zero"}
 
 
 def test_rejunte_junta_zero():
     # Junta zero
     resultado = calcular_rejunte(40, 60, 60, 0)
-    assert resultado == {"erro": 'Área, tamanho da peça e junta devem ser maiores que zero.'}
+    assert resultado == {"erro": "erro_area_peca_junta_zero"}
 
 
 def test_rejunte_espessura_zero():
     # Espessura da peça zero
     resultado = calcular_rejunte(40, 60, 60, 3, espessura_mm=0)
-    assert resultado == {"erro": 'A espessura da peça deve ser maior que zero.'}
+    assert resultado == {"erro": "erro_espessura_peca_zero"}
 
 
 def test_rejunte_perda_negativa():
     # Perda negativa
     resultado = calcular_rejunte(40, 60, 60, 3, perda_percentual=-5)
-    assert resultado == {"erro": 'A perda não pode ser negativa.'}
+    assert resultado == {"erro": "erro_perda_negativa"}

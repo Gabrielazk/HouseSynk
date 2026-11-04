@@ -1,5 +1,8 @@
 import math
 
+# As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
+# no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
+
 # Perda padrão (sobras e cortes de tubo)
 PERDA_PADRAO_HIDRAULICA = 10.0
 
@@ -41,12 +44,12 @@ def calcular_hidraulica(
 ) -> dict:
     """tubos_m é opcional (quem tem o projeto): só os tubos informados substituem a estimativa."""
     if pontos_fria < 0 or pontos_quente < 0 or pontos_esgoto < 0:
-        return {"erro": "As quantidades não podem ser negativas."}
+        return {"erro": "erro_quantidades_negativas"}
     if pontos_fria + pontos_quente + pontos_esgoto <= 0:
-        return {"erro": "Informe pelo menos um ponto de água fria, água quente ou esgoto."}
+        return {"erro": "erro_pontos_hidraulica"}
     tubos_m = tubos_m or {}
     if perda_percentual < 0 or any(v < 0 for v in tubos_m.values()):
-        return {"erro": "Os valores não podem ser negativos."}
+        return {"erro": "erro_valores_negativos"}
 
     fator = 1 + perda_percentual / 100.0
     pontos = {"fria": pontos_fria, "quente": pontos_quente, "esgoto": pontos_esgoto}

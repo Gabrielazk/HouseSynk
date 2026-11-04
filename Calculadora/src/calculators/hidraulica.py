@@ -3,6 +3,10 @@ import math
 # Perda padrão (sobras e cortes de tubo)
 PERDA_PADRAO_HIDRAULICA = 10.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+PONTOS_MAXIMO = 200  # de cada tipo: água fria, água quente e esgoto
+
 # Tubos (ordem em que aparecem na tela e no resultado)
 #   fria:   PVC soldável marrom 25 mm (água fria)
 #   quente: CPVC 22 mm (água quente)

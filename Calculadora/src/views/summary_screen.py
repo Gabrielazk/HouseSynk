@@ -20,7 +20,7 @@ from kivymd.uix.dialog import (
     MDDialogContentContainer,
 )
 from src.models.database import salvar_orcamento, quantidade_orcamentos_salvos
-from src.views.comum import CONFIG_APP, ORCAMENTO_FINAL, txt, fmt_moeda
+from src.views.comum import CONFIG_APP, ORCAMENTO_FINAL, txt, fmt_moeda, sem_quebra
 from src.views import comum
 from src.services.lista_compras import montar_lista_compras, cabecalho, texto_whatsapp, texto_whatsapp_orcamento
 from src.calculators.reserva import PERFIS_RESERVA, PERCENTUAL_RESERVA, calcular_reserva
@@ -218,10 +218,10 @@ class SummaryScreen(MDScreen):
 
         if not ORCAMENTO_FINAL:
             self.lbl_detalhes.text = txt("lbl_resumo_vazio")
-        elif self.modo == "lista":
-            self.lbl_detalhes.text = self.texto_lista_compras()
+        elif self.modo == "lista":  # sem_quebra: número e unidade sempre na mesma linha
+            self.lbl_detalhes.text = sem_quebra(self.texto_lista_compras())
         else:
-            self.lbl_detalhes.text = self.texto_orcamento()
+            self.lbl_detalhes.text = sem_quebra(self.texto_orcamento())
         self.ir_para_o_topo()
 
     def ir_para_o_topo(self):

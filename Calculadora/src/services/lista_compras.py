@@ -51,9 +51,18 @@ def montar_lista_compras(itens):
 
     # ---------------- MATERIAL BÁSICO ----------------
     basico = grupos["basico"]
-    total = _soma(itens, "tijolos")
-    if total > 0:
-        basico.append(f"{txt('label_tijolos_resumo')}: {fmt_int(total)} {txt('un_unidades')}")
+    # Tijolos: uma linha por tipo, com o mesmo nome da aba ("Tijolo baiano (9x19x19): 788 un (0,79 milheiro)").
+    # Orçamento antigo sem o tipo guardado: "Tijolos/Blocos".
+    por_tijolo = {}
+    for item in itens:
+        if item.get("tijolos", 0) > 0:
+            tipo = (item.get("inputs") or {}).get("tijolo")
+            por_tijolo[tipo] = por_tijolo.get(tipo, 0) + item["tijolos"]
+    for tipo, total in por_tijolo.items():
+        rotulo = C._rotulo_tijolo(tipo) if tipo else txt('label_tijolos_resumo')
+        milheiros = total / 1000.0
+        basico.append(f"{rotulo}: {fmt_int(total)} {txt('un_unidades')} "
+                      f"({fmt_num(milheiros, 2)} {C._unidade(milheiros, 'un_milheiro', 'un_milheiros')})")
     total = _soma(itens, "cimento")
     if total > 0:
         basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {C._unidade(total, 'un_saco', 'un_sacos')}")
@@ -128,18 +137,22 @@ def montar_lista_compras(itens):
                 acab.append(f"{txt(rotulo)}: {fmt_int(caixas)} {C._unidade(caixas, 'un_caixa', 'un_caixas')} ({fmt_int(pecas)} {C._unidade(pecas, 'un_peca', 'un_pecas')})")
             else:
                 acab.append(f"{txt(rotulo)}: {fmt_int(pecas)} {C._unidade(pecas, 'un_peca', 'un_pecas')}")
-    # Argamassa colante: sacos de 20 kg (Brasil) ou de 50 lb (EUA); soma por país
-    for sistema in (METRICO, IMPERIAL):
-        itens_arg = [i for i in itens if i.get("argamassa_sacos", 0) > 0 and _sistema(i) == sistema]
-        total = _soma(itens_arg, "argamassa_sacos")
-        if total <= 0:
-            continue
+    # Argamassa colante: uma linha por tipo (o tipo muda o preço na loja), com o mesmo nome da aba:
+    # "Argamassa colante AC-I: 13 sacos de 20 kg". Sacos de 20 kg (Brasil) ou de 50 lb (EUA).
+    por_argamassa = {}
+    for item in itens:
+        if item.get("argamassa_sacos", 0) > 0:
+            chave = (_sistema(item), (item.get("inputs") or {}).get("argamassa"))
+            por_argamassa[chave] = por_argamassa.get(chave, 0) + item["argamassa_sacos"]
+    for (sistema, tipo), total in por_argamassa.items():
+        rotulo = txt_do_pais('label_argamassa_res', sistema)
+        if tipo:  # orçamento antigo sem o tipo guardado: só "Argamassa colante"
+            rotulo += f" {C._rotulo_argamassa(tipo, sistema)}"
         if sistema == IMPERIAL:
             unidade = txt_do_pais("un_saco_argamassa" if total == 1 else "un_sacos_argamassa", sistema)
-            acab.append(f"{txt_do_pais('label_argamassa_res', sistema)}: {fmt_int(total)} {unidade}")
         else:
-            acab.append(f"{txt_do_pais('label_argamassa_resumo', sistema)}: {fmt_int(total)} "
-                        f"{C._unidade(total, 'un_saco_cal', 'un_sacos_cal', sistema).replace(' de 20 kg', '').replace(' of 20 kg', '')}")
+            unidade = C._unidade(total, 'un_saco_cal', 'un_sacos_cal', sistema)
+        acab.append(f"{rotulo}: {fmt_int(total)} {unidade}")
     # Rodapé: metros no Brasil, ft nos EUA
     for sistema in (METRICO, IMPERIAL):
         total = _soma([i for i in itens if _sistema(i) == sistema], "rodape_m")
@@ -158,12 +171,12 @@ def montar_lista_compras(itens):
             # Orçamento antigo não tem "rejunte_grandes": usa as latas de 2 kg e de 1 kg
             grandes = item.get("rejunte_grandes", item.get("rejunte_latas_2kg", 0))
             pequenas = item.get("rejunte_pequenas", item.get("rejunte_latas_1kg", 0))
-            quantidade = f"{fmt_num(kg, 2)} kg"
+            quantidade = f"{fmt_num(kg, 1)} kg"  # 1 casa, igual ao resultado da aba
             rotulo = txt_do_pais("label_rejunte_resumo", sistema)
         else:
             grandes = item.get("rejunte_grandes", 0)
             pequenas = item.get("rejunte_pequenas", 0)
-            quantidade = f"{fmt_num(do_metrico(kg, 'peso', IMPERIAL), 2)} lb"
+            quantidade = f"{fmt_num(do_metrico(kg, 'peso', IMPERIAL), 1)} lb"  # 1 casa, igual ao resultado da aba
             rotulo = txt_do_pais("label_rejunte_" + tipo_rej, sistema)
         acab.append(f"{rotulo}: {quantidade} ({C._texto_rejunte(tipo_rej, grandes, pequenas, sistema)})")
     for item in _do_tipo(itens, "pintura"):
@@ -222,6 +235,10 @@ def texto_whatsapp_orcamento(itens):
     formato = "%d/%m/%Y" if CONFIG_APP.get("idioma", "pt") == "pt" else "%m/%d/%Y"
     texto = f"*{txt('resumo_titulo').capitalize()} - {comum.NOME_APP}*\n{datetime.now().strftime(formato)}\n\n"
     for item in itens:
+        if item.get("tipo") == "esquadrias" and item.get("custo_total", 0) <= 0:
+            # Sem insumos: igual à aba, a frase no lugar de "R$ 0,00"
+            texto += f"• {item['etapa']}: {txt('txt_esquadrias_curto')}\n"
+            continue
         texto += f"• {item['etapa']}: {fmt_moeda(item.get('custo_total', 0))}\n"
 
     subtotal_mat = sum(i.get("custo_mat", 0) for i in itens)

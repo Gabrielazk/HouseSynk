@@ -8,6 +8,12 @@ PERDA_PADRAO_REJUNTE = 10.0
 # Espessura padrão da peça (mm), usada quando o cliente não informa (opcional)
 ESPESSURA_PADRAO_MM = 8.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+AREA_MAXIMA_REJUNTE_M2 = 2000.0
+JUNTA_MINIMA_MM = 1.0
+JUNTA_MAXIMA_MM = 15.0  # 30 mm é quase certeza de quem digitou em cm errado
+
 # Densidade do rejunte cimentício em kg/dm³ (CONFIRMADA pelo engenheiro em Oct 27, 2026)
 DENSIDADE_REJUNTE = 1.58
 

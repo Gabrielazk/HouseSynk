@@ -42,8 +42,18 @@ from src.calculators.reboco import (
     PERDA_PADRAO_REBOCO,
     CHAPISCO_TRACO_RODAPE,
     CHAPISCO_ESPESSURA_CM,
+    AREA_MAXIMA_REBOCO_M2,
+    ESPESSURA_MINIMA_CM as ESPESSURA_MINIMA_REBOCO_CM,
+    ESPESSURA_MAXIMA_CM as ESPESSURA_MAXIMA_REBOCO_CM,
 )
-from src.calculators.contrapiso import calcular_contrapiso, PERDA_PADRAO_CONTRAPISO, TRACO_PADRAO_CONTRAPISO
+from src.calculators.contrapiso import (
+    calcular_contrapiso,
+    PERDA_PADRAO_CONTRAPISO,
+    TRACO_PADRAO_CONTRAPISO,
+    AREA_MAXIMA_CONTRAPISO_M2,
+    ESPESSURA_MINIMA_CM as ESPESSURA_MINIMA_CONTRAPISO_CM,
+    ESPESSURA_MAXIMA_CM as ESPESSURA_MAXIMA_CONTRAPISO_CM,
+)
 from src.calculators.revestimento import (
     calcular_piso,
     calcular_azulejo,
@@ -57,6 +67,9 @@ from src.calculators.revestimento import (
     PRECO_ARGAMASSA_SACO_EUA,
     tipos_argamassa,
     argamassa_padrao,
+    AREA_MAXIMA_REVESTIMENTO_M2,
+    PECA_MINIMA_CM,
+    PECA_MAXIMA_CM,
 )
 from src.calculators.laje import (
     calcular_laje,
@@ -68,6 +81,11 @@ from src.calculators.laje import (
     CAPA_PADRAO_CM,
     PRECO_LAJE_PREMOLDADA_M2,
     PRECO_PAINEL_TELA,
+    AREA_MAXIMA_LAJE_M2,
+    CAPA_MINIMA_CM,
+    CAPA_MAXIMA_CM,
+    ESPESSURA_MACICA_MINIMA_CM,
+    ESPESSURA_MACICA_MAXIMA_CM,
 )
 from src.calculators.telhado import (
     calcular_telhado,
@@ -78,6 +96,8 @@ from src.calculators.telhado import (
     PRECO_TELHA,
     PRECO_CUMEEIRA,
     PRECO_MADEIRA_M,
+    AREA_MAXIMA_TELHADO_M2,
+    INCLINACAO_MAXIMA_PERCENTUAL,
 )
 from src.calculators.eletrica import (
     calcular_eletrica,
@@ -89,6 +109,10 @@ from src.calculators.eletrica import (
     PRECO_CAIXA_OCTOGONAL,
     PRECO_TOMADA,
     PRECO_INTERRUPTOR,
+    TOMADAS_MAXIMO,
+    INTERRUPTORES_MAXIMO,
+    LUZES_MAXIMO,
+    CHUVEIROS_MAXIMO,
 )
 from src.calculators.hidraulica import (
     calcular_hidraulica,
@@ -98,11 +122,13 @@ from src.calculators.hidraulica import (
     PRECO_BARRA_TUBO,
     PRECO_CONEXAO,
     PRECO_REGISTRO,
+    PONTOS_MAXIMO,
 )
 from src.calculators.pintura import (
     calcular_pintura,
     DEMAOS_PADRAO,
     DEMAOS_MAXIMO,
+    DEMAOS_MASSA,
     PERDA_PADRAO_PINTURA,
     RENDIMENTO_PADRAO_M2_L,
     TIPOS_MASSA,
@@ -111,6 +137,7 @@ from src.calculators.pintura import (
     PRECO_BALDE_MASSA,
     RENDIMENTO_PADRAO_EUA_SQFT_GAL,
     rendimento_padrao_m2_l,
+    AREA_MAXIMA_PINTURA_M2,
 )
 from src.calculators.esquadrias import (
     calcular_esquadrias,
@@ -121,6 +148,9 @@ from src.calculators.esquadrias import (
     PRECO_TUBO_ESPUMA,
     PRECO_PARAFUSO,
     PRECO_SACO_ARGAMASSA_FIXACAO,
+    QUANTIDADE_MAXIMA as QUANTIDADE_MAXIMA_ESQUADRIA,
+    LARGURA_MAXIMA_CM as LARGURA_MAXIMA_ESQUADRIA_CM,
+    ALTURA_MAXIMA_CM as ALTURA_MAXIMA_ESQUADRIA_CM,
 )
 from src.calculators.rejunte import (
     calcular_rejunte,
@@ -129,6 +159,9 @@ from src.calculators.rejunte import (
     PRECO_LATA_1KG,
     PRECO_LATA_2KG,
     PRECO_REJUNTE_EUA,
+    AREA_MAXIMA_REJUNTE_M2,
+    JUNTA_MINIMA_MM,
+    JUNTA_MAXIMA_MM,
 )
 from src.calculators.paredes import (
     calcular_paredes,
@@ -150,7 +183,7 @@ from src.calculators.tracos import (
     TRACO_MASSA_PADRAO,
 )
 from kivymd.uix.widget import MDWidget
-from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, fmt_int, sistema_unidades
+from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, fmt_int, sistema_unidades, sem_quebra
 from src.views.textos_eua import TEXTOS_EUA
 from src.calculators.unidades import METRICO, IMPERIAL, arredondar, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade
 
@@ -445,7 +478,7 @@ class CalculatorScreen(MDScreen):
                 campo.text = estado[chave]
         texto = self.textos_resultado.get(self.aba_atual)
         if texto and self._lbl_resultado is not None:
-            self._lbl_resultado.text = texto
+            self._lbl_resultado.text = sem_quebra(texto)  # número e unidade sempre na mesma linha
 
     def trocar_aba(self, aba_nome):
         self._capturar_estado()
@@ -1363,6 +1396,17 @@ class CalculatorScreen(MDScreen):
         larg = round(para_metrico(larg, "centimetro", sistema), 4)
         alt = round(para_metrico(alt, "centimetro", sistema), 4)
 
+        # Limites com aviso (esquadrias.py): a janela abre antes de o item entrar na lista.
+        # Continuar chama o Adicionar de novo (os campos continuam preenchidos) e o item entra.
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_esq_qtd_max", qtd, QUANTIDADE_MAXIMA_ESQUADRIA)
+        self._aviso_maximo(avisos, "aviso_esq_larg_max", larg, LARGURA_MAXIMA_ESQUADRIA_CM, "centimetro")
+        self._aviso_maximo(avisos, "aviso_esq_alt_max", alt, ALTURA_MAXIMA_ESQUADRIA_CM, "centimetro")
+        pendentes = self._avisos_pendentes("esquadrias", avisos)
+        if pendentes:
+            self._pedir_confirmacao("esquadrias", pendentes["aviso"], self._adicionar_esquadria)
+            return
+
         # Mesmo tipo, material e tamanho: soma na quantidade em vez de repetir a linha
         for item in self.esquadrias_itens:
             if (item["tipo"], item["material"], item["larg"], item["alt"]) == (self.esq_tipo, self.esq_material, larg, alt):
@@ -1947,6 +1991,47 @@ class CalculatorScreen(MDScreen):
         )
         self.dialog_aviso.open()
 
+    def _med_limite(self, valor_metrico, tipo):
+        """Limite para os avisos, na unidade do país: "2.000 m²", "0,5 cm", "15 mm".
+        Nos EUA, cm e mm viram polegadas "redondas" (ex.: 8 cm -> 3 1/8 in), igual ao _limite_cm."""
+        if sistema_unidades() == IMPERIAL and tipo in ("centimetro", "milimetro"):
+            return f"{self._texto_padrao(valor_metrico, tipo)} in"
+        return self._med_curto(valor_metrico, tipo, 0 if tipo == "area" else 2)
+
+    def _limite_no_pais(self, valor_metrico, tipo):
+        """O limite do jeito que aparece no aviso, de volta em métrico. No Brasil não muda nada.
+        Nos EUA o limite aparece arredondado (3 cm -> 1 1/8 in; 2.000 m² -> 21,528 sq ft), então a conta
+        compara com esse número, senão quem digitasse 1 1/8 in veria "1 1/8 in: o normal é de 1 1/8 in..."."""
+        sistema = sistema_unidades()
+        if sistema != IMPERIAL or not tipo:
+            return valor_metrico
+        if tipo in ("centimetro", "milimetro"):
+            mostrado = ler_numero(self._texto_padrao(valor_metrico, tipo), ".")
+        else:
+            mostrado = round(do_metrico(valor_metrico, tipo, sistema), 0 if tipo == "area" else 2)
+        return para_metrico(mostrado, tipo, sistema)
+
+    def _fora_da_faixa(self, valor, minimo, maximo, tipo):
+        """Fora da faixa normal? Zero e número negativo não contam (continuam dando a mensagem de erro)."""
+        return 0 < valor < self._limite_no_pais(minimo, tipo) or valor > self._limite_no_pais(maximo, tipo)
+
+    def _aviso_maximo(self, avisos, chave, valor, maximo, tipo=None):
+        """Passou do máximo: acrescenta o aviso. tipo = "area", "centimetro"... (medida, na unidade
+        do país) ou None (quantidade ou porcentagem, sem unidade: tomadas, demãos, inclinação)."""
+        if valor > self._limite_no_pais(maximo, tipo):
+            if tipo:
+                avisos.append(txt(chave).format(valor=self._med_curto(valor, tipo), max=self._med_limite(maximo, tipo)))
+            else:
+                avisos.append(txt(chave).format(valor=self._num_curto(valor), max=self._num_curto(maximo)))
+
+    def _aviso_faixa(self, avisos, chave, valor, minimo, maximo, tipo):
+        """Fora da faixa normal (ex.: capa de 3 a 8 cm): acrescenta o aviso.
+        Zero e número negativo não entram aqui: continuam dando a mensagem de erro de antes."""
+        if self._fora_da_faixa(valor, minimo, maximo, tipo):
+            avisos.append(txt(chave).format(
+                valor=self._med_curto(valor, tipo),
+                min=self._med_limite(minimo, tipo), max=self._med_limite(maximo, tipo)))
+
     def _aba_iniciada(self, aba, estado):
         if aba == "esquadrias" and self.esquadrias_itens:
             return True  # a lista já tem itens (mesmo com o formulário vazio)
@@ -2178,6 +2263,14 @@ class CalculatorScreen(MDScreen):
         dois_lados = self.dois_lados["reboco"]
         chapisco = self.chapisco["reboco"]
 
+        # Limites com aviso (reboco.py): passar deles pergunta se quer continuar
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_REBOCO_M2, "area")
+        self._aviso_faixa(avisos, "aviso_espessura", esp, ESPESSURA_MINIMA_REBOCO_CM, ESPESSURA_MAXIMA_REBOCO_CM, "centimetro")
+        pendentes = self._avisos_pendentes("reboco", avisos)
+        if pendentes:
+            return pendentes
+
         res = calcular_reboco(
             area_bruta_m2=area, espessura_cm=esp, desconto_vaos_m2=vaos,
             dois_lados=dois_lados, chapisco=chapisco, perda_percentual=perda,
@@ -2198,6 +2291,7 @@ class CalculatorScreen(MDScreen):
         if dois_lados:
             texto_res += f"{txt('label_area_rebocar')} ({txt('txt_dois_lados')}): {fmt_num(res['area_rebocada_m2'], 2)} m²\n"
         texto_res += (
+            f"{txt('label_espessura_reboco')}: {self._med_curto(esp, 'centimetro')}\n"
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume_reboco')} ({self._txt_perda(perda)}): {fmt_num(res['volume_reboco_m3'], 3)} m³\n"
         )
@@ -2238,6 +2332,17 @@ class CalculatorScreen(MDScreen):
         rodape = self._numero(e.get("rodape"), 0.0) if piso else 0.0
         rodape_peca = self._numero(e.get("rodape_peca"), 0.0) if piso else 0.0
 
+        # Limites com aviso (revestimento.py), iguais no Piso e no Azulejo
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_REVESTIMENTO_M2, "area")
+        if any(self._fora_da_faixa(lado, PECA_MINIMA_CM, PECA_MAXIMA_CM, "centimetro") for lado in (larg, alt)):
+            avisos.append(txt("aviso_peca").format(
+                larg=self._med_curto(larg, "centimetro"), alt=self._med_curto(alt, "centimetro"),
+                min=self._med_limite(PECA_MINIMA_CM, "centimetro"), max=self._med_limite(PECA_MAXIMA_CM, "centimetro")))
+        pendentes = self._avisos_pendentes(aba, avisos)
+        if pendentes:
+            return pendentes
+
         sistema = sistema_unidades()
         eua = (sistema == IMPERIAL)
         if piso:
@@ -2277,14 +2382,16 @@ class CalculatorScreen(MDScreen):
             f"{txt('label_area_perda')} ({self._num_curto(perda)}%{origem_perda}): {self._med(mostra['com_perda'], 'area')}\n"
             f"{txt('label_peca')}: {texto_peca}\n"
         )
+        if desenho:  # só aparece quando é com desenho (o normal não precisa dizer)
+            texto_res += f"{txt('label_assent')}: {txt('txt_com_desenho')}\n"
         custo_txt = f" ({fmt_moeda(custo_pecas)})"
         if res['caixas'] > 0:
             # Por caixa: m² no Brasil, sq ft nos EUA (o número que a pessoa digitou)
             por_caixa = fmt_num(do_metrico(caixa, "area", sistema), 2)
-            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {self._unidade(res['pecas'], 'un_peca', 'un_pecas')}\n"
+            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])}\n"
             texto_res += f"• {txt('label_caixas')}: {fmt_int(res['caixas'])} {self._unidade(res['caixas'], 'un_caixa', 'un_caixas')} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
         else:
-            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])} {self._unidade(res['pecas'], 'un_peca', 'un_pecas')}{custo_txt}\n"
+            texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])}{custo_txt}\n"
         if eua:
             # Ex.: "Argamassa colante (thinset) Modificada (ANSI A118.4): 3 sacos de 50 lb (150 lb)"
             qtd = res['sacos_argamassa']
@@ -2360,6 +2467,14 @@ class CalculatorScreen(MDScreen):
         esp = self._numero(e.get("esp"), ESPESSURA_PADRAO_MM)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_REJUNTE)
 
+        # Limites com aviso (rejunte.py). Junta de 30 mm é quase certeza de quem digitou em cm errado.
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_REJUNTE_M2, "area")
+        self._aviso_faixa(avisos, "aviso_junta", junta, JUNTA_MINIMA_MM, JUNTA_MAXIMA_MM, "milimetro")
+        pendentes = self._avisos_pendentes("rejunte", avisos)
+        if pendentes:
+            return pendentes
+
         sistema = sistema_unidades()
         res = calcular_rejunte(area, larg, alt, junta, esp, perda, sistema)
         if "erro" in res:
@@ -2382,8 +2497,8 @@ class CalculatorScreen(MDScreen):
                 f"{txt('label_junta')}: {n(junta)} mm\n"
                 f"{txt('label_espessura')}: {n(esp)} mm\n"
                 f"{txt('label_consumo')}: {fmt_num(res['consumo_kg_m2'], 3)} kg/m²\n"
-                f"• {txt('label_rejunte_res')} ({self._txt_perda(perda)}): {fmt_num(res['kg_total'], 2)} kg\n"
             )
+            linha_kg = f"• {txt('label_rejunte_res')} ({self._txt_perda(perda)}): {fmt_num(res['kg_total'], 1)} kg"
         else:   # EUA: sq ft, in, lb
             texto_dados = (
                 f"{txt('label_area')}: {self._med(area, 'area')}\n"
@@ -2391,12 +2506,12 @@ class CalculatorScreen(MDScreen):
                 f"{txt('label_junta')}: {self._med(junta, 'milimetro')}\n"
                 f"{txt('label_espessura')}: {self._med(esp, 'milimetro')}\n"
                 f"{txt('label_consumo')}: {self._med(res['consumo_kg_m2'], 'consumo', 3)}\n"
-                f"• {txt('label_rejunte_' + tipo_rej)} ({self._txt_perda(perda)}): "
-                f"{self._med(res['kg_total'], 'peso', 2)}\n"
             )
+            linha_kg = f"• {txt('label_rejunte_' + tipo_rej)} ({self._txt_perda(perda)}): {self._med(res['kg_total'], 'peso', 1)}"
+        # Uma linha só, igual à Pintura: "• Rejunte (com 10% de perda): 5,6 kg = 3 latas de 2 kg (R$ 54,00)"
         texto_res = (
             texto_dados
-            + f"• {self._texto_rejunte(tipo_rej, res['embalagens_grandes'], res['embalagens_pequenas'])} ({fmt_moeda(custo_mat)})\n"
+            + f"{linha_kg} = {self._texto_rejunte(tipo_rej, res['embalagens_grandes'], res['embalagens_pequenas'])} ({fmt_moeda(custo_mat)})\n"
             + f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
         )
 
@@ -2426,6 +2541,17 @@ class CalculatorScreen(MDScreen):
         capa = self._numero(e.get("capa"), CAPA_PADRAO_CM)
         esp = self._numero(e.get("esp"), 0.0)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_LAJE)
+
+        # Limites com aviso (laje.py): a capa só vale na pré-moldada; a espessura, só na maciça
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_LAJE_M2, "area")
+        if premoldada:
+            self._aviso_faixa(avisos, "aviso_capa", capa, CAPA_MINIMA_CM, CAPA_MAXIMA_CM, "centimetro")
+        else:
+            self._aviso_faixa(avisos, "aviso_espessura", esp, ESPESSURA_MACICA_MINIMA_CM, ESPESSURA_MACICA_MAXIMA_CM, "centimetro")
+        pendentes = self._avisos_pendentes("laje", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_laje(area, self.laje_tipo, self.laje_enchimento, capa, esp, perda, self.traco["laje"],
                             tela_soldada=self.tela["laje"])
@@ -2497,6 +2623,14 @@ class CalculatorScreen(MDScreen):
         cumeeira = self._numero(e.get("cumeeira"), 0.0)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_TELHADO)
         madeira = self.madeiramento["telhado"]
+
+        # Limites com aviso (telhado.py)
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_TELHADO_M2, "area")
+        self._aviso_maximo(avisos, "aviso_inclinacao_max", incl, INCLINACAO_MAXIMA_PERCENTUAL)
+        pendentes = self._avisos_pendentes("telhado", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_telhado(area, tipo, incl, cumeeira, madeira, perda)
         if "erro" in res:
@@ -2591,7 +2725,11 @@ class CalculatorScreen(MDScreen):
                 f"• {txt('label_res_argamassa_fix')}: {fmt_num(res['argamassa_kg'], 1)} kg = "
                 f"{fmt_int(qtd)} {txt('un_saco_20') if qtd == 1 else txt('un_sacos_20')} ({fmt_moeda(custo_argamassa)})\n"
             )
-        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+        # O app não tem preço de porta e janela (varia muito): o custo é só o dos insumos de fixação.
+        # Sem insumo, em vez de "R$ 0,00" (parece que as portas são de graça), só a frase.
+        if custo_mat > 0:
+            texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+        texto_res += f"\n{txt('txt_esquadrias_orcamento')}"
 
         resultado = {
             "etapa": txt("secao_esquadrias"),
@@ -2615,8 +2753,15 @@ class CalculatorScreen(MDScreen):
         parede = self._numero(parede_txt, 0.0)
         teto = self._numero(teto_txt, 0.0)
         demaos = int(demaos_txt)
-        if demaos > DEMAOS_MAXIMO:  # ex.: digitou "22" no lugar de "2"
-            return {"erro": txt("msg_demaos").format(n=demaos, max=DEMAOS_MAXIMO)}
+        # Limites com aviso (pintura.py). Demãos acima de 5 (ex.: "22" no lugar de "2") eram erro;
+        # agora abrem a janela com Continuar, igual às outras abas (regra 12)
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_parede_max", parede, AREA_MAXIMA_PINTURA_M2, "area")
+        self._aviso_maximo(avisos, "aviso_area_teto_max", teto, AREA_MAXIMA_PINTURA_M2, "area")
+        self._aviso_maximo(avisos, "aviso_demaos_max", demaos, DEMAOS_MAXIMO)
+        pendentes = self._avisos_pendentes("pintura", avisos)
+        if pendentes:
+            return pendentes
         sistema = sistema_unidades()
         eua = (sistema == IMPERIAL)
         # Rendimento vazio: o padrão do país (12 m²/L no Brasil; 400 sq ft/gal nos EUA)
@@ -2668,6 +2813,16 @@ class CalculatorScreen(MDScreen):
                 f"• {self._rotulo_massa(massa)} ({perda_txt}): {fmt_num(res['massa_kg'], 1)} kg = "
                 f"{fmt_int(qtd)} {txt('un_balde_25') if qtd == 1 else txt('un_baldes_25')} ({fmt_moeda(custo_massa)})\n"
             )
+        # "Demãos" e "Rendimento" do topo valem só para as tintas: os complementos têm demãos próprias,
+        # sobre a área total (parede + teto). Só aparece se tiver algum complemento.
+        complementos = []
+        for item in ("selador", "fundo"):
+            if item in res['itens']:
+                complementos.append(f"{txt('label_pint_' + item)} {txt('txt_1_demao')}")
+        if res['baldes_massa'] > 0:
+            complementos.append(f"{self._rotulo_massa(massa)} {txt('txt_n_demaos').format(n=DEMAOS_MASSA)}")
+        if complementos:
+            texto_res += f"{txt('label_nota_complementos')}: {', '.join(complementos)}\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         resultado = {
@@ -2698,6 +2853,14 @@ class CalculatorScreen(MDScreen):
             if texto:  # vazio = o app estima
                 tubos_projeto[tubo] = self._numero(texto)
         perda = self._numero(e.get("perda"), PERDA_PADRAO_HIDRAULICA)
+
+        # Limites com aviso (hidraulica.py): o mesmo para cada tipo de ponto
+        avisos = []
+        for chave in ("fria", "quente", "esgoto"):
+            self._aviso_maximo(avisos, f"aviso_{chave}_max", pontos[chave], PONTOS_MAXIMO)
+        pendentes = self._avisos_pendentes("hidraulica", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_hidraulica(pontos["fria"], pontos["quente"], pontos["esgoto"], tubos_projeto, perda)
         if "erro" in res:
@@ -2762,6 +2925,16 @@ class CalculatorScreen(MDScreen):
             if valor is not None:
                 fios_projeto[bitola] = valor
         perda = self._numero(e.get("perda"), PERDA_PADRAO_ELETRICA)
+
+        # Limites com aviso (eletrica.py). Os chuveiros contam somando os dois campos.
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_tomadas_max", tomadas, TOMADAS_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_interruptores_max", interruptores, INTERRUPTORES_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_luzes_max", luzes, LUZES_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_chuveiros_max", chuveiros + chuveiros4, CHUVEIROS_MAXIMO)
+        pendentes = self._avisos_pendentes("eletrica", avisos)
+        if pendentes:
+            return pendentes
 
         res = calcular_eletrica(tomadas, interruptores, luzes, conduite, fios_projeto, perda, chuveiros, chuveiros4)
         if "erro" in res:
@@ -2837,6 +3010,14 @@ class CalculatorScreen(MDScreen):
         esp = self._numero(e["esp"])
         perda = self._numero(e.get("perda"), PERDA_PADRAO_CONTRAPISO)
 
+        # Limites com aviso (contrapiso.py). O normal é de 5 a 7 cm (engenheiro).
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_CONTRAPISO_M2, "area")
+        self._aviso_faixa(avisos, "aviso_espessura", esp, ESPESSURA_MINIMA_CONTRAPISO_CM, ESPESSURA_MAXIMA_CONTRAPISO_CM, "centimetro")
+        pendentes = self._avisos_pendentes("contrapiso", avisos)
+        if pendentes:
+            return pendentes
+
         res = calcular_contrapiso(area_m2=area, espessura_cm=esp, perda_percentual=perda, traco=self.traco["contrapiso"])
         if "erro" in res:
             return {"erro": f"Erro: {res['erro']}"}
@@ -2848,6 +3029,7 @@ class CalculatorScreen(MDScreen):
 
         texto_res = (
             f"{txt('label_area_contrapiso')}: {fmt_num(res['area_m2'], 2)} m²\n"
+            f"{txt('label_espessura_media')}: {self._med_curto(esp, 'centimetro')}\n"
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"{txt('label_volume')} ({self._txt_perda(perda)}): {fmt_num(res['volume_com_perda_m3'], 3)} m³\n"
             f"{self._linhas_concreto(res, custo_cimento, custo_areia, custo_pedra)}"
@@ -2911,10 +3093,10 @@ class CalculatorScreen(MDScreen):
         milheiros = fmt_num(res['milheiros'], 2)
         un_milheiro = self._unidade(res['milheiros'], 'un_milheiro', 'un_milheiros')  # 0,79 e 1,58 milheiro; 2,5 milheiros
         texto_res = f"{txt('label_area_bruta')}: {fmt_num(res['area_bruta_m2'], 2)} m²\n"
-        if res['desconto_vaos_m2'] > 0:
+        if res['desconto_vaos_m2'] > 0:  # sem vãos, a área líquida é igual à bruta (igual ao Reboco e ao Azulejo)
             texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
+            texto_res += f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
         texto_res += (
-            f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
             f"• {self._rotulo_tijolo(tijolo)}: {fmt_int(res['unidades'])} {txt('un_unidades')} "
             f"({milheiros} {un_milheiro}) ({fmt_moeda(custo_tijolo)})\n"
@@ -2950,7 +3132,7 @@ class CalculatorScreen(MDScreen):
             self._lbl_resultado.text = r["erro"]
             return
         self.textos_resultado[aba] = r["texto"]
-        self._lbl_resultado.text = r["texto"]
+        self._lbl_resultado.text = sem_quebra(r["texto"])  # número e unidade sempre na mesma linha
 
     # --- USADO PELO HISTÓRICO (visualizar / editar) ---
     @staticmethod

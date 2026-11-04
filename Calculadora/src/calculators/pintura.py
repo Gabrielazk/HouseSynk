@@ -4,9 +4,15 @@ from src.calculators.embalagens import grandes_e_pequenas
 
 # Valores padrão
 DEMAOS_PADRAO = 2
-# Mais que isso é quase sempre erro de digitação (ex.: "22" no lugar de "2"); a tela avisa
+# Mais que isso é quase sempre erro de digitação (ex.: "22" no lugar de "2"): a tela abre a janela
+# "Confira os valores" com Continuar (regra 12; antes era erro). Limite confirmado pela Gabi em Nov 3, 2026.
 DEMAOS_MAXIMO = 5
 PERDA_PADRAO_PINTURA = 10.0
+
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+# A pintura conta os dois lados da parede e o teto, por isso a área é maior que a das Paredes.
+AREA_MAXIMA_PINTURA_M2 = 5000.0  # parede e teto, cada um
 
 # Rendimento da tinta: m² pintados com 1 litro, em UMA demão (CONFIRMADO pelo engenheiro em Oct 27, 2026)
 RENDIMENTO_PADRAO_M2_L = 12.0

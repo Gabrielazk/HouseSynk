@@ -10,6 +10,11 @@ PERDA_PADRAO_TELHADO = 5.0
 # Inclinação padrão (%) de cada tipo de telha (PROVISÓRIO, confirmar com o engenheiro)
 INCLINACAO_PADRAO = {"ceramica": 30.0, "concreto": 30.0, "fibrocimento": 15.0}
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+AREA_MAXIMA_TELHADO_M2 = 2000.0
+INCLINACAO_MAXIMA_PERCENTUAL = 100.0  # telhado bem inclinado já fica perto de 45%
+
 # Telhas por m² de telhado (PROVISÓRIO, confirmar com o engenheiro)
 # Cerâmica: tipo romana. Fibrocimento: telha de 2,44 x 1,10 m (cerca de 2,4 m² úteis cada)
 TELHAS_POR_M2 = {"ceramica": 16.0, "concreto": 10.5, "fibrocimento": 1 / 2.4}

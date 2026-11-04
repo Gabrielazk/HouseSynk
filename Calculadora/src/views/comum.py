@@ -3,6 +3,7 @@
 USUARIO_LOGADO fica aqui. Nas telas, use sempre comum.USUARIO_LOGADO (ler e trocar),
 nunca "from src.views.comum import USUARIO_LOGADO", senão a tela fica com uma cópia antiga."""
 import os
+import re
 from src.models.material import TabelaPrecos
 from src.calculators.unidades import METRICO, IMPERIAL, arredondar
 from src.views.textos_eua import TEXTOS_EUA
@@ -80,6 +81,24 @@ TEXTOS = {
         "aviso_area_max": "Área de {valor}: o limite é {max}.",
         "aviso_junta": "Junta de {valor}: o normal é de {min} a {max}.",
         "aviso_quebra_max": "Quebra de {valor}%: o limite é {max}%.",
+        # Limites das outras abas (Nov 3, 2026)
+        "aviso_capa": "Capa de {valor}: o normal é de {min} a {max}.",
+        "aviso_espessura": "Espessura de {valor}: o normal é de {min} a {max}.",
+        "aviso_inclinacao_max": "Inclinação de {valor}%: o limite é {max}%.",
+        "aviso_tomadas_max": "{valor} tomadas: o limite é {max}.",
+        "aviso_interruptores_max": "{valor} interruptores: o limite é {max}.",
+        "aviso_luzes_max": "{valor} pontos de luz: o limite é {max}.",
+        "aviso_chuveiros_max": "{valor} chuveiros: o limite é {max} (somando os dois campos).",
+        "aviso_fria_max": "{valor} pontos de água fria: o limite é {max}.",
+        "aviso_quente_max": "{valor} pontos de água quente: o limite é {max}.",
+        "aviso_esgoto_max": "{valor} pontos de esgoto: o limite é {max}.",
+        "aviso_peca": "Peça de {larg} x {alt}: o normal é de {min} a {max} em cada lado.",
+        "aviso_area_parede_max": "Área de parede de {valor}: o limite é {max}.",
+        "aviso_area_teto_max": "Área de teto de {valor}: o limite é {max}.",
+        "aviso_demaos_max": "{valor} demãos: o limite é {max} (normalmente são 2 ou 3).",
+        "aviso_esq_qtd_max": "Quantidade de {valor}: o limite é {max} de cada item.",
+        "aviso_esq_larg_max": "Largura de {valor}: o limite é {max}.",
+        "aviso_esq_alt_max": "Altura de {valor}: o limite é {max}.",
         "label_volume": "Volume Total",
         "label_cimento": "Cimento",
         "label_areia": "Areia",
@@ -253,7 +272,6 @@ TEXTOS = {
         "label_rodape": "Rodapé",
         "label_piso_resumo": "Piso",
         "label_azulejo_resumo": "Azulejo",
-        "label_argamassa_resumo": "Argamassa colante 20kg",
         "un_pecas": "peças",
         "un_peca": "peça",
         "un_caixas": "caixas",
@@ -287,6 +305,14 @@ TEXTOS = {
         "opcao_lajota": "Lajota cerâmica",
         "label_capa": "Capa de concreto",
         "label_espessura_laje": "Espessura",
+        "label_espessura_media": "Espessura média",
+        "label_espessura_reboco": "Espessura",
+        "txt_com_desenho": "com desenho",
+        "label_nota_complementos": "Complementos (sobre parede + teto)",
+        "txt_1_demao": "1 demão",
+        "txt_n_demaos": "{n} demãos",
+        "txt_esquadrias_orcamento": "Portas e janelas: use esta lista para pedir orçamento ao fornecedor.",
+        "txt_esquadrias_curto": "peça orçamento ao fornecedor",
         "label_laje_pm": "Laje pré-moldada (vigotas + enchimento)",
         "label_laje_pm_resumo": "Laje pré-moldada",
         "label_lajotas": "Lajotas cerâmicas",
@@ -349,10 +375,10 @@ TEXTOS = {
         "hint_pontos_fria": "Pontos de água fria (ex: 10)",
         "hint_pontos_quente": "Pontos de água quente (ex: 3)",
         "hint_pontos_esgoto": "Pontos de esgoto (ex: 8)",
-        "hint_tubo_fria": "Água fria 25 mm, em metros",
-        "hint_tubo_quente": "Água quente 22 mm, em metros",
-        "hint_tubo_esg40": "Esgoto 40 mm, em metros",
-        "hint_tubo_esg100": "Esgoto 100 mm, em metros",
+        "hint_tubo_fria": "Água fria 25 mm, em metros (opcional)",
+        "hint_tubo_quente": "Água quente 22 mm, em metros (opcional)",
+        "hint_tubo_esg40": "Esgoto 40 mm, em metros (opcional)",
+        "hint_tubo_esg100": "Esgoto 100 mm, em metros (opcional)",
         "label_pontos_fria": "Pontos de água fria",
         "label_pontos_quente": "Pontos de água quente",
         "label_pontos_esgoto": "Pontos de esgoto",
@@ -383,7 +409,6 @@ TEXTOS = {
         "label_area_parede_pint": "Parede",
         "label_area_teto_pint": "Teto",
         "label_demaos": "Demãos",
-        "msg_demaos": "Confira o número de demãos: {n} é demais (o máximo é {max}; normalmente são 2 ou 3).",
         "label_rendimento": "Rendimento",
         "label_pint_parede": "Tinta de parede",
         "label_pint_teto": "Tinta de teto",
@@ -504,6 +529,24 @@ TEXTOS = {
         "aviso_area_max": "Area of {valor}: the limit is {max}.",
         "aviso_junta": "Joint of {valor}: the usual is {min} to {max}.",
         "aviso_quebra_max": "Breakage of {valor}%: the limit is {max}%.",
+        # Limits of the other tabs (Nov 3, 2026)
+        "aviso_capa": "Topping of {valor}: the usual is {min} to {max}.",
+        "aviso_espessura": "Thickness of {valor}: the usual is {min} to {max}.",
+        "aviso_inclinacao_max": "Slope of {valor}%: the limit is {max}%.",
+        "aviso_tomadas_max": "{valor} outlets: the limit is {max}.",
+        "aviso_interruptores_max": "{valor} switches: the limit is {max}.",
+        "aviso_luzes_max": "{valor} light points: the limit is {max}.",
+        "aviso_chuveiros_max": "{valor} showers: the limit is {max} (adding both fields).",
+        "aviso_fria_max": "{valor} cold water points: the limit is {max}.",
+        "aviso_quente_max": "{valor} hot water points: the limit is {max}.",
+        "aviso_esgoto_max": "{valor} drain points: the limit is {max}.",
+        "aviso_peca": "Tile of {larg} x {alt}: the usual is {min} to {max} on each side.",
+        "aviso_area_parede_max": "Wall area of {valor}: the limit is {max}.",
+        "aviso_area_teto_max": "Ceiling area of {valor}: the limit is {max}.",
+        "aviso_demaos_max": "{valor} coats: the limit is {max} (usually 2 or 3).",
+        "aviso_esq_qtd_max": "Quantity of {valor}: the limit is {max} of each item.",
+        "aviso_esq_larg_max": "Width of {valor}: the limit is {max}.",
+        "aviso_esq_alt_max": "Height of {valor}: the limit is {max}.",
         "label_volume": "Total Volume",
         "label_cimento": "Cement",
         "label_areia": "Sand",
@@ -677,7 +720,6 @@ TEXTOS = {
         "label_rodape": "Baseboard",
         "label_piso_resumo": "Floor tile",
         "label_azulejo_resumo": "Wall tile",
-        "label_argamassa_resumo": "Tile adhesive 20kg",
         "un_pecas": "tiles",
         "un_peca": "tile",
         "un_caixas": "boxes",
@@ -711,6 +753,14 @@ TEXTOS = {
         "opcao_lajota": "Ceramic block",
         "label_capa": "Concrete topping",
         "label_espessura_laje": "Thickness",
+        "label_espessura_media": "Average thickness",
+        "label_espessura_reboco": "Thickness",
+        "txt_com_desenho": "patterned",
+        "label_nota_complementos": "Add-ons (over wall + ceiling)",
+        "txt_1_demao": "1 coat",
+        "txt_n_demaos": "{n} coats",
+        "txt_esquadrias_orcamento": "Doors and windows: use this list to request a quote from the supplier.",
+        "txt_esquadrias_curto": "request a quote from the supplier",
         "label_laje_pm": "Precast slab (joists + filler)",
         "label_laje_pm_resumo": "Precast slab",
         "label_lajotas": "Ceramic blocks",
@@ -773,10 +823,10 @@ TEXTOS = {
         "hint_pontos_fria": "Cold water points (ex: 10)",
         "hint_pontos_quente": "Hot water points (ex: 3)",
         "hint_pontos_esgoto": "Drain points (ex: 8)",
-        "hint_tubo_fria": "Cold water 25 mm, in meters",
-        "hint_tubo_quente": "Hot water 22 mm, in meters",
-        "hint_tubo_esg40": "Drain 40 mm, in meters",
-        "hint_tubo_esg100": "Drain 100 mm, in meters",
+        "hint_tubo_fria": "Cold water 25 mm, in meters (optional)",
+        "hint_tubo_quente": "Hot water 22 mm, in meters (optional)",
+        "hint_tubo_esg40": "Drain 40 mm, in meters (optional)",
+        "hint_tubo_esg100": "Drain 100 mm, in meters (optional)",
         "label_pontos_fria": "Cold water points",
         "label_pontos_quente": "Hot water points",
         "label_pontos_esgoto": "Drain points",
@@ -807,7 +857,6 @@ TEXTOS = {
         "label_area_parede_pint": "Walls",
         "label_area_teto_pint": "Ceiling",
         "label_demaos": "Coats",
-        "msg_demaos": "Check the number of coats: {n} is too many (the maximum is {max}; usually 2 or 3).",
         "label_rendimento": "Coverage",
         "label_pint_parede": "Wall paint",
         "label_pint_teto": "Ceiling paint",
@@ -919,6 +968,21 @@ def txt(chave: str) -> str:
             return texto_eua
     dicionario_lang = TEXTOS.get(lang, TEXTOS.get("pt", {}))
     return dicionario_lang.get(chave, chave)
+
+# Espaço que não quebra a linha: o Kivy só quebra a linha no espaço comum (" ").
+ESPACO_FIXO = "\u00a0"
+_NUMERO_E_PALAVRA = re.compile(r"(\d) (?=[^\s\d=(•·+\-])")  # "12 m", "788 un", "3 latas"
+_MOEDA_E_NUMERO = re.compile(r"(\$) (?=\d)")                 # "R$ 54,00", "US$ 4,902.70"
+
+
+def sem_quebra(texto: str) -> str:
+    """Texto para MOSTRAR na tela, sem separar o número da unidade na quebra de linha
+    (antes saía "12" no fim de uma linha e "m" no começo da outra). Troca o espaço entre o número
+    e a palavra seguinte (e entre o R$ e o valor) por um espaço que não quebra.
+    Só para a tela: o texto guardado (Histórico, PDF, WhatsApp) continua com o espaço comum."""
+    texto = _NUMERO_E_PALAVRA.sub(rf"\1{ESPACO_FIXO}", texto)
+    return _MOEDA_E_NUMERO.sub(rf"\1{ESPACO_FIXO}", texto)
+
 
 def fmt_moeda(valor: float) -> str:
     """Ex.: R$ 4.902,70 (Brasil) ou US$ 4,902.70 (EUA): o separador de milhar é o contrário do decimal."""

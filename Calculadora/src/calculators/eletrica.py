@@ -4,6 +4,13 @@ from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,5
 # Perda padrão (sobras de fio e conduíte)
 PERDA_PADRAO_ELETRICA = 10.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+TOMADAS_MAXIMO = 300
+INTERRUPTORES_MAXIMO = 300
+LUZES_MAXIMO = 300
+CHUVEIROS_MAXIMO = 10  # somando os dois campos de chuveiro
+
 # Bitolas de fio (mm²)
 BITOLAS_FIO = [1.5, 2.5, 4.0, 6.0]
 

@@ -10,6 +10,12 @@ from src.calculators.tracos import (
 ESPESSURA_PADRAO_CM = 2.0
 PERDA_PADRAO_REBOCO = 10.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+AREA_MAXIMA_REBOCO_M2 = 2000.0
+ESPESSURA_MINIMA_CM = 0.5   # o normal é 2 cm
+ESPESSURA_MAXIMA_CM = 4.0
+
 # Chapisco (premissas de trabalho, a conferir): camada fina de cimento e areia 1:3
 CHAPISCO_TRACO = "1:0:3"          # cimento : cal : areia  (1:3 de cimento e areia, sem cal)
 CHAPISCO_ESPESSURA_CM = 0.5
@@ -34,7 +40,7 @@ def calcular_reboco(
 
     area_liquida_m2 = area_bruta_m2 - desconto_vaos_m2
     if area_liquida_m2 <= 0:
-        return {"erro": "O desconto de portas e janelas não pode ser maior que a área da parede."}
+        return {"erro": "O desconto de vãos deve ser menor que a área."}
 
     area_rebocada_m2 = area_liquida_m2 * (2 if dois_lados else 1)
     fator_perda = 1 + perda_percentual / 100.0

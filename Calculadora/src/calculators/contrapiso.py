@@ -4,6 +4,12 @@ from src.calculators.tracos import consumo_concreto_por_m3
 # Perda padrão do contrapiso
 PERDA_PADRAO_CONTRAPISO = 5.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+AREA_MAXIMA_CONTRAPISO_M2 = 2000.0
+ESPESSURA_MINIMA_CM = 3.0   # o normal é de 5 a 7 cm (engenheiro)
+ESPESSURA_MAXIMA_CM = 10.0
+
 # Traço mais usado no contrapiso: 1 de cimento, 3 de areia e 3 de brita, com 5 a 7 cm de espessura
 # (CONFIRMADO pelo engenheiro em Oct 27, 2026). As outras abas de concreto continuam com 1:2:3.
 TRACO_PADRAO_CONTRAPISO = "1:3:3"

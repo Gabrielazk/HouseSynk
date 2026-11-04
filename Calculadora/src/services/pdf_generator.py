@@ -120,7 +120,8 @@ def _bloco_etapa(numero, item):
 
 def _parte_orcamento(itens):
     partes = _cabecalho(txt("resumo_titulo").capitalize())
-    partes.append(Paragraph(_esc(txt("resumo_etapas").capitalize()), ESTILO_SECAO))
+    # keepWithNext: o título "Etapas incluídas" nunca fica sozinho no fim da página (vai junto da 1ª etapa)
+    partes.append(Paragraph(_esc(txt("resumo_etapas").capitalize()), ParagraphStyle("secao_junto", parent=ESTILO_SECAO, keepWithNext=1)))
     for numero, item in enumerate(itens, 1):
         partes.append(_bloco_etapa(numero, item))
 
@@ -148,7 +149,8 @@ def _parte_orcamento(itens):
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]))
-    partes += [Paragraph(_esc(txt("resumo_financeiro").capitalize()), ESTILO_SECAO), KeepTogether(tabela)]
+    # Título e valores juntos: se não couberem no fim da página, os dois pulam para a próxima
+    partes.append(KeepTogether([Paragraph(_esc(txt("resumo_financeiro").capitalize()), ESTILO_SECAO), tabela]))
     partes += _grafico_barras(itens)
     return partes
 

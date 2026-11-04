@@ -13,6 +13,14 @@ ENCHIMENTO_PADRAO = "eps"
 PERDA_PADRAO_LAJE = 5.0
 CAPA_PADRAO_CM = 4.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+AREA_MAXIMA_LAJE_M2 = 2000.0
+CAPA_MINIMA_CM = 3.0
+CAPA_MAXIMA_CM = 8.0
+ESPESSURA_MACICA_MINIMA_CM = 8.0
+ESPESSURA_MACICA_MAXIMA_CM = 20.0
+
 # Pré-moldada: concreto que entra entre as vigotas, além da capa (m³ por m² de laje)
 # (CONFIRMADO pelo engenheiro em Oct 27, 2026; laje H12 = enchimento 8 cm + capa 4 cm)
 CONCRETO_NERVURAS_M3_M2 = 0.012

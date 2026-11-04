@@ -63,7 +63,7 @@ def calcular_paredes(
 
     area_liquida_m2 = area_bruta_m2 - desconto_vaos_m2
     if area_liquida_m2 <= 0:
-        return {"erro": "O desconto de portas e janelas não pode ser maior que a área da parede."}
+        return {"erro": "O desconto de vãos deve ser menor que a área."}
 
     dados = TIJOLOS[tijolo]
     if assentamento == "em_pe":

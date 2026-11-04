@@ -6,6 +6,13 @@ TIPO_ESQUADRIA_PADRAO = "porta"
 MATERIAIS = ["nao_informado", "aluminio", "madeira", "vidro"]
 MATERIAL_PADRAO = "nao_informado"
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+# O aviso aparece no "Adicionar à lista" (antes de o item entrar na lista).
+QUANTIDADE_MAXIMA = 100
+LARGURA_MAXIMA_CM = 500.0
+ALTURA_MAXIMA_CM = 400.0  # 8000 é quase certeza de quem digitou em mm
+
 # Insumos de fixação, calculados pelo perímetro das esquadrias (PROVISÓRIO, confirmar com o engenheiro)
 # Porta: os dois lados + a parte de cima (embaixo é o piso). Janela: os quatro lados.
 METROS_POR_TUBO_ESPUMA = 6.0       # 1 tubo de espuma expansiva (500 ml) a cada 6 m de perímetro

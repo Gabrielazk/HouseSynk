@@ -10,6 +10,13 @@ FAIXAS_PERDA = [(70.0, 10.0), (90.0, 15.0)]  # (maior lado até X cm, perda %)
 PERDA_PECA_GRANDE = 20.0                  # maior lado acima de 90 cm
 PERDA_COM_DESENHO = 25.0
 
+# Limites com aviso (regra 12): passar deles abre a janela "Confira os valores", com Continuar.
+# Criados pelo Leo em Nov 3, 2026 (o engenheiro ainda vai conferir; se ele mudar, é só trocar aqui).
+# Valem para o Piso e para o Azulejo. Peça: cada lado (existe porcelanato de 120 x 240 cm).
+AREA_MAXIMA_REVESTIMENTO_M2 = 2000.0
+PECA_MINIMA_CM = 5.0
+PECA_MAXIMA_CM = 300.0
+
 # --- BRASIL: argamassa colante (de saco): AC-I, AC-II e AC-III ---
 TIPOS_ARGAMASSA = ["AC-I", "AC-II", "AC-III"]
 ARGAMASSA_PADRAO_PISO = "AC-I"

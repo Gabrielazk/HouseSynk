@@ -56,6 +56,7 @@
     <Compile Include="src\views\home_screen.py" />
     <Compile Include="src\views\login_screen.py" />
     <Compile Include="src\views\main_screen.py" />
+    <Compile Include="src\views\rolagem.py" />
     <Compile Include="src\views\settings_screen.py" />
     <Compile Include="src\views\summary_screen.py" />
     <Compile Include="src\views\textos_eua.py" />

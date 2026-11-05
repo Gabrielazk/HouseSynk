@@ -5,6 +5,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.scrollview import MDScrollView
+from src.views.rolagem import RolagemComBarra  # rolagem com barra larga, que dá para arrastar
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -41,8 +42,8 @@ class HistoryScreen(MDScreen):
         topo.add_widget(self.btn_voltar)
         topo.add_widget(self.lbl_titulo)
         
-        scroll = MDScrollView()
-        self.box_cards = MDBoxLayout(orientation="vertical", spacing="12dp", padding="4dp", size_hint_y=None)
+        scroll = RolagemComBarra()
+        self.box_cards = MDBoxLayout(orientation="vertical", spacing="12dp", padding=("4dp", "4dp", "8dp", "4dp"), size_hint_y=None)  # 8dp à direita: espaço para a barra de rolagem
         self.box_cards.bind(minimum_height=self.box_cards.setter('height'))
         
         scroll.add_widget(self.box_cards)
@@ -64,7 +65,9 @@ class HistoryScreen(MDScreen):
         user_id = comum.USUARIO_LOGADO.get("id") if comum.USUARIO_LOGADO else None
         lista = listar_orcamentos(user_id)
         if not lista:
-            lbl_vazio = MDLabel(text=txt("lbl_hist_vazio"), theme_text_color="Secondary", halign="center")
+            # Altura fixa: sem ela, o texto ficava com altura zero dentro da lista e subia para trás do topo (escondido)
+            lbl_vazio = MDLabel(text=txt("lbl_hist_vazio"), theme_text_color="Secondary", halign="center",
+                                size_hint_y=None, height="48dp")
             self.box_cards.add_widget(lbl_vazio)
             return
             

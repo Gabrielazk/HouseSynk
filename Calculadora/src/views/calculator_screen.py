@@ -14,6 +14,7 @@ from kivymd.uix.button import (
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.scrollview import MDScrollView
+from src.views.rolagem import RolagemComBarra  # rolagem com barra larga, que dá para arrastar
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -520,7 +521,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA 1: BROCAS
     # ==========================================
     def montar_conteudo_brocas(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -584,7 +585,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA 2: BALDRAME
     # ==========================================
     def montar_conteudo_baldrame(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -655,7 +656,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA 3: PAREDES
     # ==========================================
     def montar_conteudo_paredes(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -710,7 +711,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA 4: CONTRAPISO
     # ==========================================
     def montar_conteudo_contrapiso(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -755,7 +756,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA 5: REBOCO
     # ==========================================
     def montar_conteudo_reboco(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -810,7 +811,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DAS ABAS PISO E AZULEJO (mesma tela, campos um pouco diferentes)
     # ==========================================
     def montar_conteudo_ceramica(self, aba):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -902,7 +903,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA LAJE (pré-moldada treliçada ou maciça)
     # ==========================================
     def montar_conteudo_laje(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -982,7 +983,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA TELHADO (telhas, cumeeira e madeiramento)
     # ==========================================
     def montar_conteudo_telhado(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -1057,7 +1058,7 @@ class CalculatorScreen(MDScreen):
         return fmt_num(bitola, 0 if float(bitola).is_integer() else 1)
 
     def montar_conteudo_eletrica(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -1117,7 +1118,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA HIDRÁULICA (estimativa por ponto, ou metragens do projeto)
     # ==========================================
     def montar_conteudo_hidraulica(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -1169,7 +1170,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA PINTURA (tinta de parede e de teto + complementos)
     # ==========================================
     def montar_conteudo_pintura(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -1269,7 +1270,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA ESQUADRIAS (lista de portas e janelas + insumos de fixação)
     # ==========================================
     def montar_conteudo_esquadrias(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
@@ -1430,7 +1431,7 @@ class CalculatorScreen(MDScreen):
     # CONTEÚDO DA ABA REJUNTE (pode reaproveitar os dados do Piso ou do Azulejo)
     # ==========================================
     def montar_conteudo_rejunte(self):
-        scroll = MDScrollView()
+        scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura

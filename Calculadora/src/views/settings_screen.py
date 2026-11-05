@@ -6,6 +6,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDButton, MDButtonText, MDIconButton
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.scrollview import MDScrollView
+from src.views.rolagem import RolagemComBarra  # rolagem com barra larga, que dá para arrastar
 from src.views.comum import CONFIG_APP, PRECOS_EUA, PRECOS_BR, ESTADOS_BR, ESTADOS_US, TABELA_PRECOS_GLOBAL, txt
 
 
@@ -42,11 +43,11 @@ class SettingsScreen(MDScreen):
         top_bar.add_widget(btn_voltar)
         top_bar.add_widget(self.lbl_titulo)
         
-        self.scroll = MDScrollView()
+        self.scroll = RolagemComBarra()
         box_conteudo = MDBoxLayout(
             orientation="vertical",
             spacing="12dp",
-            padding=("0dp", "8dp", "0dp", "16dp"),
+            padding=("0dp", "8dp", "8dp", "16dp"),  # 8dp à direita: espaço para a barra de rolagem
             size_hint_y=None
         )
         box_conteudo.bind(minimum_height=box_conteudo.setter('height'))

@@ -12,6 +12,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivy.clock import Clock
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
 from kivymd.uix.scrollview import MDScrollView
+from src.views.rolagem import RolagemComBarra  # rolagem com barra larga, que dá para arrastar
 from kivymd.uix.dialog import (
     MDDialog,
     MDDialogHeadlineText,
@@ -48,7 +49,7 @@ class SummaryScreen(MDScreen):
         # Botões Orçamento | Lista de compras (o que está aberto fica destacado)
         self.box_modos = MDBoxLayout(size_hint_y=None, height="48dp", spacing="8dp")
         
-        self.scroll = MDScrollView()
+        self.scroll = RolagemComBarra()
         scroll = self.scroll
         self.box_conteudo = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         self.box_conteudo.bind(minimum_height=self.box_conteudo.setter('height'))

@@ -7,16 +7,17 @@ mostra com o esperado e diz OK ou DIFERENTE em cada caso; no fim, mostra quantos
 Atualizado em 04/11/2026, no fim das correções de visual da rodada 1 (versão principal: a do PC).
 Mudado em 05/11/2026 (parte 3 das correções da rodada 2, pendências 3, 12 e 17): mensagem do Baldrame com o campo ("Comprimento, largura e altura devem ser maiores que zero."), "Caixas: 21 (2,16 m² por caixa)" no Piso e no Azulejo, e linha em branco entre o custo e a frase da Esquadrias.
 
-Como rodar (no terminal, na pasta C:\Calc\Calculadora):
+Como rodar (no terminal, na pasta do projeto: C:\Calc\Calculadora ou C:\Calculadora\Calculadora):
   env311\Scripts\python.exe -B testes_manuais\rodada1.py           -> todos os casos
   env311\Scripts\python.exe -B testes_manuais\rodada1.py PI-        -> só uma aba (prefixo: BR-, BA-, PA-...)
   env311\Scripts\python.exe -B testes_manuais\rodada1.py PI- --ver  -> mostra também o resultado de cada caso
 
 Quando uma mudança no código é DE PROPÓSITO (ex.: um texto novo), o esperado precisa ser atualizado aqui
 e no testes_rodada1.md, sabendo o motivo. Quando é SEM QUERER, o script avisa (DIFERENTE)."""
-import sys, types, importlib.abc, importlib.machinery
+import os, sys, types, importlib.abc, importlib.machinery
 
-PROJ = r"C:\Calc\Calculadora"
+# A pasta do projeto é a pasta de cima desta (testes_manuais), em qualquer PC.
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.dont_write_bytecode = True
 sys.path.insert(0, PROJ)
 

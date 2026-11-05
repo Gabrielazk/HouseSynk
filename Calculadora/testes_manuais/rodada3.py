@@ -15,7 +15,7 @@ pendências já conhecidas (P1 a P9), que dão DIFERENTE até o app ser corrigid
   - ⚠️ que deu OK (a pendência sumiu?).
 Criado em 05/11/2026 a partir do rodada2.py.
 
-Como rodar (no terminal, na pasta C:\Calc\Calculadora):
+Como rodar (no terminal, na pasta do projeto: C:\Calc\Calculadora ou C:\Calculadora\Calculadora):
   env311\Scripts\python.exe -B testes_manuais\rodada3.py           -> todos os casos
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI-        -> só uma aba (prefixo: PI-, AZ-, RJ-, PT-, BA-)
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI- --ver  -> mostra também o resultado de cada caso
@@ -23,7 +23,8 @@ Como rodar (no terminal, na pasta C:\Calc\Calculadora):
 import sys, types, importlib.abc, importlib.machinery
 from pathlib import Path
 
-PROJ = r"C:\Calc\Calculadora"
+# A pasta do projeto é a pasta de cima desta (testes_manuais), em qualquer PC.
+PROJ = str(Path(__file__).resolve().parent.parent)
 ARQ_MD = Path(PROJ) / "testes_manuais" / "testes_rodada3.md"
 sys.dont_write_bytecode = True
 sys.path.insert(0, PROJ)

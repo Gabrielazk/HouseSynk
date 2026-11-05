@@ -1913,6 +1913,17 @@ class CalculatorScreen(MDScreen):
         singular e plural são as chaves dos textos (ex.: "un_saco" e "un_sacos")."""
         return txt_do_pais(singular if 0 < abs(qtd) < 2 else plural, sistema)
 
+    @staticmethod
+    def _txt_milheiros(milheiros, sistema=None):
+        """O milheiro dos tijolos entre parênteses: " (0,79 milheiro)", " (2,50 milheiros)".
+        "Milheiro" é um jeito brasileiro de comprar tijolo e não tem igual em inglês: lá o texto
+        un_milheiro fica vazio e este parêntese não aparece (só "788 pcs"). Usado na aba Paredes
+        e na lista de compras (regra 17: o Resumo igual à aba). Pendência 4 da rodada 2."""
+        if not txt_do_pais('un_milheiro', sistema):
+            return ""
+        unidade = CalculatorScreen._unidade(milheiros, 'un_milheiro', 'un_milheiros', sistema)  # 0,79 e 1,58 milheiro; 2,5 milheiros
+        return f" ({fmt_num(milheiros, 2)} {unidade})"
+
     def _linhas_concreto(self, res, custo_cimento, custo_areia, custo_pedra):
         """Linhas do cimento, da areia e da brita (Brocas, Baldrame, Laje e Contrapiso).
         O material que dá zero não aparece (regra 14): ex.: viga minúscula com 0,00 m³ de areia."""
@@ -2396,7 +2407,8 @@ class CalculatorScreen(MDScreen):
             # Por caixa: m² no Brasil, sq ft nos EUA (o número que a pessoa digitou)
             por_caixa = fmt_num(do_metrico(caixa, "area", sistema), 2)
             texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])}\n"
-            texto_res += f"• {txt('label_caixas')}: {fmt_int(res['caixas'])} {self._unidade(res['caixas'], 'un_caixa', 'un_caixas')} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
+            # "Caixas: 21 (2,16 m² por caixa)": sem repetir "caixas" depois do número (pendência 12 da rodada 2)
+            texto_res += f"• {txt('label_caixas')}: {fmt_int(res['caixas'])} ({por_caixa} {txt('un_caixa_m2')}){custo_txt}\n"
         else:
             texto_res += f"• {txt('label_pecas')}: {fmt_int(res['pecas'])}{custo_txt}\n"
         if eua:
@@ -2593,7 +2605,7 @@ class CalculatorScreen(MDScreen):
         if premoldada:
             texto_res += f"• {txt('label_laje_pm')}: {fmt_num(res['laje_premoldada_m2'], 2)} m² ({fmt_moeda(custo_laje_pm)})\n"
             if res['lajotas'] > 0:
-                texto_res += f"  ({txt('label_lajotas')}: {fmt_int(res['lajotas'])} {txt('un_unidades')})\n"
+                texto_res += f"  ({txt('label_lajotas')}: {fmt_int(res['lajotas'])} {self._unidade(res['lajotas'], 'un_unidade', 'un_unidades')})\n"
             if res['incluiu_tela']:
                 qtd = res['tela_paineis']
                 texto_res += (
@@ -2660,7 +2672,7 @@ class CalculatorScreen(MDScreen):
             f"{txt('label_area_real')}: {fmt_num(res['area_real_m2'], 2)} m²\n"
             f"{txt('label_tipo_telha')}: {self._rotulo_telha(tipo)}\n"
             f"• {txt('label_telhas')} ({self._txt_perda(perda)}): "
-            f"{fmt_int(res['telhas'])} {txt('un_unidades')} ({fmt_moeda(custo_telhas)})\n"
+            f"{fmt_int(res['telhas'])} {self._unidade(res['telhas'], 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_telhas)})\n"
         )
         if res['cumeeiras'] > 0:
             texto_res += (
@@ -2725,7 +2737,7 @@ class CalculatorScreen(MDScreen):
             qtd = res['tubos_espuma']
             texto_res += f"• {txt('label_res_espuma')}: {fmt_int(qtd)} {txt('un_tubo_500') if qtd == 1 else txt('un_tubos_500')} ({fmt_moeda(custo_espuma)})\n"
         if res['parafusos'] > 0:
-            texto_res += f"• {txt('label_res_parafusos')}: {fmt_int(res['parafusos'])} {txt('un_unidades')} ({fmt_moeda(custo_parafusos)})\n"
+            texto_res += f"• {txt('label_res_parafusos')}: {fmt_int(res['parafusos'])} {self._unidade(res['parafusos'], 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_parafusos)})\n"
         if res['sacos_argamassa'] > 0:
             qtd = res['sacos_argamassa']
             texto_res += (
@@ -2734,8 +2746,9 @@ class CalculatorScreen(MDScreen):
             )
         # O app não tem preço de porta e janela (varia muito): o custo é só o dos insumos de fixação.
         # Sem insumo, em vez de "R$ 0,00" (parece que as portas são de graça), só a frase.
+        # Com custo, uma linha em branco separa o custo da frase (pendência 17 da rodada 2)
         if custo_mat > 0:
-            texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+            texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}\n"
         texto_res += f"\n{txt('txt_esquadrias_orcamento')}"
 
         resultado = {
@@ -2889,9 +2902,9 @@ class CalculatorScreen(MDScreen):
                 f"{self._texto_barras(dados['barras'], BARRA_TUBO_M[tubo])} ({fmt_moeda(custo_tubos[tubo])})\n"
             )
         for tipo, qtd in res['conexoes'].items():
-            texto_res += f"• {txt('label_conexoes_' + tipo)}: {fmt_int(qtd)} {txt('un_unidades')} ({fmt_moeda(custo_conexoes[tipo])})\n"
+            texto_res += f"• {txt('label_conexoes_' + tipo)}: {fmt_int(qtd)} {self._unidade(qtd, 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_conexoes[tipo])})\n"
         if res['registros'] > 0:
-            texto_res += f"• {txt('label_registros')}: {fmt_int(res['registros'])} {txt('un_unidades')} ({fmt_moeda(custo_registros)})\n"
+            texto_res += f"• {txt('label_registros')}: {fmt_int(res['registros'])} {self._unidade(res['registros'], 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_registros)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         inputs = {chave: (qtd if qtd else "") for chave, qtd in pontos.items()}
@@ -2979,13 +2992,13 @@ class CalculatorScreen(MDScreen):
                 f"{fmt_num(fio['metros'], 1)} m = {rolos(fio['rolos'], 'un_rolo_fio', 'un_rolos_fio')} ({fmt_moeda(custo_fios[bitola])})\n"
             )
         if res['caixas_4x2'] > 0:
-            texto_res += f"• {txt('label_caixa_4x2')}: {fmt_int(res['caixas_4x2'])} {txt('un_unidades')} ({fmt_moeda(custo_caixas_4x2)})\n"
+            texto_res += f"• {txt('label_caixa_4x2')}: {fmt_int(res['caixas_4x2'])} {self._unidade(res['caixas_4x2'], 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_caixas_4x2)})\n"
         if res['caixas_octogonais'] > 0:
-            texto_res += f"• {txt('label_caixa_oct')}: {fmt_int(res['caixas_octogonais'])} {txt('un_unidades')} ({fmt_moeda(custo_caixas_oct)})\n"
+            texto_res += f"• {txt('label_caixa_oct')}: {fmt_int(res['caixas_octogonais'])} {self._unidade(res['caixas_octogonais'], 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_caixas_oct)})\n"
         if tomadas > 0:
-            texto_res += f"• {txt('label_tomadas')}: {fmt_int(tomadas)} {txt('un_unidades')} ({fmt_moeda(custo_tomadas)})\n"
+            texto_res += f"• {txt('label_tomadas')}: {fmt_int(tomadas)} {self._unidade(tomadas, 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_tomadas)})\n"
         if interruptores > 0:
-            texto_res += f"• {txt('label_interruptores')}: {fmt_int(interruptores)} {txt('un_unidades')} ({fmt_moeda(custo_interruptores)})\n"
+            texto_res += f"• {txt('label_interruptores')}: {fmt_int(interruptores)} {self._unidade(interruptores, 'un_unidade', 'un_unidades')} ({fmt_moeda(custo_interruptores)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
 
         inputs = {
@@ -3097,16 +3110,14 @@ class CalculatorScreen(MDScreen):
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
         custo_mat = custo_tijolo + custo_cimento + custo_cal + custo_areia
 
-        milheiros = fmt_num(res['milheiros'], 2)
-        un_milheiro = self._unidade(res['milheiros'], 'un_milheiro', 'un_milheiros')  # 0,79 e 1,58 milheiro; 2,5 milheiros
         texto_res = f"{txt('label_area_bruta')}: {fmt_num(res['area_bruta_m2'], 2)} m²\n"
         if res['desconto_vaos_m2'] > 0:  # sem vãos, a área líquida é igual à bruta (igual ao Reboco e ao Azulejo)
             texto_res += f"{txt('label_vaos')}: {fmt_num(res['desconto_vaos_m2'], 2)} m²\n"
             texto_res += f"{txt('label_area_liquida')}: {fmt_num(res['area_liquida_m2'], 2)} m²\n"
         texto_res += (
             f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
-            f"• {self._rotulo_tijolo(tijolo)}: {fmt_int(res['unidades'])} {txt('un_unidades')} "
-            f"({milheiros} {un_milheiro}) ({fmt_moeda(custo_tijolo)})\n"
+            f"• {self._rotulo_tijolo(tijolo)}: {fmt_int(res['unidades'])} {self._unidade(res['unidades'], 'un_unidade', 'un_unidades')}"
+            f"{self._txt_milheiros(res['milheiros'])} ({fmt_moeda(custo_tijolo)})\n"
         )
         # Material que deu zero não aparece (ex.: traço 1:0:3 não tem cal)
         texto_res += self._linhas_massa(res, custo_cimento, custo_cal, custo_areia)

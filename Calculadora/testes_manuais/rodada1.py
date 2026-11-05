@@ -5,6 +5,7 @@ Não grava nada no projeto (rodar com python -B).
 O resultado esperado de cada caso fica no fim deste arquivo (ESPERADO). O script compara o que o app
 mostra com o esperado e diz OK ou DIFERENTE em cada caso; no fim, mostra quantos deram OK.
 Atualizado em 04/11/2026, no fim das correções de visual da rodada 1 (versão principal: a do PC).
+Mudado em 05/11/2026 (parte 3 das correções da rodada 2, pendências 3, 12 e 17): mensagem do Baldrame com o campo ("Comprimento, largura e altura devem ser maiores que zero."), "Caixas: 21 (2,16 m² por caixa)" no Piso e no Azulejo, e linha em branco entre o custo e a frase da Esquadrias.
 
 Como rodar (no terminal, na pasta C:\Calc\Calculadora):
   env311\Scripts\python.exe -B testes_manuais\rodada1.py           -> todos os casos
@@ -794,9 +795,9 @@ Por favor, digite números válidos nos campos!""",
 "BA-C2": """\
 Por favor, digite números válidos nos campos!""",
 "BA-C3": """\
-Erro: Valores devem ser maiores que zero.""",
+Erro: Comprimento, largura e altura devem ser maiores que zero.""",
 "BA-C4": """\
-Erro: Valores devem ser maiores que zero.""",
+Erro: Comprimento, largura e altura devem ser maiores que zero.""",
 "BA-C5": """\
 Traço: 1:2:3
 Volume Total (com 5% de perda): 0,788 m³
@@ -2250,7 +2251,7 @@ Custo Estimado da Etapa: R$ 2.550,00""",
 Peça: 60x60 cm
 Assentamento: com desenho
 • Peças: 125
-• Caixas: 21 caixas (2,16 m² por caixa) (R$ 2.240,00)
+• Caixas: 21 (2,16 m² por caixa) (R$ 2.240,00)
 • Argamassa colante AC-II: 12 sacos de 20 kg (224,0 kg) (R$ 360,00)
 • Rodapé: 33,60 m (56 peças de 0,60 m) (R$ 504,00)
 
@@ -2293,7 +2294,7 @@ Custo Estimado da Etapa: R$ 2.786,00""",
 Área com perda (10%, automática): 44,00 m²
 Peça: 60x60 cm
 • Peças: 123
-• Caixas: 21 caixas (2,16 m² por caixa) (R$ 2.200,00)
+• Caixas: 21 (2,16 m² por caixa) (R$ 2.200,00)
 • Argamassa colante AC-I: 11 sacos de 20 kg (220,0 kg) (R$ 242,00)
 
 Custo Estimado da Etapa: R$ 2.442,00""",
@@ -2432,7 +2433,7 @@ Vãos (portas e janelas): 4,00 m²
 Peça: 30x60 cm
 Assentamento: com desenho
 • Peças: 167
-• Caixas: 17 caixas (1,80 m² por caixa) (R$ 1.196,00)
+• Caixas: 17 (1,80 m² por caixa) (R$ 1.196,00)
 • Argamassa colante AC-III: 8 sacos de 20 kg (149,5 kg) (R$ 336,00)
 
 Custo Estimado da Etapa: R$ 1.532,00""",
@@ -2459,7 +2460,7 @@ Custo Estimado da Etapa: R$ 1.384,00""",
 Área com perda (10%, automática): 33,00 m²
 Peça: 30x60 cm
 • Peças: 184
-• Caixas: 19 caixas (1,80 m² por caixa) (R$ 1.320,00)
+• Caixas: 19 (1,80 m² por caixa) (R$ 1.320,00)
 • Argamassa colante AC-II: 9 sacos de 20 kg (165,0 kg) (R$ 270,00)
 
 Custo Estimado da Etapa: R$ 1.590,00""",
@@ -2903,6 +2904,7 @@ Insumos de fixação:
 • Argamassa de fixação: 60,2 kg = 4 sacos de 20 kg (R$ 100,00)
 
 Custo Estimado da Etapa: R$ 425,80
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-B": """\
 Portas:
@@ -2929,6 +2931,7 @@ Insumos de fixação:
 • Espuma expansiva: 4 tubos de 500 ml (R$ 140,00)
 
 Custo Estimado da Etapa: R$ 140,00
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-B3": """\
 Portas:
@@ -2944,6 +2947,7 @@ Insumos de fixação:
 • Parafusos com bucha: 60 un (R$ 48,00)
 
 Custo Estimado da Etapa: R$ 48,00
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-B4": """\
 Portas:
@@ -2959,6 +2963,7 @@ Insumos de fixação:
 • Argamassa de fixação: 35,7 kg = 2 sacos de 20 kg (R$ 50,00)
 
 Custo Estimado da Etapa: R$ 50,00
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-B5": """\
 Portas:
@@ -3049,6 +3054,7 @@ Insumos de fixação:
 • Argamassa de fixação: 7,5 kg = 1 saco de 20 kg (R$ 25,00)
 
 Custo Estimado da Etapa: R$ 70,40
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-C12": """\
 [JANELA no Adicionar] Quantidade de 1.000: o limite é 100 de cada item.
@@ -3064,6 +3070,7 @@ Insumos de fixação:
 • Argamassa de fixação: 7.500,0 kg = 375 sacos de 20 kg (R$ 9.375,00)
 
 Custo Estimado da Etapa: R$ 48.565,00
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.""",
 "ES-C13": """\
 [JANELA no Adicionar] Largura de 8.000 cm: o limite é 500 cm.

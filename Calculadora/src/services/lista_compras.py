@@ -61,8 +61,8 @@ def montar_lista_compras(itens):
     for tipo, total in por_tijolo.items():
         rotulo = C._rotulo_tijolo(tipo) if tipo else txt('label_tijolos_resumo')
         milheiros = total / 1000.0
-        basico.append(f"{rotulo}: {fmt_int(total)} {txt('un_unidades')} "
-                      f"({fmt_num(milheiros, 2)} {C._unidade(milheiros, 'un_milheiro', 'un_milheiros')})")
+        basico.append(f"{rotulo}: {fmt_int(total)} {C._unidade(total, 'un_unidade', 'un_unidades')}"
+                      f"{C._txt_milheiros(milheiros)}")
     total = _soma(itens, "cimento")
     if total > 0:
         basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {C._unidade(total, 'un_saco', 'un_sacos')}")
@@ -100,13 +100,13 @@ def montar_lista_compras(itens):
         linha = f"{txt('label_laje_pm_resumo')}: {fmt_num(total, 2)} m²"
         lajotas = _soma(itens, "lajotas")
         if lajotas > 0:
-            linha += f" ({txt('label_lajotas')}: {fmt_int(lajotas)} {txt('un_unidades')})"
+            linha += f" ({txt('label_lajotas')}: {fmt_int(lajotas)} {C._unidade(lajotas, 'un_unidade', 'un_unidades')})"
         basico.append(linha)
     total = _soma(itens, "tela_paineis")
     if total > 0:
         basico.append(f"{txt('label_tela_res')}: {fmt_int(total)} {txt('un_painel_tela') if total == 1 else txt('un_paineis_tela')}")
     for item in _do_tipo(itens, "telhado"):
-        linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {fmt_int(item['telhas'])} {txt('un_unidades')}"
+        linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {fmt_int(item['telhas'])} {C._unidade(item['telhas'], 'un_unidade', 'un_unidades')}"
         if item.get("cumeeiras", 0) > 0:
             linha += f" + {fmt_int(item['cumeeiras'])} {C._unidade(item['cumeeiras'], 'un_peca', 'un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"
         basico.append(linha)
@@ -121,7 +121,7 @@ def montar_lista_compras(itens):
             qtd = item["tubos_espuma"]
             basico.append(f"{txt('label_res_espuma')}: {fmt_int(qtd)} {txt('un_tubo_500') if qtd == 1 else txt('un_tubos_500')}")
         if item.get("parafusos", 0) > 0:
-            basico.append(f"{txt('label_res_parafusos')}: {fmt_int(item['parafusos'])} {txt('un_unidades')}")
+            basico.append(f"{txt('label_res_parafusos')}: {fmt_int(item['parafusos'])} {C._unidade(item['parafusos'], 'un_unidade', 'un_unidades')}")
         if item.get("sacos_argamassa_fix", 0) > 0:
             qtd = item["sacos_argamassa_fix"]
             basico.append(f"{txt('label_res_argamassa_fix')}: {fmt_int(qtd)} {txt('un_saco_20') if qtd == 1 else txt('un_sacos_20')}")
@@ -198,7 +198,7 @@ def montar_lista_compras(itens):
         for chave, rotulo in (("caixas_4x2", "label_caixa_4x2"), ("caixas_octogonais", "label_caixa_oct"),
                               ("tomadas", "label_tomadas"), ("interruptores", "label_interruptores")):
             if item.get(chave, 0) > 0:
-                ele.append(f"{txt(rotulo)}: {fmt_int(item[chave])} {txt('un_unidades')}")
+                ele.append(f"{txt(rotulo)}: {fmt_int(item[chave])} {C._unidade(item[chave], 'un_unidade', 'un_unidades')}")
 
     # ---------------- HIDRÁULICA ----------------
     hid = grupos["hidraulica"]
@@ -206,9 +206,9 @@ def montar_lista_compras(itens):
         for tubo, barras in item.get("tubos", {}).items():
             hid.append(f"{txt('label_tubo_' + tubo)}: {C._texto_barras(barras, BARRA_TUBO_M[tubo])}")
         for tipo, qtd in item.get("conexoes", {}).items():
-            hid.append(f"{txt('label_conexoes_' + tipo)}: {fmt_int(qtd)} {txt('un_unidades')}")
+            hid.append(f"{txt('label_conexoes_' + tipo)}: {fmt_int(qtd)} {C._unidade(qtd, 'un_unidade', 'un_unidades')}")
         if item.get("registros", 0) > 0:
-            hid.append(f"{txt('label_registros')}: {fmt_int(item['registros'])} {txt('un_unidades')}")
+            hid.append(f"{txt('label_registros')}: {fmt_int(item['registros'])} {C._unidade(item['registros'], 'un_unidade', 'un_unidades')}")
 
     # ---------------- ESQUADRIAS (para cotação) ----------------
     for item in _do_tipo(itens, "esquadrias"):

@@ -4,6 +4,8 @@ Os resultados foram tirados rodando as contas do código, com os preços iniciai
 
 **Atualizado em 04/11/2026, no fim das correções de visual da rodada 1.** Os resultados já são os do código com todas as correções (modo claro, ponto de milhar, texto da perda "(com X% de perda)", arredondamento, plural, linhas com zero, janela "Confira os valores" em todas as abas, detalhes de cada aba e quebra de linha). Nenhuma conta mudou nas correções: só o jeito de escrever.
 
+**Mudado em 05/11/2026 (parte 3 das correções da rodada 2, pendências 3, 12 e 17): mensagem do Baldrame com o campo ("Comprimento, largura e altura devem ser maiores que zero."), "Caixas: 21 (2,16 m² por caixa)" no Piso e no Azulejo, e linha em branco entre o custo e a frase da Esquadrias.** Nenhuma conta mudou.
+
 O resultado completo de cada caso, linha por linha, fica dentro do testes_manuais/rodada1.py, que compara com o app e diz OK ou DIFERENTE. Aqui ficam o roteiro (o que digitar) e o resumo do que conferir.
 
 Dica: dê **Limpar** antes de cada teste, para não sobrar valor do teste anterior.
@@ -197,7 +199,7 @@ Base: Comprimento 12,5, Largura 20, Altura 30. Dê Limpar antes de cada um e mud
 |---|---|---|
 | C1 | Comprimento vazio | Por favor, digite números válidos nos campos! |
 | C2 | Largura = vinte | (mesma mensagem) |
-| C3 | Altura = 0 | Erro: Valores devem ser maiores que zero. |
+| C3 | Altura = 0 | Erro: Comprimento, largura e altura devem ser maiores que zero. |
 | C4 | Comprimento = -5 | (mesma do C3) |
 | C5, C6 | Comprimento = 12.5, depois 12 1/2 (com espaço) | Iguais ao Teste B: 0,788 m³, 6 sacos, R$ 329,70 |
 | C7 | Perda = -2 | Erro: A perda não pode ser negativa. |
@@ -981,7 +983,7 @@ Base: Teste B (área 30). Mude só o indicado.
 Peça: 60x60 cm
 Assentamento: com desenho
 • Peças: 125
-• Caixas: 21 caixas (2,16 m² por caixa) (R$ 2.240,00)
+• Caixas: 21 (2,16 m² por caixa) (R$ 2.240,00)
 • Argamassa colante AC-II: 12 sacos de 20 kg (224,0 kg) (R$ 360,00)
 • Rodapé: 33,60 m (56 peças de 0,60 m) (R$ 504,00)
 
@@ -1013,7 +1015,7 @@ Pra conferir o resto, use o Teste B e mude só o indicado:
 | B2 | Peça 80 x 80 | "Área com perda (15%, automática): 46,00 m²"; 72 peças; 19 sacos (368,0 kg), porque passa de 60 cm (8 kg/m²) | R$ 2.718,00 |
 | B3 | Peça 120 x 60 | "(20%, automática): 48,00 m²"; 67 peças; 20 sacos (384,0 kg) | R$ 2.840,00 |
 | B4 | Desenho: Sim | "(25%, automática): 50,00 m²"; 139 peças; 13 sacos (250,0 kg) | R$ 2.786,00 |
-| B5 | m² por caixa: 2,16 | "• Peças: 123" (sem preço) e "• Caixas: 21 caixas (2,16 m² por caixa) (R$ 2.200,00)" | R$ 2.442,00 |
+| B5 | m² por caixa: 2,16 | "• Peças: 123" (sem preço) e "• Caixas: 21 (2,16 m² por caixa) (R$ 2.200,00)" | R$ 2.442,00 |
 | B6 | Rodapé: 30 | Aparece "• Rodapé: 33,00 m (R$ 495,00)" | R$ 2.937,00 |
 | B7 | Rodapé 30 + Peça do rodapé 0,6 | "• Rodapé: 33,00 m (55 peças de 0,60 m) (R$ 495,00)" | R$ 2.937,00 |
 | B8 | Argamassa: AC-III | "Argamassa colante AC-III: 11 sacos ... (R$ 462,00)" | R$ 2.662,00 |
@@ -1080,7 +1082,7 @@ Vãos (portas e janelas): 4,00 m²
 Peça: 30x60 cm
 Assentamento: com desenho
 • Peças: 167
-• Caixas: 17 caixas (1,80 m² por caixa) (R$ 1.196,00)
+• Caixas: 17 (1,80 m² por caixa) (R$ 1.196,00)
 • Argamassa colante AC-III: 8 sacos de 20 kg (149,5 kg) (R$ 336,00)
 
 Custo Estimado da Etapa: R$ 1.532,00
@@ -1105,7 +1107,7 @@ Custo Estimado da Etapa: R$ 1.590,00
 | # | Mudar | O que muda no resultado | Custo |
 |---|---|---|---|
 | B2 | Portas e janelas: 4 | Aparecem "Vãos (portas e janelas): 4,00 m²" e "Área líquida: 26,00 m²"; 28,60 m²; 159 peças; 8 sacos | R$ 1.384,00 |
-| B3 | m² por caixa: 1,8 | "• Peças: 184" e "• Caixas: 19 caixas (1,80 m² por caixa) (R$ 1.320,00)" | R$ 1.590,00 |
+| B3 | m² por caixa: 1,8 | "• Peças: 184" e "• Caixas: 19 (1,80 m² por caixa) (R$ 1.320,00)" | R$ 1.590,00 |
 | B4 | Desenho: Sim | "(25%, automática): 37,50 m²"; 209 peças; 10 sacos (187,5 kg) | R$ 1.800,00 |
 | B5 | Argamassa: AC-III | "Argamassa colante AC-III: 9 sacos ... (R$ 378,00)" | R$ 1.698,00 |
 | B6 | Peça 30 x 90 | "(15%, automática): 34,50 m²"; 128 peças; 14 sacos (276,0 kg), porque passa de 60 cm (8 kg/m²) | R$ 1.800,00 |
@@ -1354,6 +1356,7 @@ Insumos de fixação:
 • Argamassa de fixação: 60,2 kg = 4 sacos de 20 kg (R$ 100,00)
 
 Custo Estimado da Etapa: R$ 425,80
+
 Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
 ```
 

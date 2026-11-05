@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-# Pasta Calculadora (este arquivo fica em Calculadora/tests/)
-PASTA_APP = Path(__file__).resolve().parent.parent
+# Pasta Calculadora (este arquivo fica em Calculadora/tests/rodadas/, por isso 3 vezes o .parent)
+PASTA_APP = Path(__file__).resolve().parent.parent.parent
 
 # Carrega o testes_manuais/rodada1.py como um módulo (ele não é um pacote, então o import normal não acha)
 _spec = importlib.util.spec_from_file_location("rodada1", PASTA_APP / "testes_manuais" / "rodada1.py")

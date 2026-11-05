@@ -5,7 +5,7 @@ Os outros completam: todos os resultados (volume, cimento, areia e brita), os 4 
 quebrados e as mensagens de erro. Os resultados batem com o testes_rodada1.md (Contrapiso).
 
 Rodar (na pasta C:\\Calc\\Calculadora):
-  env311\\Scripts\\python.exe -B -m pytest tests\\test_contrapiso.py -v
+  env311\\Scripts\\python.exe -B -m pytest tests\\abas\\test_contrapiso.py -v
 """
 import pytest
 

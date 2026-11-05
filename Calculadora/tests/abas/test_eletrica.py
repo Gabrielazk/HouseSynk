@@ -6,7 +6,7 @@ Os limites com aviso (janela "Confira os valores") ficam na tela, não na conta:
 testados no test_rodada1.py.
 
 Rodar (na pasta C:\\Calc\\Calculadora):
-  env311\\Scripts\\python.exe -B -m pytest tests\\test_eletrica.py -v
+  env311\\Scripts\\python.exe -B -m pytest tests\\abas\\test_eletrica.py -v
 """
 
 from src.calculators.eletrica import calcular_eletrica

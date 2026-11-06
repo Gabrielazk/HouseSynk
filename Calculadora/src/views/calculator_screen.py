@@ -34,6 +34,7 @@ from src.calculators.baldrame import (
     PERDA_PADRAO_BALDRAME,
     PRECO_IMPERM_LITRO,
     PRECO_IMPERM_LITRO_EUA,
+    EMBALAGENS_IMPERM_L,
     LARGURA_MINIMA_CM,
     ALTURA_MINIMA_CM,
 )
@@ -2209,9 +2210,12 @@ class CalculatorScreen(MDScreen):
 
         # Viga menor que o mínimo do engenheiro (ex.: 0,2 digitado pensando em metros, mas o campo é em cm):
         # pergunta se quer continuar. Zero e negativo continuam com o erro do baldrame.py ("maiores que zero").
-        # Os mínimos são em cm; nos EUA o aviso mostra em polegadas inteiras (8 in e 12 in).
+        # Os mínimos são em cm; nos EUA o aviso mostra em polegadas inteiras (8 in e 12 in), e a conta
+        # compara com esse número (_limite_no_pais), senão 7 7/8 x 11 7/8 in passava sem aviso (rodada 3, P4).
         avisos = []
-        if (0 < larg < LARGURA_MINIMA_CM) or (0 < alt < ALTURA_MINIMA_CM):
+        larg_min = self._limite_no_pais(LARGURA_MINIMA_CM, "centimetro")
+        alt_min = self._limite_no_pais(ALTURA_MINIMA_CM, "centimetro")
+        if (0 < larg < larg_min) or (0 < alt < alt_min):
             avisos.append(txt("aviso_viga_min").format(
                 larg=self._med_curto(larg, "centimetro"), alt=self._med_curto(alt, "centimetro"),
                 larg_min=self._limite_cm(LARGURA_MINIMA_CM), alt_min=self._limite_cm(ALTURA_MINIMA_CM),
@@ -2238,9 +2242,14 @@ class CalculatorScreen(MDScreen):
         custo_aco += custo_arame  # o arame entra no custo da ferragem
         custo_mo = comp * preco_mo
         # Impermeabilizante: preço por litro, sobre os litros das embalagens compradas
-        # (Brasil: 18 L e 3,6 L; EUA: balde de 5 gal com 4,75 gal e galão de 1 gal)
-        preco_imperm = PRECO_IMPERM_LITRO_EUA if sistema_unidades() == IMPERIAL else PRECO_IMPERM_LITRO
-        custo_imperm = res['litros_compra_imperm'] * preco_imperm if res['incluiu_impermeabilizacao'] else 0.0
+        # (Brasil: 18 L e 3,6 L; EUA: balde de 5 gal com 4,75 gal e galão de 1 gal).
+        # Litros exatos das embalagens: o 'litros_compra_imperm' vem arredondado (11,4 L em vez de
+        # 11,356 L nos EUA, e 3 galões davam $ 25.33 em vez de $ 25.23; rodada 3, P5).
+        sistema = sistema_unidades()
+        preco_imperm = PRECO_IMPERM_LITRO_EUA if sistema == IMPERIAL else PRECO_IMPERM_LITRO
+        balde_l, galao_l = EMBALAGENS_IMPERM_L[sistema]
+        litros_compra = res['latas_imperm'] * balde_l + res['galoes_imperm'] * galao_l
+        custo_imperm = litros_compra * preco_imperm if res['incluiu_impermeabilizacao'] else 0.0
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_imperm
         custo_total = custo_mat + custo_mo
 
@@ -2260,7 +2269,8 @@ class CalculatorScreen(MDScreen):
             if res['incluiu_estribos']:
                 texto_res += (
                     f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
-                    f"{txt('label_estribo_cada')} {self._num_curto(res['espacamento_estribo_cm'])} cm: "
+                    # Espaçamento na unidade do país: "20 cm" no Brasil; "8 in" nos EUA (rodada 3, P6)
+                    f"{txt('label_estribo_cada')} {self._med_curto(res['espacamento_estribo_cm'], 'centimetro')}: "
                     f"{fmt_num(res['kg_estribos'], 1)} kg ({fmt_int(res['barras_12m_estribos'])} {self._unidade(res['barras_12m_estribos'], 'un_barra12', 'un_barras12')})\n"
                 )
             texto_res += f"• {txt('label_aco')}: {fmt_num(res['quilos_aco'], 1)} kg ({fmt_moeda(custo_aco - custo_arame)})\n"
@@ -2272,7 +2282,8 @@ class CalculatorScreen(MDScreen):
                 f"{self._texto_latas_galoes(res['latas_imperm'], res['galoes_imperm'])} ({fmt_moeda(custo_imperm)})\n"
             )
         if custo_mo > 0:
-            texto_res += f"• {txt('label_mo')}: {fmt_num(comp, 1)} m ({fmt_moeda(custo_mo)})\n"
+            # Metros no Brasil, pés nos EUA: "12,2 m" / "40.0 ft" (rodada 3, P6)
+            texto_res += f"• {txt('label_mo')}: {self._med(comp, 'comprimento', 1)} ({fmt_moeda(custo_mo)})\n"
         texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_total)}"
 
         resultado = {

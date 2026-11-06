@@ -1250,12 +1250,13 @@ class CalculatorScreen(MDScreen):
     def _med(valor_metrico, tipo, casas=2):
         """Medida do resultado (a conta é em métrico) com a unidade do país escolhido.
         Ex.: área 10 -> "10,00 m²" no Brasil ou "107.64 sq ft" nos EUA;
-        peça 30 cm -> "30 cm" ou "11.811 in" (12 in digitado volta como "12 in")."""
+        peça 30 cm -> "30 cm" ou "11.811 in" (12 in digitado volta como "12 in");
+        junta 0,79375 mm -> "1/32 in" (mm vai até 1/32 in; cm, até 1/16 in)."""
         sistema = sistema_unidades()
         if sistema == IMPERIAL:
             valor = do_metrico(valor_metrico, tipo, sistema)
             if tipo in ("centimetro", "milimetro"):
-                return f"{texto_polegadas(valor)} in"
+                return f"{texto_polegadas(valor, divisao=CalculatorScreen._divisao_polegada(tipo))} in"
             unidade = {"area": "sq ft", "comprimento": "ft", "peso": "lb", "litro": "gal",
                        "consumo": "lb/sq ft", "rendimento": "sq ft/gal"}[tipo]
             return f"{fmt_num(valor, casas)} {unidade}"
@@ -1265,6 +1266,22 @@ class CalculatorScreen(MDScreen):
         unidade = {"area": "m²", "comprimento": "m", "peso": "kg", "litro": "L",
                    "consumo": "kg/m²", "rendimento": "m²/L"}[tipo]
         return f"{fmt_num(valor_metrico, casas)} {unidade}"
+
+    @staticmethod
+    def _divisao_polegada(tipo):
+        """Menor pedaço da fração nos EUA: as medidas pequenas em mm (junta e espessura do rejunte)
+        vão até 1/32 in (0,79 mm -> "1/32"); as em cm (peça, estribo...) vão até 1/16 in."""
+        return 32 if tipo == "milimetro" else 16
+
+    @staticmethod
+    def _texto_peca(larg, alt, sistema):
+        """Tamanho da peça no resultado. Brasil: "60x60 cm" (igual a antes).
+        EUA: com espaço, "12 x 12 in" e "11 3/4 x 12 in" (com fração, "11 3/4x12" ficava confuso)."""
+        if sistema == IMPERIAL:
+            lados = [texto_polegadas(do_metrico(v, "centimetro", sistema)) for v in (larg, alt)]
+            return f"{lados[0]} x {lados[1]} in"
+        n = lambda v: fmt_num(v, 0 if float(v).is_integer() else 1)
+        return f"{n(larg)}x{n(alt)} cm"
 
     # ==========================================
     # CONTEÚDO DA ABA ESQUADRIAS (lista de portas e janelas + insumos de fixação)
@@ -1494,6 +1511,9 @@ class CalculatorScreen(MDScreen):
         area -= vaos
         if area <= 0 or larg <= 0 or alt <= 0:
             return None
+        if sistema_unidades() == IMPERIAL:
+            # Peça em polegadas com fração, igual se digita lá: 11.75 -> "11 3/4"
+            return self._texto_campo(round(area, 2)), texto_polegadas(larg), texto_polegadas(alt)
         return self._texto_campo(round(area, 2)), self._texto_campo(larg), self._texto_campo(alt)
 
     def _montar_dicas_rejunte(self, box_form):
@@ -1505,8 +1525,10 @@ class CalculatorScreen(MDScreen):
             if not dados:
                 continue
             area, larg, alt = dados
+            # Peça: "60x60" no Brasil; "11 3/4 x 12" nos EUA (com espaço, igual ao resultado)
+            peca = f"{larg} x {alt}" if sistema_unidades() == IMPERIAL else f"{larg}x{alt}"
             box_form.add_widget(MDButton(
-                MDButtonText(text=txt(f"dica_rejunte_{aba}").format(area=area, peca=f"{larg}x{alt}")),
+                MDButtonText(text=sem_quebra(txt(f"dica_rejunte_{aba}").format(area=area, peca=peca))),
                 style="text",
                 on_release=lambda x, d=dados: self._usar_dados_ceramica(*d)
             ))
@@ -1816,7 +1838,7 @@ class CalculatorScreen(MDScreen):
             return CalculatorScreen._texto_campo(round(valor_metrico, 2))
         convertido = do_metrico(valor_metrico, tipo, sistema)
         if tipo in ("centimetro", "milimetro"):
-            return texto_polegadas(convertido)
+            return texto_polegadas(convertido, divisao=CalculatorScreen._divisao_polegada(tipo))
         return CalculatorScreen._texto_campo(round(convertido, 3))
 
     @staticmethod
@@ -1962,7 +1984,7 @@ class CalculatorScreen(MDScreen):
         sistema = sistema_unidades()
         valor = do_metrico(valor_metrico, tipo, sistema)
         if sistema == IMPERIAL and tipo in ("centimetro", "milimetro"):
-            return f"{texto_polegadas(valor)} in"
+            return f"{texto_polegadas(valor, divisao=self._divisao_polegada(tipo))} in"
         return f"{self._num_curto(valor, casas)} {nome_unidade(tipo, sistema)}"
 
     def _limite_cm(self, valor_cm):
@@ -2372,13 +2394,6 @@ class CalculatorScreen(MDScreen):
             return {"erro": self._txt_erro(res['erro'])}
         perda = res['perda_percentual']
 
-        preco_m2 = PRECO_PISO_M2 if piso else PRECO_AZULEJO_M2
-        custo_pecas = res['area_com_perda_m2'] * preco_m2
-        preco_saco = PRECO_ARGAMASSA_SACO_EUA if eua else PRECO_ARGAMASSA_SACO
-        custo_arg = res['sacos_argamassa'] * preco_saco[tipo_arg]
-        custo_rodape = res['rodape_m'] * PRECO_RODAPE_M
-        custo_mat = custo_pecas + custo_arg + custo_rodape
-
         # Áreas e rodapé mostrados: no Brasil, os do cálculo (já arredondados, igual a antes);
         # nos EUA, sem o arredondamento em m² (senão 430 sq ft aparece como 430.02 sq ft)
         if eua:
@@ -2388,15 +2403,21 @@ class CalculatorScreen(MDScreen):
         else:
             mostra = {"bruta": res['area_bruta_m2'], "vaos": res['desconto_vaos_m2'], "liquida": res['area_liquida_m2'],
                       "com_perda": res['area_com_perda_m2'], "rodape": res['rodape_m']}
+
+        # Custo das peças e do rodapé: pela área com perda e pelo rodapé MOSTRADOS (no Brasil, os mesmos
+        # de antes; nos EUA, sem o arredondamento em m², senão 473 sq ft dava $ 2,197.00 em vez de $ 2,197.16)
+        preco_m2 = PRECO_PISO_M2 if piso else PRECO_AZULEJO_M2
+        custo_pecas = mostra['com_perda'] * preco_m2
+        preco_saco = PRECO_ARGAMASSA_SACO_EUA if eua else PRECO_ARGAMASSA_SACO
+        custo_arg = res['sacos_argamassa'] * preco_saco[tipo_arg]
+        custo_rodape = mostra['rodape'] * PRECO_RODAPE_M
+        custo_mat = custo_pecas + custo_arg + custo_rodape
         texto_res = f"{txt('label_area')}: {self._med(mostra['bruta'], 'area')}\n"
         if res['desconto_vaos_m2'] > 0:
             texto_res += f"{txt('label_vaos')}: {self._med(mostra['vaos'], 'area')}\n"
             texto_res += f"{txt('label_area_liquida')}: {self._med(mostra['liquida'], 'area')}\n"
         origem_perda = f", {txt('label_perda_auto')}" if res['perda_automatica'] else ""
-        if eua:  # ex.: 12x12 in
-            texto_peca = f"{texto_polegadas(do_metrico(larg, 'centimetro', sistema))}x{self._med(alt, 'centimetro')}"
-        else:    # ex.: 60x60 cm (igual a antes)
-            texto_peca = f"{fmt_num(larg, 0 if float(larg).is_integer() else 1)}x{fmt_num(alt, 0 if float(alt).is_integer() else 1)} cm"
+        texto_peca = self._texto_peca(larg, alt, sistema)  # "60x60 cm" ou "12 x 12 in"
         texto_res += (
             f"{txt('label_area_perda')} ({self._num_curto(perda)}%{origem_perda}): {self._med(mostra['com_perda'], 'area')}\n"
             f"{txt('label_peca')}: {texto_peca}\n"
@@ -2484,7 +2505,9 @@ class CalculatorScreen(MDScreen):
         larg = self._numero(e["larg"])
         alt = self._numero(e["alt"])
         junta = self._numero(e["junta"])
-        esp = self._numero(e.get("esp"), ESPESSURA_PADRAO_MM)
+        # Espessura apagada: usa o mesmo número que o campo mostra (8 mm no Brasil; 5/16 in nos EUA,
+        # e não 8 mm = 0.315 in). O _limite_no_pais faz essa volta: número mostrado -> métrico.
+        esp = self._numero(e.get("esp"), self._limite_no_pais(ESPESSURA_PADRAO_MM, "milimetro"))
         perda = self._numero(e.get("perda"), PERDA_PADRAO_REJUNTE)
 
         # Limites com aviso (rejunte.py). Junta de 30 mm é quase certeza de quem digitou em cm errado.
@@ -2522,7 +2545,7 @@ class CalculatorScreen(MDScreen):
         else:   # EUA: sq ft, in, lb
             texto_dados = (
                 f"{txt('label_area')}: {self._med(area, 'area')}\n"
-                f"{txt('label_peca')}: {texto_polegadas(do_metrico(larg, 'centimetro', sistema))}x{self._med(alt, 'centimetro')}\n"
+                f"{txt('label_peca')}: {self._texto_peca(larg, alt, sistema)}\n"
                 f"{txt('label_junta')}: {self._med(junta, 'milimetro')}\n"
                 f"{txt('label_espessura')}: {self._med(esp, 'milimetro')}\n"
                 f"{txt('label_consumo')}: {self._med(res['consumo_kg_m2'], 'consumo', 3)}\n"

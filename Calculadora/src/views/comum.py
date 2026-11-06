@@ -1056,6 +1056,9 @@ def txt(chave: str) -> str:
 ESPACO_FIXO = "\u00a0"
 _NUMERO_E_PALAVRA = re.compile(r"(\d) (?=[^\s\d=(•·+\-])")  # "12 m", "788 un", "3 latas"
 _MOEDA_E_NUMERO = re.compile(r"(\$) (?=\d)")                 # "R$ 54,00", "US$ 4,902.70"
+_NUMERO_E_FRACAO = re.compile(r"(\d) (?=\d+/\d)")            # "11 3/4" (EUA)
+_X_ENTRE_NUMEROS = re.compile(r"(\d)[ \u00a0]x (?=\d)")     # "11 3/4 x 12 in" (peça nos EUA)
+_NOMES_JUNTOS = ("ANSI A118",)                              # "(ANSI A118.4)" não quebra no meio
 
 
 def sem_quebra(texto: str) -> str:
@@ -1064,6 +1067,12 @@ def sem_quebra(texto: str) -> str:
     e a palavra seguinte (e entre o R$ e o valor) por um espaço que não quebra.
     Só para a tela: o texto guardado (Histórico, PDF, WhatsApp) continua com o espaço comum."""
     texto = _NUMERO_E_PALAVRA.sub(rf"\1{ESPACO_FIXO}", texto)
+    # Medidas dos EUA inteiras na mesma linha: "11 3/4" e "11 3/4 x 12 in" (rodada 3, P7)
+    texto = _NUMERO_E_FRACAO.sub(rf"\1{ESPACO_FIXO}", texto)
+    texto = _X_ENTRE_NUMEROS.sub(rf"\1{ESPACO_FIXO}x{ESPACO_FIXO}", texto)
+    # Nomes que não podem ser cortados no meio (rodada 3, P10)
+    for nome in _NOMES_JUNTOS:
+        texto = texto.replace(nome, nome.replace(" ", ESPACO_FIXO))
     return _MOEDA_E_NUMERO.sub(rf"\1{ESPACO_FIXO}", texto)
 
 

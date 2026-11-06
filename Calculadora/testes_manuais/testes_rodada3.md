@@ -1,12 +1,12 @@
 # Testes da Rodada 3 (EUA, português): Piso, Azulejo, Rejunte, Pintura e Baldrame (impermeabilização)
 
-Criado em 05/11/2026. **A versão principal fica no PC da Gabi** (C:\Calc\Calculadora\testes_manuais\testes_rodada3.md).
+Criado em 05/11/2026. **Rodada fechada em 06/11/2026:** as 9 pendências (P1 a P9) foram corrigidas, os 162 casos deram OK no rodada3.py e a Gabi conferiu o visual no app. O esperado completo agora fica dentro do rodada3.py (ESPERADO) e entra no pytest pelo tests\rodadas\test_rodada3.py. **A versão principal fica no PC da Gabi** (C:\Calc\Calculadora\testes_manuais\testes_rodada3.md).
 
-Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho do botão Calcular), com o país trocado pelo próprio `alternar_pais` das Configurações (EUA, estado NY, `$`, ponto decimal e preços dos EUA) e o app em português. **O esperado é o que o app DEVE mostrar** (decisão da Gabi, 05/11/2026): nos casos marcados com ⚠️ o app ainda não mostra isso, e o rodada3.py vai dar DIFERENTE até a pendência ser corrigida. Antes de montar este arquivo, o Leo aplicou as correções propostas numa cópia do código, fora do PC, só para tirar os números: com elas, o rodada1.py e o rodada2.py continuaram com 353 OK cada (o Brasil não muda).
+Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho do botão Calcular), com o país trocado pelo próprio `alternar_pais` das Configurações (EUA, estado NY, `$`, ponto decimal e preços dos EUA) e o app em português. **O esperado é o que o app DEVE mostrar** (decisão da Gabi, 05/11/2026): durante a rodada, os casos das pendências ficaram marcados com ⚠️ e davam DIFERENTE até a correção (as marcas foram tiradas no fechamento, em 06/11/2026). Antes de montar este arquivo, o Leo aplicou as correções propostas numa cópia do código, fora do PC, só para tirar os números: com elas, o rodada1.py e o rodada2.py continuaram com 353 OK cada (o Brasil não muda).
 
 ## Antes de começar
 
-1. Rode o pytest: tem que dar **893 passed**.
+1. Rode o pytest: tem que dar **1055 passed** (893 antes do fechamento da rodada 3).
 2. No app: **Configurações** → botão **País** até aparecer **"País: EUA ($)"** (o estado vira NY). O idioma continua **Português**.
 3. Dê **Limpar** antes de cada teste.
 4. Se no fim quiser voltar para o Brasil: Configurações → País → **BR (R$)**. (Cuidado: ao voltar, o cimento fica R$ 32 e a brita R$ 95, e não R$ 36 e R$ 120; é o problema conhecido do passo de preços. Para as rodadas 1 e 2 no app, feche e abra o app de novo.)
@@ -29,6 +29,8 @@ Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho
 
 ## Pendências achadas ao montar este roteiro (o esperado já é o certo)
 
+**Todas corrigidas em 06/11/2026**, em 4 partes (textos; Piso, Azulejo e Rejunte; Baldrame; Pintura). Junto entrou a **P10**, pedida pela Gabi: "ANSI A118.4" e as medidas com fração ("11 3/4 x 12 in") nunca quebram a linha no meio.
+
 | # | O que é | Abas | O certo (já no esperado) |
 |---|---|---|---|
 | P1 | O custo das peças (e do rodapé) usa a área com perda **arredondada em m²**: 473 sq ft dá $ 2,197.00, e o certo é 473 sq ft = 43,943 m² × $ 50 = **$ 2,197.16**. Com área pequena erra mais (2.75 sq ft: $ 13.00 em vez de **$ 12.77**). | Piso, Azulejo | Custo = área com perda, sem arredondar, × preço. Continua cobrando pela área com perda (como no Brasil, aprovado nas rodadas 1 e 2), e não pelas caixas inteiras: cobrar por caixa mudaria o Brasil e fica para o passo da tabela de preços. |
@@ -47,7 +49,7 @@ Fora das 5 abas (anotado para a Parte 2): as Brocas, nos EUA, também mostram a 
 
 # PISO
 
-**43 casos.** Hoje, 31 dão DIFERENTE até as correções (P1, P7).
+**43 casos.** Todos OK (os 31 das pendências P1 e P7 foram corrigidos em 06/11/2026).
 
 **Como aparece** (confira se nenhuma dica fica cortada):
 
@@ -65,7 +67,7 @@ Fora das 5 abas (anotado para a Parte 2): as Brocas, nos EUA, também mostram a 
 
 ## Teste A: todos os campos, opcionais trocados
 
-#### PI-A ⚠️ P1, P7
+#### PI-A
 
 Digite: Área **430**; Largura da peça **24**; Altura da peça **24**; sq ft por caixa **15.5**; Perda **12**; Rodapé **65**; Peça do rodapé **8**; Assentamento com desenho **Sim**; Argamassa **Modificada (ANSI A118.4)**.
 
@@ -87,7 +89,7 @@ Pra entender: A perda digitada (12) vale mesmo com desenho Sim (o 25% só entra 
 
 ## Teste B: só os obrigatórios (e variações)
 
-#### PI-B ⚠️ P1, P7
+#### PI-B
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**.
 
@@ -104,7 +106,7 @@ Custo Estimado da Etapa: $ 2,373.16
 
 Pra entender: 430 × 1,10 = 473 sq ft; a peça de 12 x 12 in tem 1 sq ft → **473 peças**. A peça tem até 16 in: desempenadeira 1/4 x 3/8 in, 60 sq ft por saco de 50 lb → 473 ÷ 60 = 7,88 → **8 sacos** (473 × 50 ÷ 60 = 394,2 lb). Custo das peças: 473 sq ft = 43,94 m² × $ 50 = **$ 2,197.16** (hoje o app mostra $ 2,197.00: é a pendência P1). Argamassa: 8 × $ 22.00 = $ 176.00.
 
-#### PI-B2 ⚠️ P1, P7
+#### PI-B2
 
 Digite: Área **430**; Largura da peça **6**; Altura da peça **6**.
 
@@ -119,7 +121,7 @@ Peça: 6 x 6 in
 Custo Estimado da Etapa: $ 2,329.16
 ```
 
-#### PI-B3 ⚠️ P1, P7
+#### PI-B3
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **24**.
 
@@ -134,7 +136,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 2,461.16
 ```
 
-#### PI-B4 ⚠️ P1, P7
+#### PI-B4
 
 Digite: Área **430**; Largura da peça **24**; Altura da peça **24**.
 
@@ -149,7 +151,7 @@ Peça: 24 x 24 in
 Custo Estimado da Etapa: $ 2,461.16
 ```
 
-#### PI-B5 ⚠️ P1, P7
+#### PI-B5
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Assentamento com desenho **Sim**.
 
@@ -165,7 +167,7 @@ Assentamento: com desenho
 Custo Estimado da Etapa: $ 2,694.77
 ```
 
-#### PI-B6 ⚠️ P1, P7
+#### PI-B6
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; sq ft por caixa **15.5**.
 
@@ -181,7 +183,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,373.16
 ```
 
-#### PI-B7 ⚠️ P1, P7
+#### PI-B7
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Rodapé **65**.
 
@@ -197,7 +199,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,700.05
 ```
 
-#### PI-B8 ⚠️ P1, P7
+#### PI-B8
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Rodapé **65**; Peça do rodapé **8**.
 
@@ -213,7 +215,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,700.05
 ```
 
-#### PI-B9 ⚠️ P1, P7
+#### PI-B9
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Argamassa **Modificada (ANSI A118.4)**.
 
@@ -278,7 +280,7 @@ Digite: Área **430**; Largura da peça **0**; Altura da peça **12**.
 Erro: Área e tamanho da peça devem ser maiores que zero.
 ```
 
-#### PI-C7 ⚠️ P1, P7
+#### PI-C7
 
 Digite: Área **430,5**; Largura da peça **12**; Altura da peça **12**.
 
@@ -293,7 +295,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,375.71
 ```
 
-#### PI-C8 ⚠️ P1, P7
+#### PI-C8
 
 Digite: Área **430.5**; Largura da peça **12**; Altura da peça **12**.
 
@@ -308,7 +310,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,375.71
 ```
 
-#### PI-C9 ⚠️ P1, P7
+#### PI-C9
 
 Digite: Área **430 1/2**; Largura da peça **12**; Altura da peça **12**.
 
@@ -331,7 +333,7 @@ Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Perda **
 Erro: A perda não pode ser negativa.
 ```
 
-#### PI-C11 ⚠️ P1, P7
+#### PI-C11
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Perda **2.5**.
 
@@ -346,7 +348,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 2,223.35
 ```
 
-#### PI-C12 ⚠️ P1, P7
+#### PI-C12
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Perda **0**.
 
@@ -393,7 +395,7 @@ Digite: Área **1-21/2**; Largura da peça **12**; Altura da peça **12**.
 Por favor, digite números válidos nos campos!
 ```
 
-#### PI-C17 ⚠️ P7
+#### PI-C17
 
 Digite: Área **1,500**; Largura da peça **12**; Altura da peça **12**.
 
@@ -408,7 +410,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 8,280.50
 ```
 
-#### PI-C18 ⚠️ P1, P7
+#### PI-C18
 
 Digite: Área **2,5**; Largura da peça **12**; Altura da peça **12**.
 
@@ -423,7 +425,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 34.77
 ```
 
-#### PI-C19 ⚠️ P1, P7
+#### PI-C19
 
 Digite: Área **430**; Largura da peça **11 3/4**; Altura da peça **12**.
 
@@ -438,7 +440,7 @@ Peça: 11 3/4 x 12 in
 Custo Estimado da Etapa: $ 2,373.16
 ```
 
-#### PI-C20 ⚠️ P1, P7
+#### PI-C20
 
 Digite: Área **430**; Largura da peça **8**; Altura da peça **8**.
 
@@ -453,7 +455,7 @@ Peça: 8 x 8 in
 Custo Estimado da Etapa: $ 2,329.16
 ```
 
-#### PI-C21 ⚠️ P1, P7
+#### PI-C21
 
 Digite: Área **430**; Largura da peça **8 1/16**; Altura da peça **8**.
 
@@ -468,7 +470,7 @@ Peça: 8 1/16 x 8 in
 Custo Estimado da Etapa: $ 2,373.16
 ```
 
-#### PI-C22 ⚠️ P1, P7
+#### PI-C22
 
 Digite: Área **430**; Largura da peça **16**; Altura da peça **16**.
 
@@ -483,7 +485,7 @@ Peça: 16 x 16 in
 Custo Estimado da Etapa: $ 2,373.16
 ```
 
-#### PI-C23 ⚠️ P1, P7
+#### PI-C23
 
 Digite: Área **430**; Largura da peça **16 1/8**; Altura da peça **16**.
 
@@ -498,7 +500,7 @@ Peça: 16 1/8 x 16 in
 Custo Estimado da Etapa: $ 2,461.16
 ```
 
-#### PI-C24 ⚠️ P1, P7
+#### PI-C24
 
 Digite: Área **430**; Largura da peça **27 1/2**; Altura da peça **27 1/2**.
 
@@ -513,7 +515,7 @@ Peça: 27 1/2 x 27 1/2 in
 Custo Estimado da Etapa: $ 2,461.16
 ```
 
-#### PI-C25 ⚠️ P1, P7
+#### PI-C25
 
 Digite: Área **430**; Largura da peça **27 9/16**; Altura da peça **27 9/16**.
 
@@ -528,7 +530,7 @@ Peça: 27 9/16 x 27 9/16 in
 Custo Estimado da Etapa: $ 2,583.03
 ```
 
-#### PI-C26 ⚠️ P1, P7
+#### PI-C26
 
 Digite: Área **430**; Largura da peça **35 3/8**; Altura da peça **35 3/8**.
 
@@ -543,7 +545,7 @@ Peça: 35 3/8 x 35 3/8 in
 Custo Estimado da Etapa: $ 2,583.03
 ```
 
-#### PI-C27 ⚠️ P1, P7
+#### PI-C27
 
 Digite: Área **430**; Largura da peça **35 7/16**; Altura da peça **35 7/16**.
 
@@ -558,7 +560,7 @@ Peça: 35 7/16 x 35 7/16 in
 Custo Estimado da Etapa: $ 2,682.90
 ```
 
-#### PI-C28 ⚠️ P1, P7
+#### PI-C28
 
 Digite: Área **21528**; Largura da peça **12**; Altura da peça **12**.
 
@@ -582,7 +584,7 @@ Digite: Área **21529**; Largura da peça **12**; Altura da peça **12**. Na jan
 [Cancelar] não calculou
 ```
 
-#### PI-C29-continuar ⚠️ P1, P7
+#### PI-C29-continuar
 
 Digite: Área **21529**; Largura da peça **12**; Altura da peça **12**. Na janela, toque em **Continuar**.
 
@@ -598,7 +600,7 @@ Peça: 12 x 12 in
 Custo Estimado da Etapa: $ 118,696.03
 ```
 
-#### PI-C30 ⚠️ P1, P7
+#### PI-C30
 
 Digite: Área **430**; Largura da peça **1**; Altura da peça **1**. Na janela, toque em **Continuar**.
 
@@ -614,7 +616,7 @@ Peça: 1 x 1 in
 Custo Estimado da Etapa: $ 2,329.16
 ```
 
-#### PI-C31 ⚠️ P1, P7
+#### PI-C31
 
 Digite: Área **430**; Largura da peça **120**; Altura da peça **12**. Na janela, toque em **Continuar**.
 
@@ -630,7 +632,7 @@ Peça: 120 x 12 in
 Custo Estimado da Etapa: $ 2,682.90
 ```
 
-#### PI-C32 ⚠️ P1, P7
+#### PI-C32
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Peça do rodapé **8**.
 
@@ -657,7 +659,7 @@ Custo Estimado da Etapa: $ 2,373.16
 
 # AZULEJO
 
-**25 casos.** Hoje, 14 dão DIFERENTE até as correções (P1, P7).
+**25 casos.** Todos OK (os 14 das pendências P1 e P7 foram corrigidos em 06/11/2026).
 
 **Como aparece** (confira se nenhuma dica fica cortada):
 
@@ -673,7 +675,7 @@ Custo Estimado da Etapa: $ 2,373.16
 
 ## Teste A: todos os campos, opcionais trocados
 
-#### AZ-A ⚠️ P1, P7
+#### AZ-A
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Portas/janelas **50**; sq ft por caixa **15.5**; Perda **15**; Assentamento com desenho **Sim**; Argamassa **Não modificada (ANSI A118.1)**.
 
@@ -696,7 +698,7 @@ Pra entender: 320 − 50 = 270 sq ft × 1,15 = 310,5 sq ft; peça 12 x 24 in = 2
 
 ## Teste B: só os obrigatórios (e variações)
 
-#### AZ-B ⚠️ P1, P7
+#### AZ-B
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**.
 
@@ -713,7 +715,7 @@ Custo Estimado da Etapa: $ 1,469.89
 
 Pra entender: 320 × 1,10 = 352 sq ft ÷ 2 sq ft por peça = **176 peças**. A peça tem 24 in (acima de 16): desempenadeira 1/2 x 1/2 in, 40 sq ft por saco → 352 ÷ 40 = 8,8 → **9 sacos** de A118.4 × $ 17.98 = $ 161.82.
 
-#### AZ-B2 ⚠️ P1, P7
+#### AZ-B2
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Portas/janelas **50**.
 
@@ -730,7 +732,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 1,247.53
 ```
 
-#### AZ-B3 ⚠️ P1, P7
+#### AZ-B3
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; sq ft por caixa **15.5**.
 
@@ -746,7 +748,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 1,469.89
 ```
 
-#### AZ-B4 ⚠️ P1, P7
+#### AZ-B4
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Assentamento com desenho **Sim**.
 
@@ -762,7 +764,7 @@ Assentamento: com desenho
 Custo Estimado da Etapa: $ 1,666.25
 ```
 
-#### AZ-B5 ⚠️ P1, P7
+#### AZ-B5
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Argamassa **Não modificada (ANSI A118.1)**.
 
@@ -777,7 +779,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 1,506.07
 ```
 
-#### AZ-B6 ⚠️ P1, P7
+#### AZ-B6
 
 Digite: Área **320**; Largura da peça **4**; Altura da peça **4**.
 
@@ -834,7 +836,7 @@ Digite: Área **-320**; Largura da peça **12**; Altura da peça **24**.
 Erro: Área e tamanho da peça devem ser maiores que zero.
 ```
 
-#### AZ-C6 ⚠️ P1, P7
+#### AZ-C6
 
 Digite: Área **320,5**; Largura da peça **12**; Altura da peça **24**.
 
@@ -849,7 +851,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 1,471.94
 ```
 
-#### AZ-C7 ⚠️ P1, P7
+#### AZ-C7
 
 Digite: Área **320.5**; Largura da peça **12**; Altura da peça **24**.
 
@@ -864,7 +866,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 1,471.94
 ```
 
-#### AZ-C8 ⚠️ P1, P7
+#### AZ-C8
 
 Digite: Área **320 1/2**; Largura da peça **12**; Altura da peça **24**.
 
@@ -911,7 +913,7 @@ Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Portas/j
 Por favor, digite números válidos nos campos!
 ```
 
-#### AZ-C13 ⚠️ P1, P7
+#### AZ-C13
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Portas/janelas **50 1/2**.
 
@@ -936,7 +938,7 @@ Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Perda **
 Erro: A perda não pode ser negativa.
 ```
 
-#### AZ-C15 ⚠️ P1, P7
+#### AZ-C15
 
 Digite: Área **320**; Largura da peça **12**; Altura da peça **24**; Perda **2.5**.
 
@@ -959,7 +961,7 @@ Digite: Área **1-21/2**; Largura da peça **12**; Altura da peça **24**.
 Por favor, digite números válidos nos campos!
 ```
 
-#### AZ-C17 ⚠️ P7
+#### AZ-C17
 
 Digite: Área **1,500**; Largura da peça **12**; Altura da peça **24**.
 
@@ -974,7 +976,7 @@ Peça: 12 x 24 in
 Custo Estimado da Etapa: $ 6,886.76
 ```
 
-#### AZ-C18 ⚠️ P1, P7
+#### AZ-C18
 
 Digite: Área **25000**; Largura da peça **12**; Altura da peça **24**. Na janela, toque em **Continuar**.
 
@@ -999,7 +1001,7 @@ Custo Estimado da Etapa: $ 114,563.58
 
 # REJUNTE
 
-**32 casos.** Hoje, 20 dão DIFERENTE até as correções (P3, P7).
+**32 casos.** Todos OK (os 20 das pendências P3 e P7 foram corrigidos em 06/11/2026).
 
 **Como aparece** (confira se nenhuma dica fica cortada):
 
@@ -1014,7 +1016,7 @@ Custo Estimado da Etapa: $ 114,563.58
 
 ## Teste A: todos os campos, opcionais trocados
 
-#### RJ-A ⚠️ P7
+#### RJ-A
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **3/16**; Espessura da peça **3/8**; Perda **15**.
 
@@ -1033,7 +1035,7 @@ Pra entender: Junta 3/16 in (acima de 1/8): rejunte **com areia** (sacos de 25 l
 
 ## Teste B: só os obrigatórios (e variações)
 
-#### RJ-B ⚠️ P7
+#### RJ-B
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1050,7 +1052,7 @@ Custo Estimado da Etapa: $ 101.49
 
 Pra entender: Fórmula dos fabricantes: ((C + L) ÷ (C × L)) × junta × espessura × 1,58, com tudo em mm: 12 in = 304,8 mm, junta 1/8 in = 3,175 mm, espessura 5/16 in = 7,9375 mm → 0,261 kg/m² = **0.053 lb/sq ft**. 430 sq ft × 1,10 → **25.3 lb**. Junta até 1/8 in: **sem areia**, só em caixa de 10 lb → **3 caixas** × $ 33.83 = $ 101.49.
 
-#### RJ-B2 ⚠️ P7
+#### RJ-B2
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **3/16**.
 
@@ -1065,7 +1067,7 @@ Consumo: 0.080 lb/sq ft
 Custo Estimado da Etapa: $ 97.05
 ```
 
-#### RJ-B3 ⚠️ P7
+#### RJ-B3
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/4**.
 
@@ -1080,7 +1082,7 @@ Consumo: 0.107 lb/sq ft
 Custo Estimado da Etapa: $ 103.44
 ```
 
-#### RJ-B4 ⚠️ P7
+#### RJ-B4
 
 Digite: Junta **1/8**; antes, preencha o **Piso** (Área 430, Largura da peça 11 3/4, Altura da peça 11 3/4); no Rejunte, toque no botão **"Usar dados do Piso"**.
 
@@ -1097,7 +1099,7 @@ Consumo: 0.055 lb/sq ft
 Custo Estimado da Etapa: $ 101.49
 ```
 
-#### RJ-B5 ⚠️ P7
+#### RJ-B5
 
 Digite: Junta **3/16**; antes, preencha o **Azulejo** (Área 320, Portas/janelas 50 1/2, Largura da peça 12, Altura da peça 24); no Rejunte, toque no botão **"Usar dados do Azulejo"**.
 
@@ -1180,7 +1182,7 @@ Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **
 Por favor, digite números válidos nos campos!
 ```
 
-#### RJ-C9 ⚠️ P7
+#### RJ-C9
 
 Digite: Área **430,5**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1195,7 +1197,7 @@ Consumo: 0.053 lb/sq ft
 Custo Estimado da Etapa: $ 101.49
 ```
 
-#### RJ-C10 ⚠️ P7
+#### RJ-C10
 
 Digite: Área **430.5**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1210,7 +1212,7 @@ Consumo: 0.053 lb/sq ft
 Custo Estimado da Etapa: $ 101.49
 ```
 
-#### RJ-C11 ⚠️ P7
+#### RJ-C11
 
 Digite: Área **430 1/2**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1225,7 +1227,7 @@ Consumo: 0.053 lb/sq ft
 Custo Estimado da Etapa: $ 101.49
 ```
 
-#### RJ-C12 ⚠️ P7
+#### RJ-C12
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **0.125**.
 
@@ -1240,7 +1242,7 @@ Consumo: 0.053 lb/sq ft
 Custo Estimado da Etapa: $ 101.49
 ```
 
-#### RJ-C13 ⚠️ P7
+#### RJ-C13
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/16**.
 
@@ -1255,7 +1257,7 @@ Consumo: 0.027 lb/sq ft
 Custo Estimado da Etapa: $ 67.66
 ```
 
-#### RJ-C14 ⚠️ P7
+#### RJ-C14
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/32**. Na janela, toque em **Continuar**.
 
@@ -1271,7 +1273,7 @@ Consumo: 0.013 lb/sq ft
 Custo Estimado da Etapa: $ 33.83
 ```
 
-#### RJ-C15 ⚠️ P7
+#### RJ-C15
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **9/16**.
 
@@ -1286,7 +1288,7 @@ Consumo: 0.241 lb/sq ft
 Custo Estimado da Etapa: $ 206.88
 ```
 
-#### RJ-C16 ⚠️ P7
+#### RJ-C16
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **5/8**. Na janela, toque em **Continuar**.
 
@@ -1302,7 +1304,7 @@ Consumo: 0.267 lb/sq ft
 Custo Estimado da Etapa: $ 213.27
 ```
 
-#### RJ-C17 ⚠️ P7
+#### RJ-C17
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **3**. Na janela, toque em **Continuar**.
 
@@ -1318,7 +1320,7 @@ Consumo: 1.284 lb/sq ft
 Custo Estimado da Etapa: $ 939.08
 ```
 
-#### RJ-C18 ⚠️ P3, P7
+#### RJ-C18
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**; Espessura da peça **(vazio)**.
 
@@ -1349,7 +1351,7 @@ Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **
 Erro: A perda não pode ser negativa.
 ```
 
-#### RJ-C21 ⚠️ P7
+#### RJ-C21
 
 Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**; Perda **2.5**.
 
@@ -1372,7 +1374,7 @@ Digite: Área **1-21/2**; Largura da peça **12**; Altura da peça **12**; Junta
 Por favor, digite números válidos nos campos!
 ```
 
-#### RJ-C23 ⚠️ P7
+#### RJ-C23
 
 Digite: Área **1**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1387,7 +1389,7 @@ Consumo: 0.053 lb/sq ft
 Custo Estimado da Etapa: $ 33.83
 ```
 
-#### RJ-C24 ⚠️ P7
+#### RJ-C24
 
 Digite: Área **25000**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**. Na janela, toque em **Continuar**.
 
@@ -1411,7 +1413,7 @@ Digite: Área **430**; Largura da peça **12**; Altura da peça **12**; Junta **
 Por favor, digite números válidos nos campos!
 ```
 
-#### RJ-C26 ⚠️ P7
+#### RJ-C26
 
 Digite: Área **1,500**; Largura da peça **12**; Altura da peça **12**; Junta **1/8**.
 
@@ -1436,7 +1438,7 @@ Custo Estimado da Etapa: $ 304.47
 
 # PINTURA
 
-**33 casos.** Hoje, 3 dão DIFERENTE até as correções (P8).
+**33 casos.** Todos OK (os 3 da pendência P8 foram corrigidos em 06/11/2026).
 
 **Como aparece** (confira se nenhuma dica fica cortada):
 
@@ -1749,7 +1751,7 @@ Rendimento: 400 sq ft/gal
 Custo Estimado da Etapa: $ 215.98
 ```
 
-#### PT-C18-cancelar ⚠️ P8
+#### PT-C18-cancelar
 
 Digite: Parede **1000**; Rendimento **12**. Na janela, toque em **Cancelar**.
 
@@ -1758,7 +1760,7 @@ Digite: Parede **1000**; Rendimento **12**. Na janela, toque em **Cancelar**.
 [Cancelar] não calculou
 ```
 
-#### PT-C18-continuar ⚠️ P8
+#### PT-C18-continuar
 
 Digite: Parede **1000**; Rendimento **12**. Na janela, toque em **Continuar**.
 
@@ -1772,7 +1774,7 @@ Rendimento: 12 sq ft/gal
 Custo Estimado da Etapa: $ 6,655.92
 ```
 
-#### PT-C19 ⚠️ P8
+#### PT-C19
 
 Digite: Parede **1000**; Rendimento **900**. Na janela, toque em **Continuar**.
 
@@ -1853,7 +1855,7 @@ Custo Estimado da Etapa: $ 10,748.96
 
 # BALDRAME (impermeabilização)
 
-**29 casos.** Hoje, 13 dão DIFERENTE até as correções (P4, P5, P6).
+**29 casos.** Todos OK (os 13 das pendências P4, P5 e P6 foram corrigidos em 06/11/2026).
 
 **Como aparece** (confira se nenhuma dica fica cortada):
 
@@ -1872,7 +1874,7 @@ Custo Estimado da Etapa: $ 10,748.96
 
 ## Teste A: todos os campos, opcionais trocados
 
-#### BA-A ⚠️ P5, P6
+#### BA-A
 
 Digite: Comprimento **100**; Largura **10**; Altura **16**; Perda **8**; Mão de obra **8.00**; Nº de barras **4**; Espaçamento dos estribos **6**; Traço **1:3:3**; Bitola **12.5 mm**; Impermeabilização **Sim**.
 
@@ -1912,7 +1914,7 @@ Custo Estimado da Etapa: $ 113.60
 
 Pra entender: Sem impermeabilização: só o concreto (Parte 2: m³ e sacos de 50 kg ainda são do Brasil, não é erro). 40 ft × 8 in × 12 in = 0,755 m³ × 1,05 = 0,793 m³.
 
-#### BA-B2 ⚠️ P5
+#### BA-B2
 
 Digite: Comprimento **40**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -1929,7 +1931,7 @@ Custo Estimado da Etapa: $ 138.83
 
 Pra entender: Impermeabilização: 40 ft × (8 + 2 × 12) in = **106.7 sq ft** = 9,91 m² × 0,8 L/m² (2 demãos) = 7,93 L = **2.1 gal** → não chega aos 4,75 gal do balde → **3 galões de 1 gal**. Custo: 3 gal × $ 39.95 ÷ 4,75 gal = **$ 25.23** (hoje o app mostra $ 25.33: é a pendência P5).
 
-#### BA-B3 ⚠️ P5
+#### BA-B3
 
 Digite: Comprimento **75**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -1944,7 +1946,7 @@ Volume Total (com 5% de perda): 1.487 m³
 Custo Estimado da Etapa: $ 255.34
 ```
 
-#### BA-B4 ⚠️ P5
+#### BA-B4
 
 Digite: Comprimento **80**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -1959,7 +1961,7 @@ Volume Total (com 5% de perda): 1.586 m³
 Custo Estimado da Etapa: $ 267.10
 ```
 
-#### BA-B5 ⚠️ P5
+#### BA-B5
 
 Digite: Comprimento **100**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -1974,7 +1976,7 @@ Volume Total (com 5% de perda): 1.982 m³
 Custo Estimado da Etapa: $ 332.51
 ```
 
-#### BA-B6 ⚠️ P6
+#### BA-B6
 
 Digite: Comprimento **40**; Largura **8**; Altura **12**; Nº de barras **4**.
 
@@ -1992,7 +1994,7 @@ Volume Total (com 5% de perda): 0.793 m³
 Custo Estimado da Etapa: $ 198.47
 ```
 
-#### BA-B7 ⚠️ P6
+#### BA-B7
 
 Digite: Comprimento **40**; Largura **8**; Altura **12**; Mão de obra **8.00**.
 
@@ -2041,7 +2043,7 @@ Digite: Comprimento **-40**; Largura **8**; Altura **12**.
 Erro: Comprimento, largura e altura devem ser maiores que zero.
 ```
 
-#### BA-C5 ⚠️ P5
+#### BA-C5
 
 Digite: Comprimento **40,5**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -2056,7 +2058,7 @@ Volume Total (com 5% de perda): 0.803 m³
 Custo Estimado da Etapa: $ 151.23
 ```
 
-#### BA-C6 ⚠️ P5
+#### BA-C6
 
 Digite: Comprimento **40.5**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -2071,7 +2073,7 @@ Volume Total (com 5% de perda): 0.803 m³
 Custo Estimado da Etapa: $ 151.23
 ```
 
-#### BA-C7 ⚠️ P5
+#### BA-C7
 
 Digite: Comprimento **40 1/2**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -2086,7 +2088,7 @@ Volume Total (com 5% de perda): 0.803 m³
 Custo Estimado da Etapa: $ 151.23
 ```
 
-#### BA-C8 ⚠️ P5
+#### BA-C8
 
 Digite: Comprimento **1,500**; Largura **8**; Altura **12**; Impermeabilização **Sim**.
 
@@ -2147,7 +2149,7 @@ Volume Total (com 5% de perda): 0.694 m³
 Custo Estimado da Etapa: $ 108.55
 ```
 
-#### BA-C12 ⚠️ P4
+#### BA-C12
 
 Digite: Comprimento **40**; Largura **7 7/8**; Altura **11 7/8**. Na janela, toque em **Continuar**.
 
@@ -2216,7 +2218,7 @@ Volume Total (com 5% de perda): 0.793 m³
 Custo Estimado da Etapa: $ 174.43
 ```
 
-#### BA-C18 ⚠️ P6
+#### BA-C18
 
 Digite: Comprimento **40**; Largura **8**; Altura **12**; Nº de barras **4**; Espaçamento dos estribos **4 1/2**.
 
@@ -2261,7 +2263,8 @@ Erro: Viga muito pequena para colocar estribos.
 
 # Para o rodada3.py (Leo do terminal)
 
-- **Como ler o esperado deste arquivo:** cada caso começa numa linha `#### <NOME>` (o nome vai até o primeiro espaço; o "⚠️ P1..." depois é só aviso) e o esperado é o **primeiro bloco** entre ``` logo abaixo. Linhas `[JANELA]`, `[Cancelar] não calculou`, `[BOTÃO]` e `[CAMPOS]` fazem parte do esperado, igual no rodada2.py.
+- **Desde o fechamento (06/11/2026), o rodada3.py não lê mais este arquivo:** o esperado fica no ESPERADO dentro dele. Durante a rodada, ele lia daqui assim:
+- **Como ler o esperado deste arquivo:** cada caso começa numa linha `#### <NOME>` (o nome vai até o primeiro espaço; o "⚠️ P1..." depois era só aviso) e o esperado é o **primeiro bloco** entre ``` logo abaixo. Linhas `[JANELA]`, `[Cancelar] não calculou`, `[BOTÃO]` e `[CAMPOS]` fazem parte do esperado, igual no rodada2.py.
 - **Valores padrão dos EUA (PADRAO do rodada3.py):** os opcionais que já vêm preenchidos no app dos EUA:
   - baldrame: perda "5", esp_estribo **"8"** (in)
   - piso e azulejo: nada (perda vazia = automática; A118.1 no Piso e A118.4 no Azulejo vêm do reiniciar, já com o país EUA)

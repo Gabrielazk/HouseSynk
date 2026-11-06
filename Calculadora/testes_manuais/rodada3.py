@@ -6,26 +6,28 @@ dos EUA), como o botão País das Configurações faz, ANTES de criar as telas (
 argamassa pelo país). O idioma fica "pt".
 Não grava nada no projeto (rodar com python -B).
 
-Durante a rodada, o esperado NÃO fica neste arquivo: é LIDO do testes_rodada3.md toda vez que roda.
-Cada caso começa numa linha "#### <NOME>" (o nome vai até o primeiro espaço) e o esperado é o primeiro
-bloco entre ``` logo abaixo. O .md tem o que o app DEVE mostrar; os casos com ⚠️ no título são
-pendências já conhecidas (P1 a P9), que dão DIFERENTE até o app ser corrigido. No fim, o script separa:
-  - DIFERENTE com ⚠️ (já esperado): só a contagem por aba;
-  - DIFERENTE SEM ⚠️ (surpresa): com o esperado e o que o app mostrou;
-  - ⚠️ que deu OK (a pendência sumiu?).
-Criado em 05/11/2026 a partir do rodada2.py.
+O resultado esperado de cada caso fica no fim deste arquivo (ESPERADO), igual ao rodada1.py e ao rodada2.py.
+O script compara o texto inteiro que o app mostra com o esperado e diz OK ou DIFERENTE em cada caso; no fim,
+mostra quantos deram OK.
+Criado em 05/11/2026 a partir do rodada2.py. Durante a rodada, o esperado era lido do testes_rodada3.md
+(com ⚠️ nos casos das pendências P1 a P9, que davam DIFERENTE até a correção).
+Mudado em 06/11/2026 (fechamento da rodada 3): as 9 pendências foram corrigidas, os 162 casos deram OK com o
+testes_rodada3.md e a Gabi conferiu o visual no app. Só depois disso a saída do app (já aprovada) virou o
+ESPERADO completo aqui dentro, com o texto inteiro dos 162 casos (versão principal: a do PC). O
+tests\rodadas\test_rodada3.py leva estes casos para o pytest.
 
 Como rodar (no terminal, na pasta do projeto: C:\Calc\Calculadora ou C:\Calculadora\Calculadora):
   env311\Scripts\python.exe -B testes_manuais\rodada3.py           -> todos os casos
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI-        -> só uma aba (prefixo: PI-, AZ-, RJ-, PT-, BA-)
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI- --ver  -> mostra também o resultado de cada caso
-                                                                      (e o esperado dos DIFERENTE com ⚠️)"""
+
+Quando uma mudança no código é DE PROPÓSITO (ex.: um texto novo), o esperado precisa ser atualizado aqui
+e no testes_rodada3.md, sabendo o motivo. Quando é SEM QUERER, o script avisa (DIFERENTE)."""
 import sys, types, importlib.abc, importlib.machinery
 from pathlib import Path
 
 # A pasta do projeto é a pasta de cima desta (testes_manuais), em qualquer PC.
 PROJ = str(Path(__file__).resolve().parent.parent)
-ARQ_MD = Path(PROJ) / "testes_manuais" / "testes_rodada3.md"
 sys.dont_write_bytecode = True
 sys.path.insert(0, PROJ)
 try:
@@ -114,36 +116,6 @@ def rodar(aba, campos, escolhas=None, continuar=True):
         r = t._calcular_aba(aba, e)
     saida.append(r.get("erro") or r.get("texto"))
     return "\n".join(saida)
-
-
-def ler_esperado(caminho=ARQ_MD):
-    """Lê o testes_rodada3.md: {nome: (esperado, aviso)}. aviso = o que vem depois do nome no título
-    (ex.: "⚠️ P1, P7"), ou "" se o caso não tem ⚠️."""
-    linhas = caminho.read_text(encoding="utf-8").splitlines()
-    esperado = {}
-    i = 0
-    while i < len(linhas):
-        if not linhas[i].startswith("#### "):
-            i += 1
-            continue
-        titulo = linhas[i][5:].strip()
-        nome = titulo.split()[0]
-        aviso = titulo[len(nome):].strip() if "⚠" in titulo else ""
-        i += 1
-        while i < len(linhas) and not linhas[i].startswith("```") and not linhas[i].startswith("#"):
-            i += 1
-        if i >= len(linhas) or not linhas[i].startswith("```"):
-            continue  # caso sem bloco: fica sem esperado
-        i += 1
-        bloco = []
-        while i < len(linhas) and not linhas[i].startswith("```"):
-            bloco.append(linhas[i])
-            i += 1
-        i += 1
-        if nome in esperado:
-            raise ValueError(f"caso repetido no {caminho.name}: {nome}")
-        esperado[nome] = ("\n".join(bloco), aviso)
-    return esperado
 
 
 CASOS = []
@@ -336,65 +308,1102 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     ver = "--ver" in sys.argv
     filtro = args[0] if args else ""
-    ESPERADO = ler_esperado()
-    ok, sem_esperado = 0, []
-    dif_aviso, surpresas, aviso_ok = [], [], []  # (nome, aviso[, esperado, resultado])
+    ok, diferentes, sem_esperado = 0, [], []
     for nome, aba, campos, esc, cont in CASOS:
         if not nome.startswith(filtro):
             continue
         resultado = rodar(aba, campos, esc, cont)
-        if nome not in ESPERADO:
+        esperado = ESPERADO.get(nome)
+        if esperado is None:
             sem_esperado.append(nome)
             print(f"SEM ESPERADO  {nome}\n{resultado}\n")
-            continue
-        esperado, aviso = ESPERADO[nome]
-        if resultado.strip() == esperado.strip():
+        elif resultado.strip() == esperado.strip():
             ok += 1
-            print(f"OK         {nome}" + (f"   ({aviso}: a pendência sumiu?)" if aviso else ""))
-            if aviso:
-                aviso_ok.append((nome, aviso))
+            print(f"OK         {nome}")
             if ver:
                 print(resultado + "\n")
-        elif aviso:
-            dif_aviso.append((nome, aviso))
-            print(f"DIFERENTE  {nome}   ({aviso}, já esperado)")
-            if ver:
-                print("--- esperado:\n" + esperado.strip())
-                print("--- o app mostrou:\n" + resultado.strip() + "\n")
         else:
-            surpresas.append((nome, esperado, resultado))
-            print(f"DIFERENTE  {nome}   (SEM ⚠️: surpresa)")
+            diferentes.append(nome)
+            print(f"DIFERENTE  {nome}")
             print("--- esperado:\n" + esperado.strip())
             print("--- o app mostrou:\n" + resultado.strip() + "\n")
+    print(f"\n{ok} OK, {len(diferentes)} DIFERENTE(S)" + (f", {len(sem_esperado)} sem esperado" if sem_esperado else ""))
+    if diferentes:
+        print("Diferentes: " + ", ".join(diferentes))
 
-    dif = len(dif_aviso) + len(surpresas)
-    print(f"\n{ok} OK, {dif} DIFERENTE(S)" + (f", {len(sem_esperado)} sem esperado" if sem_esperado else ""))
-    nomes_casos = {c[0] for c in CASOS}
-    fora = [n for n in ESPERADO if n not in nomes_casos and n.startswith(filtro)]
-    if fora:
-        print("No .md, mas fora da lista CASOS: " + ", ".join(fora))
-    if sem_esperado:
-        print("Sem esperado no .md: " + ", ".join(sem_esperado))
 
-    print(f"\nDIFERENTE com ⚠️ (já esperado): {len(dif_aviso)}")
-    por_aba = {}
-    for nome, _ in dif_aviso:
-        por_aba[nome.split("-")[0]] = por_aba.get(nome.split("-")[0], 0) + 1
-    for pref in ("PI", "AZ", "RJ", "PT", "BA"):
-        if pref in por_aba:
-            print(f"  {pref}: {por_aba.pop(pref)}")
-    for pref, n in por_aba.items():
-        print(f"  {pref}: {n}")
+# =====================================================================
+# RESULTADO ESPERADO DE CADA CASO (o que aparece na tela, linha por linha)
+# [JANELA] = janela "Confira os valores"; [Cancelar] / Continuar = botão apertado.
+# [BOTÃO] e [CAMPOS] = botão "Usar dados do Piso/Azulejo" do Rejunte e o que ele preenche.
+# =====================================================================
+ESPERADO = {
+"PI-A": """\
+Área: 430.00 sq ft
+Área com perda (12%): 481.60 sq ft
+Peça: 24 x 24 in
+Assentamento: com desenho
+• Peças: 121
+• Caixas: 32 (15.50 sq ft por caixa) ($ 2,237.11)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 13 sacos de 50 lb (602.1 lb) ($ 233.74)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+• Rodapé: 72.80 ft (10 peças de 8.00 ft) ($ 332.84)
 
-    print(f"\nDIFERENTE SEM ⚠️ (surpresa): {len(surpresas)}")
-    for nome, esperado, resultado in surpresas:
-        print(f"  {nome}")
-        print("  --- esperado:\n    " + esperado.strip().replace("\n", "\n    "))
-        print("  --- o app mostrou:\n    " + resultado.strip().replace("\n", "\n    "))
+Custo Estimado da Etapa: $ 2,803.69""",
+"PI-B": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
 
-    print(f"\n⚠️ que deu OK (a pendência sumiu?): {len(aviso_ok)}")
-    for nome, aviso in aviso_ok:
-        print(f"  {nome}   ({aviso})")
+Custo Estimado da Etapa: $ 2,373.16""",
+"PI-B2": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 6 x 6 in
+• Peças: 1,892 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 6 sacos de 50 lb (278.2 lb) ($ 132.00)
+  Desempenadeira: 1/4 x 1/4 in · Consumo: 0.588 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,329.16""",
+"PI-B3": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 24 in
+• Peças: 237 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 12 sacos de 50 lb (591.3 lb) ($ 264.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,461.16""",
+"PI-B4": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 24 x 24 in
+• Peças: 119 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 12 sacos de 50 lb (591.3 lb) ($ 264.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,461.16""",
+"PI-B5": """\
+Área: 430.00 sq ft
+Área com perda (25%, automática): 537.50 sq ft
+Peça: 12 x 12 in
+Assentamento: com desenho
+• Peças: 538 ($ 2,496.77)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 9 sacos de 50 lb (448.0 lb) ($ 198.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,694.77""",
+"PI-B6": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473
+• Caixas: 31 (15.50 sq ft por caixa) ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,373.16""",
+"PI-B7": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+• Rodapé: 71.50 ft ($ 326.90)
+
+Custo Estimado da Etapa: $ 2,700.05""",
+"PI-B8": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+• Rodapé: 71.50 ft (9 peças de 8.00 ft) ($ 326.90)
+
+Custo Estimado da Etapa: $ 2,700.05""",
+"PI-B9": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473 ($ 2,197.16)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 8 sacos de 50 lb (394.2 lb) ($ 143.84)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,341.00""",
+"PI-C1": """\
+Por favor, digite números válidos nos campos!""",
+"PI-C2": """\
+Por favor, digite números válidos nos campos!""",
+"PI-C3": """\
+Por favor, digite números válidos nos campos!""",
+"PI-C4": """\
+Erro: Área e tamanho da peça devem ser maiores que zero.""",
+"PI-C5": """\
+Erro: Área e tamanho da peça devem ser maiores que zero.""",
+"PI-C6": """\
+Erro: Área e tamanho da peça devem ser maiores que zero.""",
+"PI-C7": """\
+Área: 430.50 sq ft
+Área com perda (10%, automática): 473.55 sq ft
+Peça: 12 x 12 in
+• Peças: 474 ($ 2,199.71)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.6 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,375.71""",
+"PI-C8": """\
+Área: 430.50 sq ft
+Área com perda (10%, automática): 473.55 sq ft
+Peça: 12 x 12 in
+• Peças: 474 ($ 2,199.71)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.6 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,375.71""",
+"PI-C9": """\
+Área: 430.50 sq ft
+Área com perda (10%, automática): 473.55 sq ft
+Peça: 12 x 12 in
+• Peças: 474 ($ 2,199.71)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.6 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,375.71""",
+"PI-C10": """\
+Erro: A perda não pode ser negativa.""",
+"PI-C11": """\
+Área: 430.00 sq ft
+Área com perda (2.5%): 440.75 sq ft
+Peça: 12 x 12 in
+• Peças: 441 ($ 2,047.35)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (367.3 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,223.35""",
+"PI-C12": """\
+Área: 430.00 sq ft
+Área com perda (0%): 430.00 sq ft
+Peça: 12 x 12 in
+• Peças: 430 ($ 1,997.42)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (358.3 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,173.42""",
+"PI-C13": """\
+Erro: Os valores não podem ser negativos.""",
+"PI-C14": """\
+Erro: Os valores não podem ser negativos.""",
+"PI-C15": """\
+Por favor, digite números válidos nos campos!""",
+"PI-C16": """\
+Por favor, digite números válidos nos campos!""",
+"PI-C17": """\
+Área: 1,500.00 sq ft
+Área com perda (10%, automática): 1,650.00 sq ft
+Peça: 12 x 12 in
+• Peças: 1,650 ($ 7,664.50)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 28 sacos de 50 lb (1,375.0 lb) ($ 616.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 8,280.50""",
+"PI-C18": """\
+Área: 2.50 sq ft
+Área com perda (10%, automática): 2.75 sq ft
+Peça: 12 x 12 in
+• Peças: 3 ($ 12.77)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 1 saco de 50 lb (2.2 lb) ($ 22.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 34.77""",
+"PI-C19": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 11 3/4 x 12 in
+• Peças: 484 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,373.16""",
+"PI-C20": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 8 x 8 in
+• Peças: 1,065 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 6 sacos de 50 lb (278.2 lb) ($ 132.00)
+  Desempenadeira: 1/4 x 1/4 in · Consumo: 0.588 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,329.16""",
+"PI-C21": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 8 1/16 x 8 in
+• Peças: 1,056 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,373.16""",
+"PI-C22": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 16 x 16 in
+• Peças: 267 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,373.16""",
+"PI-C23": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 16 1/8 x 16 in
+• Peças: 264 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 12 sacos de 50 lb (591.3 lb) ($ 264.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,461.16""",
+"PI-C24": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 27 1/2 x 27 1/2 in
+• Peças: 91 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 12 sacos de 50 lb (591.3 lb) ($ 264.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,461.16""",
+"PI-C25": """\
+Área: 430.00 sq ft
+Área com perda (15%, automática): 494.50 sq ft
+Peça: 27 9/16 x 27 9/16 in
+• Peças: 94 ($ 2,297.03)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 13 sacos de 50 lb (618.2 lb) ($ 286.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,583.03""",
+"PI-C26": """\
+Área: 430.00 sq ft
+Área com perda (15%, automática): 494.50 sq ft
+Peça: 35 3/8 x 35 3/8 in
+• Peças: 57 ($ 2,297.03)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 13 sacos de 50 lb (618.2 lb) ($ 286.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,583.03""",
+"PI-C27": """\
+Área: 430.00 sq ft
+Área com perda (20%, automática): 516.00 sq ft
+Peça: 35 7/16 x 35 7/16 in
+• Peças: 60 ($ 2,396.90)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 13 sacos de 50 lb (645.1 lb) ($ 286.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,682.90""",
+"PI-C28": """\
+Área: 21,528.00 sq ft
+Área com perda (10%, automática): 23,680.80 sq ft
+Peça: 12 x 12 in
+• Peças: 23,681 ($ 110,000.92)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 395 sacos de 50 lb (19,734.0 lb) ($ 8,690.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 118,690.92""",
+"PI-C29-cancelar": """\
+[JANELA] Área de 21,529 sq ft: o limite é 21,528 sq ft.
+[Cancelar] não calculou""",
+"PI-C29-continuar": """\
+[JANELA] Área de 21,529 sq ft: o limite é 21,528 sq ft.
+Área: 21,529.00 sq ft
+Área com perda (10%, automática): 23,681.90 sq ft
+Peça: 12 x 12 in
+• Peças: 23,682 ($ 110,006.03)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 395 sacos de 50 lb (19,734.9 lb) ($ 8,690.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 118,696.03""",
+"PI-C30": """\
+[JANELA] Peça de 1 in x 1 in: o normal é de 2 in a 118 in em cada lado.
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 1 x 1 in
+• Peças: 68,112 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 6 sacos de 50 lb (278.2 lb) ($ 132.00)
+  Desempenadeira: 1/4 x 1/4 in · Consumo: 0.588 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,329.16""",
+"PI-C31": """\
+[JANELA] Peça de 120 in x 12 in: o normal é de 2 in a 118 in em cada lado.
+Área: 430.00 sq ft
+Área com perda (20%, automática): 516.00 sq ft
+Peça: 120 x 12 in
+• Peças: 52 ($ 2,396.90)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 13 sacos de 50 lb (645.1 lb) ($ 286.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,682.90""",
+"PI-C32": """\
+Área: 430.00 sq ft
+Área com perda (10%, automática): 473.00 sq ft
+Peça: 12 x 12 in
+• Peças: 473 ($ 2,197.16)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (394.2 lb) ($ 176.00)
+  Desempenadeira: 1/4 x 3/8 in · Consumo: 0.833 lb/sq ft
+
+Custo Estimado da Etapa: $ 2,373.16""",
+"AZ-A": """\
+Área: 320.00 sq ft
+Vãos (portas e janelas): 50.00 sq ft
+Área líquida: 270.00 sq ft
+Área com perda (15%): 310.50 sq ft
+Peça: 12 x 24 in
+Assentamento: com desenho
+• Peças: 156
+• Caixas: 21 (15.50 sq ft por caixa) ($ 1,153.86)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 8 sacos de 50 lb (388.2 lb) ($ 176.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,329.86""",
+"AZ-B": """\
+Área: 320.00 sq ft
+Área com perda (10%, automática): 352.00 sq ft
+Peça: 12 x 24 in
+• Peças: 176 ($ 1,308.07)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (440.0 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,469.89""",
+"AZ-B2": """\
+Área: 320.00 sq ft
+Vãos (portas e janelas): 50.00 sq ft
+Área líquida: 270.00 sq ft
+Área com perda (10%, automática): 297.00 sq ft
+Peça: 12 x 24 in
+• Peças: 149 ($ 1,103.69)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 8 sacos de 50 lb (371.3 lb) ($ 143.84)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,247.53""",
+"AZ-B3": """\
+Área: 320.00 sq ft
+Área com perda (10%, automática): 352.00 sq ft
+Peça: 12 x 24 in
+• Peças: 176
+• Caixas: 23 (15.50 sq ft por caixa) ($ 1,308.07)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (440.0 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,469.89""",
+"AZ-B4": """\
+Área: 320.00 sq ft
+Área com perda (25%, automática): 400.00 sq ft
+Peça: 12 x 24 in
+Assentamento: com desenho
+• Peças: 200 ($ 1,486.45)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 10 sacos de 50 lb (500.0 lb) ($ 179.80)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,666.25""",
+"AZ-B5": """\
+Área: 320.00 sq ft
+Área com perda (10%, automática): 352.00 sq ft
+Peça: 12 x 24 in
+• Peças: 176 ($ 1,308.07)
+• Argamassa colante (thinset) Não modificada (ANSI A118.1): 9 sacos de 50 lb (440.0 lb) ($ 198.00)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,506.07""",
+"AZ-B6": """\
+Área: 320.00 sq ft
+Área com perda (10%, automática): 352.00 sq ft
+Peça: 4 x 4 in
+• Peças: 3,168 ($ 1,308.07)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 5 sacos de 50 lb (207.0 lb) ($ 89.90)
+  Desempenadeira: 1/4 x 1/4 in · Consumo: 0.588 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,397.97""",
+"AZ-C1": """\
+Por favor, digite números válidos nos campos!""",
+"AZ-C2": """\
+Por favor, digite números válidos nos campos!""",
+"AZ-C3": """\
+Por favor, digite números válidos nos campos!""",
+"AZ-C4": """\
+Erro: Área e tamanho da peça devem ser maiores que zero.""",
+"AZ-C5": """\
+Erro: Área e tamanho da peça devem ser maiores que zero.""",
+"AZ-C6": """\
+Área: 320.50 sq ft
+Área com perda (10%, automática): 352.55 sq ft
+Peça: 12 x 24 in
+• Peças: 177 ($ 1,310.12)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (440.7 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,471.94""",
+"AZ-C7": """\
+Área: 320.50 sq ft
+Área com perda (10%, automática): 352.55 sq ft
+Peça: 12 x 24 in
+• Peças: 177 ($ 1,310.12)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (440.7 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,471.94""",
+"AZ-C8": """\
+Área: 320.50 sq ft
+Área com perda (10%, automática): 352.55 sq ft
+Peça: 12 x 24 in
+• Peças: 177 ($ 1,310.12)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (440.7 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,471.94""",
+"AZ-C9": """\
+Erro: Os valores não podem ser negativos.""",
+"AZ-C10": """\
+Erro: O desconto de vãos deve ser menor que a área.""",
+"AZ-C11": """\
+Erro: O desconto de vãos deve ser menor que a área.""",
+"AZ-C12": """\
+Por favor, digite números válidos nos campos!""",
+"AZ-C13": """\
+Área: 320.00 sq ft
+Vãos (portas e janelas): 50.50 sq ft
+Área líquida: 269.50 sq ft
+Área com perda (10%, automática): 296.45 sq ft
+Peça: 12 x 24 in
+• Peças: 149 ($ 1,101.64)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 8 sacos de 50 lb (370.6 lb) ($ 143.84)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,245.48""",
+"AZ-C14": """\
+Erro: A perda não pode ser negativa.""",
+"AZ-C15": """\
+Área: 320.00 sq ft
+Área com perda (2.5%): 328.00 sq ft
+Peça: 12 x 24 in
+• Peças: 164 ($ 1,218.89)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 9 sacos de 50 lb (410.1 lb) ($ 161.82)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 1,380.71""",
+"AZ-C16": """\
+Por favor, digite números válidos nos campos!""",
+"AZ-C17": """\
+Área: 1,500.00 sq ft
+Área com perda (10%, automática): 1,650.00 sq ft
+Peça: 12 x 24 in
+• Peças: 825 ($ 6,131.60)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 42 sacos de 50 lb (2,062.4 lb) ($ 755.16)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 6,886.76""",
+"AZ-C18": """\
+[JANELA] Área de 25,000 sq ft: o limite é 21,528 sq ft.
+Área: 25,000.00 sq ft
+Área com perda (10%, automática): 27,500.00 sq ft
+Peça: 12 x 24 in
+• Peças: 13,750 ($ 102,193.34)
+• Argamassa colante (thinset) Modificada (ANSI A118.4): 688 sacos de 50 lb (34,374.9 lb) ($ 12,370.24)
+  Desempenadeira: 1/2 x 1/2 in · Consumo: 1.250 lb/sq ft
+
+Custo Estimado da Etapa: $ 114,563.58""",
+"RJ-A": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 3/16 in
+Espessura da peça: 3/8 in
+Consumo: 0.096 lb/sq ft
+• Rejunte com areia (sanded) (com 15% de perda): 47.6 lb = 2 sacos de 25 lb ($ 73.22)
+
+Custo Estimado da Etapa: $ 73.22""",
+"RJ-B": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-B2": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 3/16 in
+Espessura da peça: 5/16 in
+Consumo: 0.080 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 38.0 lb = 1 saco de 25 lb e 2 caixas de 7 lb ($ 97.05)
+
+Custo Estimado da Etapa: $ 97.05""",
+"RJ-B3": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/4 in
+Espessura da peça: 5/16 in
+Consumo: 0.107 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 50.6 lb = 2 sacos de 25 lb e 1 caixa de 7 lb ($ 103.44)
+
+Custo Estimado da Etapa: $ 103.44""",
+"RJ-B4": """\
+[BOTÃO] piso: ('430', '11 3/4', '11 3/4')
+[CAMPOS] área 430, peça 11 3/4 x 11 3/4
+Área: 430.00 sq ft
+Peça: 11 3/4 x 11 3/4 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.055 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.9 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-B5": """\
+[BOTÃO] azulejo: ('269.5', '12', '24')
+[CAMPOS] área 269.5, peça 12 x 24
+Área: 269.50 sq ft
+Peça: 12 x 24 in
+Junta: 3/16 in
+Espessura da peça: 5/16 in
+Consumo: 0.060 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 17.9 lb = 3 caixas de 7 lb ($ 90.66)
+
+Custo Estimado da Etapa: $ 90.66""",
+"RJ-C1": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C2": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C3": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C4": """\
+Erro: Área, tamanho da peça e junta devem ser maiores que zero.""",
+"RJ-C5": """\
+Erro: Área, tamanho da peça e junta devem ser maiores que zero.""",
+"RJ-C6": """\
+Erro: Área, tamanho da peça e junta devem ser maiores que zero.""",
+"RJ-C7": """\
+Erro: Área, tamanho da peça e junta devem ser maiores que zero.""",
+"RJ-C8": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C9": """\
+Área: 430.50 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C10": """\
+Área: 430.50 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C11": """\
+Área: 430.50 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C12": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C13": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/16 in
+Espessura da peça: 5/16 in
+Consumo: 0.027 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 12.7 lb = 2 caixas de 10 lb ($ 67.66)
+
+Custo Estimado da Etapa: $ 67.66""",
+"RJ-C14": """\
+[JANELA] Junta de 1/32 in: o normal é de 1/16 in a 9/16 in.
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/32 in
+Espessura da peça: 5/16 in
+Consumo: 0.013 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 6.3 lb = 1 caixa de 10 lb ($ 33.83)
+
+Custo Estimado da Etapa: $ 33.83""",
+"RJ-C15": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 9/16 in
+Espessura da peça: 5/16 in
+Consumo: 0.241 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 113.9 lb = 4 sacos de 25 lb e 2 caixas de 7 lb ($ 206.88)
+
+Custo Estimado da Etapa: $ 206.88""",
+"RJ-C16": """\
+[JANELA] Junta de 5/8 in: o normal é de 1/16 in a 9/16 in.
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 5/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.267 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 126.6 lb = 5 sacos de 25 lb e 1 caixa de 7 lb ($ 213.27)
+
+Custo Estimado da Etapa: $ 213.27""",
+"RJ-C17": """\
+[JANELA] Junta de 3 in: o normal é de 1/16 in a 9/16 in.
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 3 in
+Espessura da peça: 5/16 in
+Consumo: 1.284 lb/sq ft
+• Rejunte com areia (sanded) (com 10% de perda): 607.5 lb = 24 sacos de 25 lb e 2 caixas de 7 lb ($ 939.08)
+
+Custo Estimado da Etapa: $ 939.08""",
+"RJ-C18": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 25.3 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C19": """\
+Erro: A espessura da peça deve ser maior que zero.""",
+"RJ-C20": """\
+Erro: A perda não pode ser negativa.""",
+"RJ-C21": """\
+Área: 430.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 2.5% de perda): 23.6 lb = 3 caixas de 10 lb ($ 101.49)
+
+Custo Estimado da Etapa: $ 101.49""",
+"RJ-C22": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C23": """\
+Área: 1.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 0.1 lb = 1 caixa de 10 lb ($ 33.83)
+
+Custo Estimado da Etapa: $ 33.83""",
+"RJ-C24": """\
+[JANELA] Área de 25,000 sq ft: o limite é 21,528 sq ft.
+Área: 25,000.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 1,471.6 lb = 148 caixas de 10 lb ($ 5,006.84)
+
+Custo Estimado da Etapa: $ 5,006.84""",
+"RJ-C25": """\
+Por favor, digite números válidos nos campos!""",
+"RJ-C26": """\
+Área: 1,500.00 sq ft
+Peça: 12 x 12 in
+Junta: 1/8 in
+Espessura da peça: 5/16 in
+Consumo: 0.053 lb/sq ft
+• Rejunte sem areia (non-sanded) (com 10% de perda): 88.3 lb = 9 caixas de 10 lb ($ 304.47)
+
+Custo Estimado da Etapa: $ 304.47""",
+"PT-A": """\
+Parede: 1,000.00 sq ft
+Teto: 430.00 sq ft
+Demãos: 3
+Rendimento: 350 sq ft/gal
+• Tinta de parede (com 15% de perda): 9.9 gal = 2 baldes de 5 gal ($ 362.00)
+• Tinta de teto (com 15% de perda): 4.2 gal = 1 balde de 5 gal ($ 181.00)
+• Primer (com 15% de perda): 4.1 gal = 1 balde de 5 gal ($ 170.00)
+Complementos (sobre parede + teto): Primer 1 demão
+
+Custo Estimado da Etapa: $ 713.00""",
+"PT-B": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-B2": """\
+Teto: 430.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de teto (com 10% de perda): 2.4 gal = 3 galões de 1 gal ($ 104.94)
+
+Custo Estimado da Etapa: $ 104.94""",
+"PT-B3": """\
+Parede: 1,000.00 sq ft
+Teto: 430.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+• Tinta de teto (com 10% de perda): 2.4 gal = 3 galões de 1 gal ($ 104.94)
+
+Custo Estimado da Etapa: $ 320.92""",
+"PT-B4": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+• Primer (com 10% de perda): 2.7 gal = 3 galões de 1 gal ($ 150.00)
+Complementos (sobre parede + teto): Primer 1 demão
+
+Custo Estimado da Etapa: $ 365.98""",
+"PT-B5": """\
+Parede: 100.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 0.6 gal = 1 galão de 1 gal ($ 34.98)
+
+Custo Estimado da Etapa: $ 34.98""",
+"PT-B6": """\
+Parede: 800.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 4.4 gal = 1 balde de 5 gal ($ 181.00)
+
+Custo Estimado da Etapa: $ 181.00""",
+"PT-B7": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C1": """\
+Por favor, digite números válidos nos campos!""",
+"PT-C2": """\
+Por favor, digite números válidos nos campos!""",
+"PT-C3": """\
+Por favor, digite números válidos nos campos!""",
+"PT-C4": """\
+Erro: Informe a área de parede ou a área de teto.""",
+"PT-C5": """\
+Erro: As áreas não podem ser negativas.""",
+"PT-C6": """\
+Erro: Demãos e rendimento devem ser maiores que zero.""",
+"PT-C7": """\
+Erro: Demãos e rendimento devem ser maiores que zero.""",
+"PT-C8": """\
+Por favor, digite números válidos nos campos!""",
+"PT-C9": """\
+Parede: 1,000.00 sq ft
+Demãos: 5
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 13.7 gal = 2 baldes de 5 gal e 4 galões de 1 gal ($ 501.92)
+
+Custo Estimado da Etapa: $ 501.92""",
+"PT-C10": """\
+[JANELA] 6 demãos: o limite é 5 (normalmente são 2 ou 3).
+Parede: 1,000.00 sq ft
+Demãos: 6
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 16.5 gal = 3 baldes de 5 gal e 2 galões de 1 gal ($ 612.96)
+
+Custo Estimado da Etapa: $ 612.96""",
+"PT-C11": """\
+[JANELA] 22 demãos: o limite é 5 (normalmente são 2 ou 3).
+Parede: 1,000.00 sq ft
+Demãos: 22
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 60.5 gal = 12 baldes de 5 gal e 1 galão de 1 gal ($ 2,206.98)
+
+Custo Estimado da Etapa: $ 2,206.98""",
+"PT-C12": """\
+Parede: 1,000.50 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C13": """\
+Parede: 1,000.50 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C14": """\
+Parede: 1,000.50 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C15": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C16": """\
+Erro: Demãos e rendimento devem ser maiores que zero.""",
+"PT-C17": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 5.5 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C18-cancelar": """\
+[JANELA] Rendimento de 12 sq ft/gal: o normal é de 150 sq ft/gal a 800 sq ft/gal.
+[Cancelar] não calculou""",
+"PT-C18-continuar": """\
+[JANELA] Rendimento de 12 sq ft/gal: o normal é de 150 sq ft/gal a 800 sq ft/gal.
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 12 sq ft/gal
+• Tinta de parede (com 10% de perda): 183.3 gal = 36 baldes de 5 gal e 4 galões de 1 gal ($ 6,655.92)
+
+Custo Estimado da Etapa: $ 6,655.92""",
+"PT-C19": """\
+[JANELA] Rendimento de 900 sq ft/gal: o normal é de 150 sq ft/gal a 800 sq ft/gal.
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 900 sq ft/gal
+• Tinta de parede (com 10% de perda): 2.5 gal = 3 galões de 1 gal ($ 104.94)
+
+Custo Estimado da Etapa: $ 104.94""",
+"PT-C20": """\
+Erro: A perda não pode ser negativa.""",
+"PT-C21": """\
+Parede: 1,000.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 2.5% de perda): 5.1 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 215.98)
+
+Custo Estimado da Etapa: $ 215.98""",
+"PT-C22": """\
+Por favor, digite números válidos nos campos!""",
+"PT-C23": """\
+Parede: 53,820.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 296.0 gal = 59 baldes de 5 gal e 2 galões de 1 gal ($ 10,748.96)
+
+Custo Estimado da Etapa: $ 10,748.96""",
+"PT-C24": """\
+[JANELA] Área de parede de 53,821 sq ft: o limite é 53,820 sq ft.
+Parede: 53,821.00 sq ft
+Demãos: 2
+Rendimento: 400 sq ft/gal
+• Tinta de parede (com 10% de perda): 296.0 gal = 59 baldes de 5 gal e 2 galões de 1 gal ($ 10,748.96)
+
+Custo Estimado da Etapa: $ 10,748.96""",
+"BA-A": """\
+Traço: 1:3:3
+Volume Total (com 8% de perda): 3.398 m³
+• Cimento: 22 sacos de 50 kg ($ 264.00)
+• Areia: 2.18 m³ ($ 98.10)
+• Brita: 2.18 m³ ($ 87.20)
+• Ferro 12.5 mm: 133.4 kg (12 barras de 12 m) (inclui 4.00 m de emendas)
+• Estribos 5 mm c/ 6 in: 38.3 kg (21 barras de 12 m)
+• Aço/Ferragem: 171.7 kg ($ 429.25)
+• Arame recozido: 3.4 kg ($ 51.45)
+• Impermeabilizante: 350.0 sq ft · 6.9 gal = 1 balde de 5 gal e 3 galões de 1 gal ($ 65.18)
+• Mão de Obra: 100.0 ft ($ 800.00)
+
+Custo Estimado da Etapa: $ 1,795.18""",
+"BA-B": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+
+Custo Estimado da Etapa: $ 113.60""",
+"BA-B2": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+• Impermeabilizante: 106.7 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
+
+Custo Estimado da Etapa: $ 138.83""",
+"BA-B3": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 1.487 m³
+• Cimento: 12 sacos de 50 kg ($ 144.00)
+• Areia: 0.74 m³ ($ 33.30)
+• Brita: 1.11 m³ ($ 44.40)
+• Impermeabilizante: 200.0 sq ft · 3.9 gal = 4 galões de 1 gal ($ 33.64)
+
+Custo Estimado da Etapa: $ 255.34""",
+"BA-B4": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 1.586 m³
+• Cimento: 12 sacos de 50 kg ($ 144.00)
+• Areia: 0.79 m³ ($ 35.55)
+• Brita: 1.19 m³ ($ 47.60)
+• Impermeabilizante: 213.3 sq ft · 4.2 gal = 1 balde de 5 gal ($ 39.95)
+
+Custo Estimado da Etapa: $ 267.10""",
+"BA-B5": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 1.982 m³
+• Cimento: 15 sacos de 50 kg ($ 180.00)
+• Areia: 0.99 m³ ($ 44.55)
+• Brita: 1.49 m³ ($ 59.60)
+• Impermeabilizante: 266.6 sq ft · 5.2 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 48.36)
+
+Custo Estimado da Etapa: $ 332.51""",
+"BA-B6": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
+• Estribos 5 mm c/ 8 in: 8.5 kg (5 barras de 12 m)
+• Aço/Ferragem: 30.3 kg ($ 75.72)
+• Arame recozido: 0.6 kg ($ 9.15)
+
+Custo Estimado da Etapa: $ 198.47""",
+"BA-B7": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+• Mão de Obra: 40.0 ft ($ 320.00)
+
+Custo Estimado da Etapa: $ 433.60""",
+"BA-C1": """\
+Por favor, digite números válidos nos campos!""",
+"BA-C2": """\
+Por favor, digite números válidos nos campos!""",
+"BA-C3": """\
+Erro: Comprimento, largura e altura devem ser maiores que zero.""",
+"BA-C4": """\
+Erro: Comprimento, largura e altura devem ser maiores que zero.""",
+"BA-C5": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.803 m³
+• Cimento: 7 sacos de 50 kg ($ 84.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.60 m³ ($ 24.00)
+• Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
+
+Custo Estimado da Etapa: $ 151.23""",
+"BA-C6": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.803 m³
+• Cimento: 7 sacos de 50 kg ($ 84.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.60 m³ ($ 24.00)
+• Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
+
+Custo Estimado da Etapa: $ 151.23""",
+"BA-C7": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.803 m³
+• Cimento: 7 sacos de 50 kg ($ 84.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.60 m³ ($ 24.00)
+• Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
+
+Custo Estimado da Etapa: $ 151.23""",
+"BA-C8": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 29.733 m³
+• Cimento: 223 sacos de 50 kg ($ 2,676.00)
+• Areia: 14.87 m³ ($ 669.15)
+• Brita: 22.30 m³ ($ 892.00)
+• Impermeabilizante: 4,000.0 sq ft · 78.5 gal = 16 baldes de 5 gal e 3 galões de 1 gal ($ 664.43)
+
+Custo Estimado da Etapa: $ 4,901.58""",
+"BA-C9": """\
+Erro: A perda não pode ser negativa.""",
+"BA-C10": """\
+Traço: 1:2:3
+Volume Total (com 2.5% de perda): 0.774 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.39 m³ ($ 17.55)
+• Brita: 0.58 m³ ($ 23.20)
+
+Custo Estimado da Etapa: $ 112.75""",
+"BA-C11-cancelar": """\
+[JANELA] Viga de 7 in x 12 in: o mínimo é 8 in de largura e 12 in de altura.
+[Cancelar] não calculou""",
+"BA-C11-continuar": """\
+[JANELA] Viga de 7 in x 12 in: o mínimo é 8 in de largura e 12 in de altura.
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.694 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.35 m³ ($ 15.75)
+• Brita: 0.52 m³ ($ 20.80)
+
+Custo Estimado da Etapa: $ 108.55""",
+"BA-C12": """\
+[JANELA] Viga de 7 7/8 in x 11 7/8 in: o mínimo é 8 in de largura e 12 in de altura.
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.772 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.39 m³ ($ 17.55)
+• Brita: 0.58 m³ ($ 23.20)
+
+Custo Estimado da Etapa: $ 112.75""",
+"BA-C13": """\
+[JANELA] Viga de 0.2 in x 0.3 in: o mínimo é 8 in de largura e 12 in de altura.
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.000 m³
+• Cimento: 1 saco de 50 kg ($ 12.00)
+
+Custo Estimado da Etapa: $ 12.00""",
+"BA-C14": """\
+Erro: Barras e espaçamento dos estribos não podem ser negativos.""",
+"BA-C15": """\
+Por favor, digite números válidos nos campos!""",
+"BA-C16": """\
+Por favor, digite números válidos nos campos!""",
+"BA-C17": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
+• Aço/Ferragem: 21.8 kg ($ 54.38)
+• Arame recozido: 0.4 kg ($ 6.45)
+
+Custo Estimado da Etapa: $ 174.43""",
+"BA-C18": """\
+Traço: 1:2:3
+Volume Total (com 5% de perda): 0.793 m³
+• Cimento: 6 sacos de 50 kg ($ 72.00)
+• Areia: 0.40 m³ ($ 18.00)
+• Brita: 0.59 m³ ($ 23.60)
+• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
+• Estribos 5 mm c/ 4 1/2 in: 15.0 kg (9 barras de 12 m)
+• Aço/Ferragem: 36.7 kg ($ 91.80)
+• Arame recozido: 0.7 kg ($ 10.95)
+
+Custo Estimado da Etapa: $ 216.35""",
+"BA-C19": """\
+Por favor, digite números válidos nos campos!""",
+"BA-C20": """\
+[JANELA] Viga de 1 1/2 in x 12 in: o mínimo é 8 in de largura e 12 in de altura.
+Erro: Viga muito pequena para colocar estribos.""",
+}
 
 
 if __name__ == "__main__":

@@ -19,6 +19,11 @@ AREA_MAXIMA_PINTURA_M2 = 5000.0  # parede e teto, cada um
 
 # Rendimento da tinta: m² pintados com 1 litro, em UMA demão (CONFIRMADO pelo engenheiro em Oct 27, 2026)
 RENDIMENTO_PADRAO_M2_L = 12.0
+# Limites com aviso do rendimento (regra 12): fora deles, a janela "Confira os valores", com Continuar.
+# Criados pelo Leo e aprovados pela Gabi em Nov 5, 2026 (o engenheiro ainda vai conferir).
+# Pegam, por exemplo, quem digita 12 (o número do Brasil) com o país EUA, ou 400 com o país Brasil.
+RENDIMENTO_MINIMO_M2_L = 4.0    # Brasil
+RENDIMENTO_MAXIMO_M2_L = 20.0
 
 # --- Embalagens de tinta, selador, fundo e primer: (embalagem grande, embalagem pequena), em litros ---
 # Brasil: lata de 18 L e galão de 3,6 L. EUA: balde de 5 gal e galão de 1 gal (Behr).
@@ -43,6 +48,9 @@ BALDE_MASSA_KG = 25.0
 # --- EUA ---
 # Rendimento da tinta: 400 sq ft por galão em uma demão (Behr: "até 400"; Sherwin-Williams: 350 a 400).
 RENDIMENTO_PADRAO_EUA_SQFT_GAL = 400
+# Limites com aviso do rendimento nos EUA (aprovados pela Gabi em Nov 5, 2026)
+RENDIMENTO_MINIMO_EUA_SQFT_GAL = 150
+RENDIMENTO_MAXIMO_EUA_SQFT_GAL = 800
 # Nos EUA, selador e fundo preparador viram um produto só, o primer: 400 sq ft por galão
 # (Sherwin-Williams: 400 a 450; o app usa o menor). Massa corrida não é comum (parede de drywall).
 # O primer usa a mesma escolha "fundo" da tela, com o nome Primer.
@@ -73,6 +81,14 @@ def rendimento_padrao_m2_l(sistema: str = METRICO) -> float:
     if sistema == IMPERIAL:
         return para_metrico(RENDIMENTO_PADRAO_EUA_SQFT_GAL, "rendimento", IMPERIAL)
     return RENDIMENTO_PADRAO_M2_L
+
+
+def limites_rendimento_m2_l(sistema: str = METRICO):
+    """(mínimo, máximo) do rendimento em m²/L. Nos EUA, os 150 e 800 sq ft/gal convertidos."""
+    if sistema == IMPERIAL:
+        return (para_metrico(RENDIMENTO_MINIMO_EUA_SQFT_GAL, "rendimento", IMPERIAL),
+                para_metrico(RENDIMENTO_MAXIMO_EUA_SQFT_GAL, "rendimento", IMPERIAL))
+    return RENDIMENTO_MINIMO_M2_L, RENDIMENTO_MAXIMO_M2_L
 
 
 def latas_e_galoes(litros: float, sistema: str = METRICO):

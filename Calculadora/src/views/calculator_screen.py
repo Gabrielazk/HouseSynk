@@ -139,6 +139,7 @@ from src.calculators.pintura import (
     PRECO_BALDE_MASSA,
     RENDIMENTO_PADRAO_EUA_SQFT_GAL,
     rendimento_padrao_m2_l,
+    limites_rendimento_m2_l,
     AREA_MAXIMA_PINTURA_M2,
 )
 from src.calculators.esquadrias import (
@@ -2808,19 +2809,22 @@ class CalculatorScreen(MDScreen):
         parede = self._numero(parede_txt, 0.0)
         teto = self._numero(teto_txt, 0.0)
         demaos = int(demaos_txt)
-        # Limites com aviso (pintura.py). Demãos acima de 5 (ex.: "22" no lugar de "2") eram erro;
-        # agora abrem a janela com Continuar, igual às outras abas (regra 12)
-        avisos = []
-        self._aviso_maximo(avisos, "aviso_area_parede_max", parede, AREA_MAXIMA_PINTURA_M2, "area")
-        self._aviso_maximo(avisos, "aviso_area_teto_max", teto, AREA_MAXIMA_PINTURA_M2, "area")
-        self._aviso_maximo(avisos, "aviso_demaos_max", demaos, DEMAOS_MAXIMO)
-        pendentes = self._avisos_pendentes("pintura", avisos)
-        if pendentes:
-            return pendentes
         sistema = sistema_unidades()
         eua = (sistema == IMPERIAL)
         # Rendimento vazio: o padrão do país (12 m²/L no Brasil; 400 sq ft/gal nos EUA)
         rend = self._numero(e.get("rend"), rendimento_padrao_m2_l(sistema))
+        # Limites com aviso (pintura.py). Demãos acima de 5 (ex.: "22" no lugar de "2") eram erro;
+        # agora abrem a janela com Continuar, igual às outras abas (regra 12).
+        # Rendimento: 4 a 20 m²/L no Brasil; 150 a 800 sq ft/gal nos EUA (rodada 3, P8)
+        rend_min, rend_max = limites_rendimento_m2_l(sistema)
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_parede_max", parede, AREA_MAXIMA_PINTURA_M2, "area")
+        self._aviso_maximo(avisos, "aviso_area_teto_max", teto, AREA_MAXIMA_PINTURA_M2, "area")
+        self._aviso_maximo(avisos, "aviso_demaos_max", demaos, DEMAOS_MAXIMO)
+        self._aviso_faixa(avisos, "aviso_rendimento", rend, rend_min, rend_max, "rendimento")
+        pendentes = self._avisos_pendentes("pintura", avisos)
+        if pendentes:
+            return pendentes
         perda = self._numero(e.get("perda"), PERDA_PADRAO_PINTURA)
         # Nos EUA não existem selador nem massa (a tela nem mostra; aqui garante que não entram)
         selador = False if eua else self.selador["pintura"]

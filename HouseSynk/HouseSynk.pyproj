@@ -8,8 +8,8 @@
     <SearchPath>.</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Calculadora</Name>
-    <RootNamespace>Calculadora</RootNamespace>
+    <Name>HouseSynk</Name>
+    <RootNamespace>HouseSynk</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|env311|$(MSBuildProjectFullPath)</InterpreterId>
@@ -25,7 +25,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Calculadora.py" />
     <Compile Include="main.py" />
     <Compile Include="src\calculators\baldrame.py" />
     <Compile Include="src\calculators\brocas.py" />

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Calculadora/assets/logo.png" alt="HouseSynk" width="120">
+  <img src="HouseSynk/assets/logo.png" alt="HouseSynk" width="120">
 </p>
 
 <h1 align="center">HouseSynk</h1>
@@ -153,7 +153,7 @@ O app está sendo preparado para a **App Store**.
 ```bash
 # 1. Baixe o projeto
 git clone https://github.com/Gabrielazk/HouseSynk.git
-cd HouseSynk/Calculadora
+cd HouseSynk/HouseSynk
 
 # 2. (Opcional) crie um ambiente virtual (Python 3.11)
 python -m venv .venv
@@ -174,7 +174,7 @@ O PDF é salvo na pasta **Downloads**.
 ## 📁 Estrutura do projeto
 
 ```
-Calculadora/
+HouseSynk/
 ├── main.py                  # inicia o app
 ├── requirements.txt
 ├── assets/                  # logo, ícone do app e fonte do PDF
@@ -218,4 +218,4 @@ Os valores são **estimativas** e não substituem o projeto de um engenheiro ou 
 
 © 2026 Gabriela Salviatto. Todos os direitos reservados.
 
-A fonte usada no PDF (Liberation Sans) é distribuída sob a licença SIL Open Font License; o texto da licença está em `Calculadora/assets/fonts`.
+A fonte usada no PDF (Liberation Sans) é distribuída sob a licença SIL Open Font License; o texto da licença está em `HouseSynk/assets/fonts`.

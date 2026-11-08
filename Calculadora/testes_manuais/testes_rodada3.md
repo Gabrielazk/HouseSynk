@@ -1,6 +1,6 @@
 # Testes da Rodada 3 (EUA, português): Piso, Azulejo, Rejunte, Pintura e Baldrame (impermeabilização)
 
-Criado em 05/11/2026. **Rodada fechada em 06/11/2026:** as 9 pendências (P1 a P9) foram corrigidas, os 162 casos deram OK no rodada3.py e a Gabi conferiu o visual no app. O esperado completo agora fica dentro do rodada3.py (ESPERADO) e entra no pytest pelo tests\rodadas\test_rodada3.py. **A versão principal fica no PC da Gabi** (C:\Calc\Calculadora\testes_manuais\testes_rodada3.md).
+Criado em 05/11/2026. **Rodada fechada em 06/11/2026:** as 9 pendências (P1 a P9) foram corrigidas, os 162 casos deram OK no rodada3.py e a Gabi conferiu o visual no app. O esperado completo agora fica dentro do rodada3.py (ESPERADO) e entra no pytest pelo tests\rodadas\test_rodada3.py. **A versão principal fica no PC da Gabi** (testes_manuais\testes_rodada3.md, na pasta do app).
 
 Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho do botão Calcular), com o país trocado pelo próprio `alternar_pais` das Configurações (EUA, estado NY, `$`, ponto decimal e preços dos EUA) e o app em português. **O esperado é o que o app DEVE mostrar** (decisão da Gabi, 05/11/2026): durante a rodada, os casos das pendências ficaram marcados com ⚠️ e davam DIFERENTE até a correção (as marcas foram tiradas no fechamento, em 06/11/2026). Antes de montar este arquivo, o Leo aplicou as correções propostas numa cópia do código, fora do PC, só para tirar os números: com elas, o rodada1.py e o rodada2.py continuaram com 353 OK cada (o Brasil não muda).
 

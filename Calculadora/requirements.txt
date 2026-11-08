@@ -1,4 +1,4 @@
-# Calculadora de Obras - bibliotecas do app
+# HouseSynk - bibliotecas do app
 # Instalar (dentro do .venv):  pip install -r requirements.txt
 
 kivy==2.3.1

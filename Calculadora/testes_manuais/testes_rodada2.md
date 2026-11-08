@@ -1,6 +1,6 @@
 # Testes da Rodada 2 (Brasil, inglês): Brocas até Esquadrias
 
-Criado em 04/11/2026. **A versão principal fica no PC da Gabi** (C:\Calc\Calculadora\testes_manuais\testes_rodada2.md).
+Criado em 04/11/2026. **A versão principal fica no PC da Gabi** (testes_manuais\testes_rodada2.md, na pasta do app).
 
 As contas são as mesmas da rodada 1: o que muda é o idioma. Todos os resultados abaixo foram tirados rodando o código real (com a parte 0 já colada), com o app em inglês e os mesmos preços iniciais da rodada 1. O roteiro (o que digitar) é o mesmo da rodada 1; o que você confere agora é o **texto em inglês**.
 

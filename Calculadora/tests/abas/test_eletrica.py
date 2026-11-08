@@ -5,7 +5,7 @@ e confere os resultados (assert). Os erros conferem a mensagem certa, sem travar
 Os limites com aviso (janela "Confira os valores") ficam na tela, não na conta: eles são
 testados no test_rodada1.py.
 
-Rodar (na pasta C:\\Calc\\Calculadora):
+Rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\\Scripts\\python.exe -B -m pytest tests\\abas\\test_eletrica.py -v
 """
 

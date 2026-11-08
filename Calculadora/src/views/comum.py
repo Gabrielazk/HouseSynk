@@ -8,7 +8,7 @@ from src.models.material import TabelaPrecos
 from src.calculators.unidades import METRICO, IMPERIAL, arredondar
 from src.views.textos_eua import TEXTOS_EUA
 
-# Imagens do app (pasta Calculadora/assets). O caminho é montado a partir deste arquivo,
+# Imagens do app (pasta assets, ao lado do main.py). O caminho é montado a partir deste arquivo,
 # então funciona de qualquer pasta de onde o app for aberto.
 PASTA_APP = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOGO_APP = os.path.join(PASTA_APP, "assets", "logo.png")          # logo com cantos arredondados (telas, janela e PDF)

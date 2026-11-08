@@ -152,8 +152,8 @@ O app está sendo preparado para a **App Store**.
 
 ```bash
 # 1. Baixe o projeto
-git clone https://github.com/Gabrielazk/BuildCalc.git
-cd BuildCalc/Calculadora
+git clone https://github.com/Gabrielazk/HouseSynk.git
+cd HouseSynk/Calculadora
 
 # 2. (Opcional) crie um ambiente virtual (Python 3.11)
 python -m venv .venv

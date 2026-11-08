@@ -4,7 +4,7 @@ Os dois primeiros testes foram escritos pela Gabi (04/11/2026), o primeiro teste
 Os outros completam: todos os resultados (volume, cimento, areia e brita), os 4 traços, números
 quebrados e as mensagens de erro. Os resultados batem com o testes_rodada1.md (Contrapiso).
 
-Rodar (na pasta C:\\Calc\\Calculadora):
+Rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\\Scripts\\python.exe -B -m pytest tests\\abas\\test_contrapiso.py -v
 """
 import pytest

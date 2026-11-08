@@ -13,7 +13,7 @@ rodada 1 (em português) dariam erro. Por isso:
   2. a fixture "app_em_ingles" liga o inglês só durante cada caso da rodada 2, e o pytest
      volta o idioma como estava no fim de cada caso (é o que o monkeypatch faz).
 
-Como rodar (no terminal, na pasta C:\\Calc\\Calculadora):
+Como rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\\Scripts\\python.exe -B -m pytest                          -> todos os testes
   env311\\Scripts\\python.exe -B -m pytest tests\\rodadas\\test_rodada2.py    -> só a rodada 2
   env311\\Scripts\\python.exe -B -m pytest -k "rodada2 and CP-"     -> só o Contrapiso da rodada 2
@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pytest
 
-# Pasta Calculadora (este arquivo fica em Calculadora/tests/rodadas/, por isso 3 vezes o .parent)
+# Pasta do app (este arquivo fica em tests/rodadas/, dentro dela, por isso 3 vezes o .parent)
 PASTA_APP = Path(__file__).resolve().parent.parent.parent
 
 # Carrega o testes_manuais/rodada2.py como um módulo (ele não é um pacote, então o import normal não acha)

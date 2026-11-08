@@ -131,7 +131,7 @@ def texto_polegadas(valor, aproximar=False, divisao=16):
 
 
 if __name__ == "__main__":
-    # Teste rápido: dentro da pasta Calculadora, rode
+    # Teste rápido: dentro da pasta do app (a que tem o main.py), rode
     #   py -m src.calculators.unidades
     print("10 ft em metros:", round(para_metrico(10, "comprimento", IMPERIAL), 4))   # 3.048
     print("1 m³ em cu yd:", round(do_metrico(1, "volume", IMPERIAL), 3))             # 1.308

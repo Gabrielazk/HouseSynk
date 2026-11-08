@@ -4,7 +4,7 @@ Este arquivo não repete os casos: ele LÊ o rodada1.py (a lista CASOS, o result
 rodar) e transforma cada caso num teste do pytest. Assim existe um lugar só para manter: se um resultado
 esperado mudar de propósito, muda no rodada1.py (e no testes_rodada1.md), e o pytest já usa o novo.
 
-Como rodar (no terminal, na pasta C:\\Calc\\Calculadora):
+Como rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\\Scripts\\python.exe -B -m pytest                 -> todos os testes
   env311\\Scripts\\python.exe -B -m pytest -k CP-          -> só os casos que têm "CP-" no nome (Contrapiso)
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-# Pasta Calculadora (este arquivo fica em Calculadora/tests/rodadas/, por isso 3 vezes o .parent)
+# Pasta do app (este arquivo fica em tests/rodadas/, dentro dela, por isso 3 vezes o .parent)
 PASTA_APP = Path(__file__).resolve().parent.parent.parent
 
 # Carrega o testes_manuais/rodada1.py como um módulo (ele não é um pacote, então o import normal não acha)

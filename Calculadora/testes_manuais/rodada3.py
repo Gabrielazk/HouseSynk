@@ -16,7 +16,7 @@ testes_rodada3.md e a Gabi conferiu o visual no app. Só depois disso a saída d
 ESPERADO completo aqui dentro, com o texto inteiro dos 162 casos (versão principal: a do PC). O
 tests\rodadas\test_rodada3.py leva estes casos para o pytest.
 
-Como rodar (no terminal, na pasta do projeto: C:\Calc\Calculadora ou C:\Calculadora\Calculadora):
+Como rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\Scripts\python.exe -B testes_manuais\rodada3.py           -> todos os casos
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI-        -> só uma aba (prefixo: PI-, AZ-, RJ-, PT-, BA-)
   env311\Scripts\python.exe -B testes_manuais\rodada3.py PI- --ver  -> mostra também o resultado de cada caso

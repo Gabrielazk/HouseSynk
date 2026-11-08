@@ -32,7 +32,7 @@ def grandes_e_pequenas(quantidade, grande, pequena=None):
 
 
 if __name__ == "__main__":
-    # Teste rápido: dentro da pasta Calculadora, rode
+    # Teste rápido: dentro da pasta do app (a que tem o main.py), rode
     #   py -m src.calculators.embalagens
     print("20 L em latas de 18 L e galões de 3,6 L:", grandes_e_pequenas(20, 18, 3.6))   # (1, 1)
     print("34 L:", grandes_e_pequenas(34, 18, 3.6))                                      # (2, 0): 5 galões viram 1 lata

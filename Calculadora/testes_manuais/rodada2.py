@@ -11,7 +11,7 @@ Mudado em 05/11/2026 (passo 2 do fim da rodada 2): as 17 pendências foram corri
 353 OK com o testes_rodada2.md e a Gabi conferiu o visual no app. Só depois disso a saída do app (já
 aprovada) virou o ESPERADO completo aqui dentro, com o texto inteiro dos 353 casos (versão principal: a do PC).
 
-Como rodar (no terminal, na pasta do projeto: C:\Calc\Calculadora ou C:\Calculadora\Calculadora):
+Como rodar (no terminal, na pasta do app, a que tem o main.py):
   env311\Scripts\python.exe -B testes_manuais\rodada2.py           -> todos os casos
   env311\Scripts\python.exe -B testes_manuais\rodada2.py BR-        -> só uma aba (prefixo: BR-, BA-, PA-...)
   env311\Scripts\python.exe -B testes_manuais\rodada2.py BR- --ver  -> mostra também o resultado de cada caso

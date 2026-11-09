@@ -189,6 +189,8 @@ TEXTOS = {
         "loja_hidraulica": "HIDRÁULICA",
         "loja_esquadrias": "ESQUADRIAS (para cotação)",
         "lbl_resumo_vazio": "Nenhum cálculo finalizado ainda.",
+        # Aba preenchida que não existe no país (ex.: Contrapiso nos EUA), Nov 9, 2026
+        "resumo_abas_fora": "Atenção: {abas} ficou fora deste orçamento, porque essa aba não existe no país escolhido.",
         "btn_novo_calc": "<- Voltar aos Cálculos",
         "btn_pdf": "Gerar / Exportar PDF",
         "btn_editar": "Editar Cálculos",
@@ -679,6 +681,7 @@ TEXTOS = {
         "loja_hidraulica": "PLUMBING",
         "loja_esquadrias": "DOORS & WINDOWS (for quotes)",
         "lbl_resumo_vazio": "No calculation finalized yet.",
+        "resumo_abas_fora": "Note: {abas} was left out of this estimate, because this tab is not used in the selected country.",
         "btn_novo_calc": "<- Back to Calculations",
         "btn_pdf": "Export / Share PDF",
         "btn_editar": "Edit Calculations",

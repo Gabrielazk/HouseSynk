@@ -36,6 +36,9 @@ class SummaryScreen(MDScreen):
         self.dialog_salvar = None
         self.modo = "orcamento"  # "orcamento" ou "lista" (botões no topo)
         self.origem = "calculator"  # tela para onde o Voltar leva ("calculator" ou "history")
+        # Abas preenchidas que ficaram fora porque não existem no país (ex.: Contrapiso nos EUA).
+        # Quem preenche é o Finalizar das abas (calculator_screen.py).
+        self.abas_fora_do_pais = []
         
         layout_main = MDBoxLayout(orientation="vertical", padding="16dp", spacing="12dp")
         
@@ -305,6 +308,7 @@ class SummaryScreen(MDScreen):
         total_geral = subtotal_materiais + subtotal_mo
 
         texto = self._topo(txt("resumo_titulo"))
+        texto += self._aviso_abas_fora()
         texto += f"{txt('resumo_etapas')}:\n"
         for idx, item in enumerate(ORCAMENTO_FINAL, 1):
             texto += f"\n[{idx}] {item['etapa']}\n{item['resumo_texto']}\n"
@@ -325,9 +329,18 @@ class SummaryScreen(MDScreen):
         texto += txt("aviso_estimativa")
         return texto
 
+    def _aviso_abas_fora(self):
+        """"Atenção: Contrapiso ficou fora deste orçamento..." (só quando alguma aba preenchida
+        não existe no país; ex.: orçamento com Contrapiso aberto com o país nos EUA)."""
+        if not self.abas_fora_do_pais:
+            return ""
+        nomes = ", ".join(txt(f"aba_{aba}") for aba in self.abas_fora_do_pais)
+        return f"{txt('resumo_abas_fora').format(abas=nomes)}\n\n"
+
     def texto_lista_compras(self):
         """Materiais de todas as abas somados e separados por loja."""
         texto = self._topo(txt("lista_titulo"))
+        texto += self._aviso_abas_fora()
         for grupo, linhas in montar_lista_compras(ORCAMENTO_FINAL):
             texto += f"{txt('loja_' + grupo)}\n"
             texto += "".join(f"• {linha}\n" for linha in linhas)

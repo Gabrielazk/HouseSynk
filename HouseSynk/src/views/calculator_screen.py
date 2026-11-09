@@ -24,6 +24,8 @@ from kivymd.uix.dialog import (
 from src.calculators.brocas import (
     PRECO_ARAME_KG,
     calcular_brocas,
+    bitolas_do_pais,
+    BITOLAS_EUA,
     BITOLAS_LONGITUDINAL,
     BITOLA_PADRAO,
     ESPACAMENTO_ESTRIBO_PADRAO_CM,
@@ -233,8 +235,31 @@ ETAPAS = [
     ("instalacoes", ["eletrica", "hidraulica"]),
     ("acabamento", ["contrapiso", "reboco", "piso", "azulejo", "rejunte", "pintura", "esquadrias"]),
 ]
-# Todas as abas em sequência (é a ordem dos botões Anterior / Próximo)
+# Todas as abas em sequência, de todos os países (o Histórico carrega qualquer uma delas).
+# A ordem dos botões Anterior / Próximo é a do país escolhido: abas_ordem().
 ABAS_ORDEM = [aba for _, abas in ETAPAS for aba in abas]
+
+# Abas que só existem no Brasil (decisão da Gabi, Nov 9, 2026): nos EUA o contrapiso de
+# concreto quase não se faz (o piso vai direto sobre a slab ou sobre o OSB).
+# As abas novas só dos EUA (Parte B) vão ter uma lista parecida.
+ABAS_SO_BRASIL = ["contrapiso"]
+
+
+def etapas_do_pais(sistema=None):
+    """As etapas com as abas do país (sistema=None: o país escolhido agora).
+    No Brasil é a ETAPAS inteira; nos EUA, sem as abas de ABAS_SO_BRASIL."""
+    if (sistema or sistema_unidades()) != IMPERIAL:
+        return ETAPAS
+    return [(etapa, [aba for aba in abas if aba not in ABAS_SO_BRASIL]) for etapa, abas in ETAPAS]
+
+
+def abas_ordem(sistema=None):
+    """As abas do país em sequência (a ordem dos botões Anterior / Próximo e do Finalizar)."""
+    return [aba for _, abas in etapas_do_pais(sistema) for aba in abas]
+
+# Abas que já usam o ferro americano nos EUA (bitolas #3, #4 e #5, barras de 20 ft).
+# Parte A da versão EUA: cada aba adaptada entra aqui (o Baldrame entra no próximo passo).
+ABAS_FERRO_EUA = ["brocas"]
 
 
 def etapa_da_aba(aba):
@@ -323,7 +348,7 @@ class CalculatorScreen(MDScreen):
         self.traco = {"brocas": TRACO_CONCRETO_PADRAO, "baldrame": TRACO_CONCRETO_PADRAO, "paredes": TRACO_MASSA_PADRAO, "contrapiso": TRACO_PADRAO_CONTRAPISO, "reboco": TRACO_MASSA_PADRAO, "laje": TRACO_CONCRETO_PADRAO}
         self.tijolo = {"paredes": TIJOLO_PADRAO}
         self.assent = {"paredes": ASSENTAMENTO_PADRAO}
-        self.bitola = {"brocas": BITOLA_PADRAO, "baldrame": BITOLA_PADRAO}
+        self.bitola = {"brocas": self._bitolas_aba("brocas")[1], "baldrame": self._bitolas_aba("baldrame")[1]}
         self.imperm = {"baldrame": False}
         self.dois_lados = {"reboco": False}
         self.chapisco = {"reboco": False}
@@ -370,8 +395,23 @@ class CalculatorScreen(MDScreen):
         self._capturar_estado()  # guarda o texto da aba aberta antes de converter
         self._converter_estado_abas(self._sistema_estado, sistema)
         self._trocar_argamassa_de_pais(sistema)
+        self._trocar_bitola_de_pais(sistema)
         self._sistema_estado = sistema
         self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi convertido
+
+    def _trocar_bitola_de_pais(self, sistema):
+        """Cada país tem as suas bitolas de ferro. Ao trocar de país, troca pela mais parecida:
+        6,3, 8 e 10 mm <-> #3 (3/8 in = 9,5 mm); 12,5 mm <-> #4 (1/2 in); 16 mm <-> #5 (5/8 in).
+        Só nas abas que já usam o ferro americano (ABAS_FERRO_EUA).
+        Se a bitola ainda era o padrão do país antigo (8 mm ou #4), vira o padrão do país novo."""
+        equivalente = {6.3: 9.525, 8.0: 9.525, 10.0: 9.525, 12.5: 12.7, 16.0: 15.875,
+                       9.525: 10.0, 12.7: 12.5, 15.875: 16.0}
+        padrao_antigo = bitolas_do_pais(self._sistema_estado)[1]
+        for aba in ABAS_FERRO_EUA:
+            bitolas, padrao = bitolas_do_pais(sistema)
+            atual = self.bitola.get(aba)
+            nova = padrao if atual == padrao_antigo else equivalente.get(atual)
+            self.bitola[aba] = nova if nova in bitolas else padrao
 
     def _trocar_argamassa_de_pais(self, sistema):
         """Cada país tem os seus tipos de argamassa colante. Ao trocar de país, troca pelo
@@ -430,8 +470,20 @@ class CalculatorScreen(MDScreen):
         self.container_conteudo = MDBoxLayout(orientation="vertical")
         self.layout_principal.add_widget(self.container_conteudo)
 
-        # Reabre a aba que estava ativa (brocas por padrão)
-        self.trocar_aba(self.aba_atual)
+        # Reabre a aba que estava ativa (brocas por padrão). Se ela não existe no país
+        # (ex.: estava no Contrapiso e trocou para EUA), abre a próxima que existe.
+        self.trocar_aba(self._aba_do_pais(self.aba_atual))
+
+    @staticmethod
+    def _aba_do_pais(aba):
+        """A própria aba, se ela existe no país; senão, a próxima que existe (Contrapiso -> Reboco)."""
+        ordem = abas_ordem()
+        if aba in ordem:
+            return aba
+        for seguinte in ABAS_ORDEM[ABAS_ORDEM.index(aba) + 1:] if aba in ABAS_ORDEM else []:
+            if seguinte in ordem:
+                return seguinte
+        return ordem[0]
 
     def atualizar_interface(self):
         self.montar_tela()
@@ -442,8 +494,9 @@ class CalculatorScreen(MDScreen):
     def _atualizar_barras(self):
         indice_etapa, _ = etapa_da_aba(self.aba_atual)
 
+        etapas = etapas_do_pais()
         self.faixa_etapas.clear_widgets()
-        for indice, (etapa, abas) in enumerate(ETAPAS):
+        for indice, (etapa, abas) in enumerate(etapas):
             self.faixa_etapas.add_widget(MDButton(
                 MDButtonText(text=f"{indice + 1}. {txt('etapa_' + etapa)}"),
                 style="filled" if indice == indice_etapa else "outlined",
@@ -452,7 +505,7 @@ class CalculatorScreen(MDScreen):
 
         self.faixa_abas.clear_widgets()
         botao_atual = None
-        for aba in ETAPAS[indice_etapa][1]:
+        for aba in etapas[indice_etapa][1]:
             botao = MDButton(
                 MDButtonText(text=txt(f"aba_{aba}")),
                 style="filled" if aba == self.aba_atual else "outlined",
@@ -826,7 +879,7 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(MDLabel(text=txt("secao_dimensoes"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
         self.in_cer_area = campo(txt("hint_area_piso" if piso else "hint_area_azulejo"))
         box_form.add_widget(self.in_cer_area)
-        if piso and not ro:
+        if piso and not ro and "contrapiso" in abas_ordem():  # nos EUA não tem Contrapiso
             self._montar_dica_contrapiso(box_form)
         self.in_cer_larg = campo(txt("hint_larg_peca"))
         self.in_cer_alt = campo(txt("hint_alt_peca"))
@@ -1260,13 +1313,13 @@ class CalculatorScreen(MDScreen):
             if tipo in ("centimetro", "milimetro"):
                 return f"{texto_polegadas(valor, divisao=CalculatorScreen._divisao_polegada(tipo))} in"
             unidade = {"area": "sq ft", "comprimento": "ft", "peso": "lb", "litro": "gal",
-                       "consumo": "lb/sq ft", "rendimento": "sq ft/gal"}[tipo]
+                       "consumo": "lb/sq ft", "rendimento": "sq ft/gal", "volume": "cu yd"}[tipo]
             return f"{fmt_num(valor, casas)} {unidade}"
         if tipo in ("centimetro", "milimetro"):
             unidade = "cm" if tipo == "centimetro" else "mm"
             return f"{fmt_num(valor_metrico, 0 if float(valor_metrico).is_integer() else 1)} {unidade}"
         unidade = {"area": "m²", "comprimento": "m", "peso": "kg", "litro": "L",
-                   "consumo": "kg/m²", "rendimento": "m²/L"}[tipo]
+                   "consumo": "kg/m²", "rendimento": "m²/L", "volume": "m³"}[tipo]
         return f"{fmt_num(valor_metrico, casas)} {unidade}"
 
     @staticmethod
@@ -1563,22 +1616,24 @@ class CalculatorScreen(MDScreen):
         "Avançar para a próxima etapa" no lugar do Próximo; Finalizar em todas."""
         if self.modo_somente_leitura:
             return
-        posicao = ABAS_ORDEM.index(self.aba_atual)
+        ordem = abas_ordem()
+        etapas = etapas_do_pais()
+        posicao = ordem.index(self.aba_atual)
         indice_etapa, _ = etapa_da_aba(self.aba_atual)
-        abas_etapa = ETAPAS[indice_etapa][1]
+        abas_etapa = etapas[indice_etapa][1]
         ultima_da_etapa = (self.aba_atual == abas_etapa[-1])
-        ultima_etapa = (indice_etapa == len(ETAPAS) - 1)
+        ultima_etapa = (indice_etapa == len(etapas) - 1)
 
         linha = MDBoxLayout(size_hint_y=None, height="48dp", spacing="8dp")
         linha.add_widget(MDWidget())
         self.btn_limpar = MDButton(MDButtonText(text=txt("btn_limpar")), style="outlined", on_release=self.pedir_limpar)
         linha.add_widget(self.btn_limpar)
         if posicao > 0:
-            anterior = ABAS_ORDEM[posicao - 1]
+            anterior = ordem[posicao - 1]
             self.btn_anterior = MDButton(MDButtonText(text=txt("btn_anterior")), style="outlined", on_release=lambda x: self.trocar_aba(anterior))
             linha.add_widget(self.btn_anterior)
         if not ultima_da_etapa:
-            proxima = ABAS_ORDEM[posicao + 1]
+            proxima = ordem[posicao + 1]
             self.btn_proximo = MDButton(MDButtonText(text=txt("btn_proximo")), style="outlined", on_release=lambda x: self.trocar_aba(proxima))
             linha.add_widget(self.btn_proximo)
         linha.add_widget(MDWidget())
@@ -1586,7 +1641,7 @@ class CalculatorScreen(MDScreen):
 
         # Fim da etapa: o botão é maior, então fica numa linha só dele (não cabe ao lado dos outros no celular)
         if ultima_da_etapa and not ultima_etapa:
-            primeira_da_proxima = ETAPAS[indice_etapa + 1][1][0]
+            primeira_da_proxima = etapas[indice_etapa + 1][1][0]
             self.btn_avancar_etapa = MDButton(
                 MDButtonIcon(icon="arrow-right"), MDButtonText(text=txt("btn_avancar_etapa")),
                 style="tonal", pos_hint={"center_x": 0.5},
@@ -1622,7 +1677,7 @@ class CalculatorScreen(MDScreen):
         if aba in self.assent:
             self.assent[aba] = ASSENTAMENTO_PADRAO
         if aba in self.bitola:
-            self.bitola[aba] = BITOLA_PADRAO
+            self.bitola[aba] = self._bitolas_aba(aba)[1]
         if aba in self.imperm:
             self.imperm[aba] = False
         if aba in self.dois_lados:
@@ -1659,6 +1714,9 @@ class CalculatorScreen(MDScreen):
     # ==========================================
     @staticmethod
     def _rotulo_bitola(bitola):
+        """"8 mm", "6,3 mm" no Brasil; "#4" nos EUA (a bitola americana é um número, não mm)."""
+        if bitola in BITOLAS_EUA:
+            return BITOLAS_EUA[bitola]
         if float(bitola).is_integer():
             return f"{int(bitola)} mm"
         return f"{fmt_num(bitola, 1)} mm"
@@ -1742,9 +1800,20 @@ class CalculatorScreen(MDScreen):
             self._botoes_traco[aba].text = self._rotulo_traco(nome)
 
     # --- Bitola do ferro ---
+    @staticmethod
+    def _bitolas_aba(aba):
+        """(bitolas, padrão) da aba no país escolhido. As abas de ABAS_FERRO_EUA usam #3, #4 e #5
+        nos EUA; as outras continuam em mm até serem adaptadas (Parte A da versão EUA)."""
+        if aba in ABAS_FERRO_EUA:
+            return bitolas_do_pais(sistema_unidades())
+        return BITOLAS_LONGITUDINAL, BITOLA_PADRAO
+
     def _montar_seletor_bitola(self, box_form, aba):
+        bitolas, padrao = self._bitolas_aba(aba)
+        if self.bitola[aba] not in bitolas:  # segurança: bitola do outro país
+            self.bitola[aba] = padrao
         self._botoes_bitola[aba] = self._montar_dropdown(
-            box_form, txt("label_bitola"), BITOLAS_LONGITUDINAL, self.bitola[aba],
+            box_form, txt("label_bitola"), bitolas, self.bitola[aba],
             lambda b: self._escolher_bitola(aba, b), rotulo=self._rotulo_bitola
         )
 
@@ -2124,7 +2193,8 @@ class CalculatorScreen(MDScreen):
         num_barras = int(t_barras) if t_barras else 0
         esp_estribo = self._numero(e.get("esp_estribo"), 0.0)
         preco_mo = self._numero(e.get("mo"), 0.0)
-        bitola = self.bitola["brocas"]
+        bitolas, padrao = self._bitolas_aba("brocas")
+        bitola = self.bitola["brocas"] if self.bitola["brocas"] in bitolas else padrao
 
         # Profundidade acima do limite do engenheiro (ex.: 300 no lugar de 3,00): pergunta se quer continuar.
         # O limite é em metros; nos EUA o aviso mostra em ft.
@@ -2136,15 +2206,18 @@ class CalculatorScreen(MDScreen):
         if pendentes:
             return pendentes
 
+        sistema = sistema_unidades()
         res = calcular_brocas(
             quantidade=qtd, profundidade_m=prof, diametro_cm=diam,
             perda_percentual=perda, incluir_ferragem=(num_barras > 0),
             num_barras_longitudinais=num_barras, bitola_mm=bitola,
             preco_mao_obra_metro=preco_mo, traco=self.traco["brocas"],
-            espacamento_estribo_cm=esp_estribo
+            espacamento_estribo_cm=esp_estribo, sistema=sistema
         )
         if "erro" in res:
             return {"erro": self._txt_erro(res['erro'])}
+        if sistema == IMPERIAL:
+            return self._resultado_brocas_eua(res, qtd, prof, diam, perda, num_barras, preco_mo, bitola, esp_estribo)
 
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
         custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
@@ -2193,6 +2266,99 @@ class CalculatorScreen(MDScreen):
             "resumo_texto": texto_res
         }
         return {"texto": texto_res, "resultado": resultado}
+
+    def _resultado_brocas_eua(self, res, qtd, prof, diam, perda, num_barras, preco_mo, bitola, esp_estribo):
+        """Resultado das Brocas nos EUA: a mesma conta, com as embalagens americanas
+        (cimento em sacos de 94 lb, areia e brita em cu yd, ferro em lb e barras de 20 ft,
+        arame em rolos de 3.5 lb). Os preços ainda são os provisórios (passo de preços)."""
+        # Custos: cimento por saco (o preço do país), areia e brita por m³, aço e arame por kg
+        custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
+        custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
+        custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
+        custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if res['incluiu_ferragem'] else 0.0
+        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
+        custo_mo = res['custo_mao_obra']
+        custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_arame
+        custo_total = custo_mat + custo_mo
+
+        texto_res = (
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
+            f"{txt('label_volume')} ({self._txt_perda(res['perda_percentual'])}): {fmt_num(res['volume_com_perda_cuyd'], 2)} cu yd\n"
+            f"{self._linhas_concreto_eua(res, custo_cimento, custo_areia, custo_pedra)}"
+        )
+        if res['incluiu_ferragem']:
+            texto_res += f"{txt('label_gaiola').format(m=fmt_num(res['altura_gaiola_ft'], 2))}\n"
+            barras_l = res['barras_12m_longitudinal']
+            texto_res += (
+                f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
+                f"{fmt_num(res['lb_longitudinal'], 1)} lb ({fmt_int(barras_l)} {self._unidade(barras_l, 'un_barra20ft', 'un_barras20ft')})\n"
+            )
+            if res['incluiu_estribos']:
+                barras_e = res['barras_12m_estribos']
+                texto_res += (
+                    f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
+                    f"{txt('label_estribo_cada')} {self._med_curto(res['espacamento_estribo_cm'], 'centimetro')}: "
+                    f"{fmt_num(res['lb_estribos'], 1)} lb ({fmt_int(barras_e)} {self._unidade(barras_e, 'un_barra20ft', 'un_barras20ft')})\n"
+                )
+            texto_res += f"• {txt('label_aco')}: {fmt_num(res['lb_aco'], 1)} lb ({fmt_moeda(custo_aco)})\n"
+            texto_res += (
+                f"• {txt('label_arame')}: {fmt_num(res['arame_lb'], 1)} lb = "
+                f"{self._texto_rolos_arame(res['rolos_arame'])} ({fmt_moeda(custo_arame)})\n"
+            )
+        if custo_mo > 0:
+            # Os ft digitados voltam em ft: "100.0 ft" (igual ao Baldrame, rodada 3, P6)
+            texto_res += f"• {txt('label_mo')}: {self._med(res['total_metros_escavados'], 'comprimento', 1)} ({fmt_moeda(custo_mo)})\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_total)}"
+
+        ferragem = res['incluiu_ferragem']
+        resultado = {
+            "etapa": txt("secao_brocas"),
+            "tipo": "brocas",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            "inputs": {
+                "qtd": qtd, "prof": prof, "diam": diam, "perda": perda, "barras": num_barras,
+                "mo": preco_mo, "traco": res["traco"], "bitola": bitola, "esp_estribo": esp_estribo
+            },
+            # As chaves do Brasil ficam zeradas: a lista de compras soma as dos EUA separado,
+            # porque são outras embalagens (saco de 94 lb não soma com saco de 50 kg).
+            "cimento": 0, "areia": 0, "pedra": 0, "aco_kg": 0, "barras_12m": 0, "arame_kg": 0,
+            "cimento_94lb": res['sacos_cimento'], "areia_cuyd": res['areia_cuyd'], "pedra_cuyd": res['pedra_cuyd'],
+            "concreto_80lb": res['sacos_concreto_pronto'],
+            "aco_lb": res['lb_aco'] if ferragem else 0.0,
+            "barras_20ft": res['barras_12m'] if ferragem else 0,
+            "arame_lb": res['arame_lb'] if ferragem else 0.0,
+            "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
+            "resumo_texto": texto_res
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _linhas_concreto_eua(self, res, custo_cimento, custo_areia, custo_pedra):
+        """Linhas do concreto nos EUA (cimento em sacos de 94 lb, areia e brita em cu yd) e a
+        alternativa do concreto pronto em sacos de 80 lb. O que dá zero não aparece (regra 14)."""
+        linhas = ""
+        if res['sacos_cimento'] > 0:
+            qtd = res['sacos_cimento']
+            linhas += f"• {txt('label_cimento')}: {fmt_int(qtd)} {self._unidade(qtd, 'un_saco_94', 'un_sacos_94')} ({fmt_moeda(custo_cimento)})\n"
+        if res['areia_cuyd'] > 0:
+            linhas += f"• {txt('label_areia')}: {fmt_num(res['areia_cuyd'], 2)} cu yd ({fmt_moeda(custo_areia)})\n"
+        if res['pedra_cuyd'] > 0:
+            linhas += f"• {txt('label_pedra')}: {fmt_num(res['pedra_cuyd'], 2)} cu yd ({fmt_moeda(custo_pedra)})\n"
+        if res['sacos_concreto_pronto'] > 0:
+            linhas += f"• {self._texto_concreto_pronto(res['sacos_concreto_pronto'])}\n"
+        return linhas
+
+    @staticmethod
+    def _texto_concreto_pronto(sacos):
+        """"Ou concreto pronto: 144 sacos de 80 lb (no lugar de cimento, areia e brita)".
+        É uma alternativa (sem preço e fora do custo): quem compra o pronto não compra os outros três."""
+        unidade = CalculatorScreen._unidade(sacos, 'un_saco_80', 'un_sacos_80', IMPERIAL)
+        return (f"{txt_do_pais('label_concreto_pronto', IMPERIAL)}: {fmt_int(sacos)} {unidade} "
+                f"({txt_do_pais('txt_no_lugar_concreto', IMPERIAL)})")
+
+    @staticmethod
+    def _texto_rolos_arame(rolos):
+        """"1 rolo de 3.5 lb", "2 rolos de 3.5 lb" (arame nos EUA)."""
+        return f"{fmt_int(rolos)} {CalculatorScreen._unidade(rolos, 'un_rolo_arame', 'un_rolos_arame', IMPERIAL)}"
 
     def _calcular_baldrame(self, e):
         if not (e.get("comp") or "").strip() or not (e.get("larg") or "").strip() or not (e.get("alt") or "").strip():
@@ -3215,7 +3381,8 @@ class CalculatorScreen(MDScreen):
             self.assent[aba] = inputs_dict.get("assent") if inputs_dict.get("assent") in ASSENTAMENTOS else ASSENTAMENTO_PADRAO
         if aba in self.bitola:
             bitola = inputs_dict.get("bitola")
-            self.bitola[aba] = bitola if bitola in BITOLAS_LONGITUDINAL else BITOLA_PADRAO
+            bitolas, padrao = self._bitolas_aba(aba)
+            self.bitola[aba] = bitola if bitola in bitolas else padrao
         if aba in self.imperm:
             self.imperm[aba] = bool(inputs_dict.get("imperm"))
         if aba in self.dois_lados:
@@ -3268,7 +3435,7 @@ class CalculatorScreen(MDScreen):
         """Soma todas as abas preenchidas (aba em branco é ignorada) e abre o Resumo."""
         self._capturar_estado()
         itens = []
-        for aba in ABAS_ORDEM:
+        for aba in abas_ordem():  # aba que não existe no país (ex.: Contrapiso nos EUA) fica de fora
             estado = self.estado_abas.get(aba) or {}
             if not self._aba_iniciada(aba, estado):
                 continue
@@ -3294,5 +3461,10 @@ class CalculatorScreen(MDScreen):
         ORCAMENTO_FINAL.extend(itens)
         summary_screen = self.manager.get_screen("summary")
         summary_screen.origem = "calculator"  # o Voltar do Resumo volta para as abas
+        # Aba preenchida que não existe no país (ex.: Contrapiso nos EUA): o Resumo avisa que ficou fora
+        summary_screen.abas_fora_do_pais = [
+            aba for aba in ABAS_ORDEM
+            if aba not in abas_ordem() and self._aba_iniciada(aba, self.estado_abas.get(aba) or {})
+        ]
         summary_screen.atualizar_resumo()
         self.manager.current = "summary"

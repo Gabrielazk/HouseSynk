@@ -6,8 +6,9 @@ from datetime import datetime
 
 from src.calculators.hidraulica import BARRA_TUBO_M
 from src.calculators.baldrame import EMBALAGENS_IMPERM_L
+from src.calculators.brocas import rolos_arame_eua
 from src.calculators.embalagens import grandes_e_pequenas
-from src.calculators.unidades import METRICO, IMPERIAL, do_metrico
+from src.calculators.unidades import METRICO, IMPERIAL, KG_POR_LB, do_metrico
 from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_int, fmt_moeda
 from src.calculators.reserva import calcular_reserva
 from src.views.calculator_screen import CalculatorScreen, txt_do_pais
@@ -41,6 +42,36 @@ def _sistema(item):
     """País em que a aba foi calculada. Orçamento antigo (de antes da versão EUA) não tem
     essa informação e foi feito no Brasil: métrico."""
     return item.get("sistema", METRICO)
+
+
+def _linhas_concreto_ferro_eua(itens, basico):
+    """Concreto, ferro e arame das abas já adaptadas aos EUA (hoje, as Brocas), com as embalagens
+    de lá e os mesmos textos da aba (regra 17). Ficam separados dos do Brasil porque são outras
+    embalagens: saco de 94 lb não soma com saco de 50 kg, e barra de 20 ft não soma com barra de 12 m."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    total = _soma(itens, "cimento_94lb")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_cimento', eua)}: {fmt_int(total)} {C._unidade(total, 'un_saco_94', 'un_sacos_94', eua)}")
+    total = _soma(itens, "areia_cuyd")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_areia', eua)}: {fmt_num(total, 2)} cu yd")
+    total = _soma(itens, "pedra_cuyd")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_pedra', eua)}: {fmt_num(total, 2)} cu yd")
+    total = _soma(itens, "concreto_80lb")
+    if total > 0:
+        basico.append(C._texto_concreto_pronto(total))
+    total = _soma(itens, "aco_lb")
+    if total > 0:
+        barras = _soma(itens, "barras_20ft")
+        basico.append(f"{txt_do_pais('label_aco', eua)}: {fmt_num(total, 1)} lb "
+                      f"({fmt_int(barras)} {C._unidade(barras, 'un_barra20ft', 'un_barras20ft', eua)})")
+    total = _soma(itens, "arame_lb")
+    if total > 0:
+        # Os rolos saem do total somado (2 abas com 1 lb cada = 1 rolo de 3.5 lb, não 2)
+        basico.append(f"{txt_do_pais('label_arame', eua)}: {fmt_num(total, 1)} lb = "
+                      f"{C._texto_rolos_arame(rolos_arame_eua(total * KG_POR_LB))}")
 
 
 def montar_lista_compras(itens):
@@ -81,6 +112,7 @@ def montar_lista_compras(itens):
     total = _soma(itens, "arame_kg")
     if total > 0:
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
+    _linhas_concreto_ferro_eua(itens, basico)
     for item in _do_tipo(itens, "baldrame"):
         litros = item.get("imperm_litros", 0)
         if litros > 0:

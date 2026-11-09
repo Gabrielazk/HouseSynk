@@ -10,6 +10,13 @@ from src.calculators.brocas import (
     PERDA_ACO_PERCENTUAL,
     BARRA_COMERCIAL_M,
     ARAME_POR_KG_ACO,
+    # EUA (Parte A, Nov 9, 2026): o mesmo padrão americano das Brocas
+    COBRIMENTO_EUA_CM,
+    BARRA_COMERCIAL_EUA_M,
+    BITOLA_ESTRIBO_EUA_MM,
+    PE_M,
+    barras_comerciais,
+    embalagens_eua,
 )
 from src.calculators.unidades import METRICO, IMPERIAL, L_POR_GAL
 from src.calculators.embalagens import grandes_e_pequenas
@@ -26,9 +33,10 @@ PERDA_PADRAO_BALDRAME = 5.0
 LARGURA_MINIMA_CM = 20.0
 ALTURA_MINIMA_CM = 30.0
 
-# Traspasse (emenda) do ferro quando a viga passa do tamanho da barra de 12 m:
-# as duas barras ficam sobrepostas por 40 vezes a bitola (ex.: ferro de 8 mm -> 32 cm).
+# Traspasse (emenda) do ferro quando a viga passa do tamanho da barra (12 m no Brasil, 20 ft nos EUA):
+# as duas barras ficam sobrepostas por 40 vezes a bitola (ex.: ferro de 8 mm -> 32 cm; #4 -> 20 in).
 # O engenheiro deixou a escolha com a gente (Oct 27, 2026); 40 vezes é a regra mais usada na prática.
+# Nos EUA o IRC manda para uma tabela; a regra prática de 40 diâmetros é a mesma (PROVISÓRIO, pesquisa ⚠️).
 TRASPASSE_DIAMETROS = 40
 
 # Impermeabilização: tinta asfáltica (ex.: Neutrol), aplicada no topo e nas duas laterais da viga.
@@ -64,6 +72,14 @@ def calcular_baldrame(
     incluir_impermeabilizacao: bool = False,
     sistema: str = METRICO,
 ) -> dict:
+    """Concreto, ferro e impermeabilização do baldrame. sistema=IMPERIAL (EUA): cobrimento de 3 in,
+    barras de 20 ft (as emendas também a cada 20 ft), estribo #3 e, no fim, as embalagens americanas
+    (as mesmas chaves extras das Brocas). No Brasil (METRICO) o resultado é o mesmo de sempre."""
+    eua = (sistema == IMPERIAL)
+    cobrimento_cm = COBRIMENTO_EUA_CM if eua else COBRIMENTO_CM
+    barra_m = BARRA_COMERCIAL_EUA_M if eua else BARRA_COMERCIAL_M
+    bitola_estribo_mm = BITOLA_ESTRIBO_EUA_MM if eua else BITOLA_ESTRIBO_MM
+
     if comprimento_m <= 0 or largura_cm <= 0 or altura_cm <= 0:
         return {"erro": "erro_valores_zero"}
     if perda_percentual < 0:
@@ -100,26 +116,29 @@ def calcular_baldrame(
 
     if incluiu_ferragem:
         fator_aco = 1 + PERDA_ACO_PERCENTUAL / 100.0  # perda do ferro (cortes e sobras)
-        # Emendas: uma a cada 12 m de viga, em cada barra (ex.: 30 m de viga = 2 emendas por barra)
-        emendas_por_barra = max(0, math.ceil(comprimento_m / BARRA_COMERCIAL_M - 1e-9) - 1)
+        # Emendas: uma a cada barra de viga (12 m no Brasil, 20 ft nos EUA), em cada barra de ferro
+        # (ex.: 30 m de viga = 2 emendas por barra; 50 ft = 2 emendas)
+        emendas_por_barra = max(0, math.ceil(comprimento_m / barra_m - 1e-9) - 1)
         traspasse_m = emendas_por_barra * num_barras_longitudinais * TRASPASSE_DIAMETROS * bitola_mm / 1000.0
         total_metros_barras = (comprimento_m * num_barras_longitudinais + traspasse_m) * fator_aco
         kg_longitudinal = round(total_metros_barras * PESO_POR_METRO[bitola_mm], 2)
-        barras_longitudinal = math.ceil(total_metros_barras / BARRA_COMERCIAL_M)
+        barras_longitudinal = barras_comerciais(total_metros_barras, barra_m)
 
         if espacamento_estribo_cm > 0:
-            largura_interna_cm = largura_cm - 2 * COBRIMENTO_CM
-            altura_interna_cm = altura_cm - 2 * COBRIMENTO_CM
+            largura_interna_cm = largura_cm - 2 * cobrimento_cm
+            altura_interna_cm = altura_cm - 2 * cobrimento_cm
             if largura_interna_cm <= 0 or altura_interna_cm <= 0:
                 return {"erro": "erro_viga_pequena_estribos"}
             comprimento_estribo_m = (2 * (largura_interna_cm + altura_interna_cm) + GANCHO_ESTRIBO_CM) / 100.0
-            total_estribos = int(comprimento_m * 100.0 // espacamento_estribo_cm) + 1
+            # Um estribo a cada espaçamento, mais o da ponta. O "+ 1e-9" é a mesma folguinha das barras:
+            # 100 ft de viga com estribo a cada 6 in davam 199,99999 espaços (200 estribos, e não 201).
+            total_estribos = int(comprimento_m * 100.0 / espacamento_estribo_cm + 1e-9) + 1
             total_metros_estribos = total_estribos * comprimento_estribo_m * fator_aco
-            kg_estribos = round(total_metros_estribos * PESO_POR_METRO[BITOLA_ESTRIBO_MM], 2)
-            barras_estribos = math.ceil(total_metros_estribos / BARRA_COMERCIAL_M)
+            kg_estribos = round(total_metros_estribos * PESO_POR_METRO[bitola_estribo_mm], 2)
+            barras_estribos = barras_comerciais(total_metros_estribos, barra_m)
 
     quilos_aco = round(kg_longitudinal + kg_estribos, 2)
-    barras_12m = barras_longitudinal + barras_estribos
+    barras_12m = barras_longitudinal + barras_estribos  # nos EUA, são barras de 20 ft
 
     # Impermeabilização opcional: topo + 2 laterais da viga
     balde_l, galao_l = EMBALAGENS_IMPERM_L[sistema]
@@ -133,7 +152,7 @@ def calcular_baldrame(
         latas_imperm, galoes_imperm = grandes_e_pequenas(litros_imperm, balde_l, galao_l)
     litros_compra_imperm = latas_imperm * balde_l + galoes_imperm * galao_l
 
-    return {
+    resultado = {
         "volume_m3": round(volume, 3),
         "volume_com_perda_m3": round(volume_com_perda, 3),
         "perda_percentual": perda_percentual,
@@ -146,9 +165,9 @@ def calcular_baldrame(
         "traspasse_m": round(traspasse_m, 2),
         "total_metros_barras": round(total_metros_barras, 2),
         "kg_longitudinal": kg_longitudinal,
-        "barras_12m_longitudinal": barras_longitudinal,
+        "barras_12m_longitudinal": barras_longitudinal,   # nos EUA, barras de 20 ft (vale para as 3 chaves "barras_12m")
         "incluiu_estribos": total_estribos > 0,
-        "bitola_estribo_mm": BITOLA_ESTRIBO_MM,
+        "bitola_estribo_mm": bitola_estribo_mm,
         "espacamento_estribo_cm": espacamento_estribo_cm,
         "total_estribos": total_estribos,
         "total_metros_estribos": round(total_metros_estribos, 2),
@@ -164,3 +183,12 @@ def calcular_baldrame(
         "galoes_imperm": galoes_imperm,     # galões (3,6 L no Brasil; 1 gal nos EUA)
         "litros_compra_imperm": round(litros_compra_imperm, 1),
     }
+
+    if eua:
+        # Embalagens americanas (as mesmas das Brocas): cimento em sacos de 94 lb, areia e brita em
+        # cu yd, concreto pronto em sacos de 80 lb, ferro e arame em lb, arame em rolos de 3,5 lb.
+        resultado.update(embalagens_eua(volume_com_perda, consumo, kg_longitudinal, kg_estribos,
+                                        quilos_aco, resultado["arame_kg"]))
+        # Emendas em ft, direto dos metros (sem arredondar em m antes)
+        resultado["traspasse_ft"] = round(traspasse_m / PE_M, 2)
+    return resultado

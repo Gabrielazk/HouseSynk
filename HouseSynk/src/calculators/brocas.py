@@ -76,9 +76,10 @@ SACO_CONCRETO_PRONTO_M3 = 0.60 * PE_CUBICO_M3      # concreto pronto de 80 lb re
 ROLO_ARAME_EUA_KG = 3.5 * KG_POR_LB                # arame (tie wire) em rolo de 3,5 lb
 
 
-def _barras(metros, barra_m):
+def barras_comerciais(metros, barra_m):
     """Quantas barras comprar. O "- 1e-9" é uma folguinha para o erro do computador com número
-    quebrado: 220 ft de ferro em barras de 20 ft dava 11,0000000001 e virava 12 barras."""
+    quebrado: 220 ft de ferro em barras de 20 ft dava 11,0000000001 e virava 12 barras.
+    Usada pelas Brocas e pelo Baldrame (nos dois países)."""
     return math.ceil(metros / barra_m - 1e-9)
 
 
@@ -94,6 +95,28 @@ def rolos_arame_eua(arame_kg):
     if arame_kg <= 1e-9:
         return 0
     return math.ceil(arame_kg / ROLO_ARAME_EUA_KG - 1e-9)
+
+
+def embalagens_eua(volume_m3, consumo, kg_longitudinal, kg_estribos, quilos_aco, arame_kg):
+    """Embalagens americanas do concreto e do ferro (Brocas e Baldrame; a conta é a mesma, em métrico).
+    volume_m3: o volume com perda; consumo: o do traço (consumo_concreto_por_m3).
+    Devolve as chaves extras do resultado nos EUA (o "sacos_cimento" passa a ser de sacos de 94 lb)."""
+    # Cimento: os kg do traço (sacos de 50 kg x 50) em sacos de 94 lb
+    kg_cimento = volume_m3 * consumo["sacos_cimento"] * 50.0
+    return {
+        "sistema": IMPERIAL,
+        "sacos_cimento": math.ceil(kg_cimento / SACO_CIMENTO_EUA_KG),     # sacos de 94 lb
+        "areia_cuyd": round(volume_m3 * consumo["areia_m3"] / JARDA_CUBICA_M3, 2),
+        "pedra_cuyd": round(volume_m3 * consumo["pedra_m3"] / JARDA_CUBICA_M3, 2),
+        "volume_com_perda_cuyd": round(volume_m3 / JARDA_CUBICA_M3, 2),
+        # Ou concreto pronto em saco (cimento + areia + brita juntos): mais comum em obra pequena
+        "sacos_concreto_pronto": math.ceil(volume_m3 / SACO_CONCRETO_PRONTO_M3),   # sacos de 80 lb
+        "lb_longitudinal": round(kg_longitudinal / KG_POR_LB, 1),
+        "lb_estribos": round(kg_estribos / KG_POR_LB, 1),
+        "lb_aco": round(quilos_aco / KG_POR_LB, 1),
+        "arame_lb": round(arame_kg / KG_POR_LB, 1),
+        "rolos_arame": rolos_arame_eua(arame_kg),
+    }
 
 
 def calcular_brocas(
@@ -157,7 +180,7 @@ def calcular_brocas(
     if incluir_ferragem and num_barras_longitudinais > 0:
         total_metros_barras = quantidade * altura_gaiola_m * num_barras_longitudinais * fator_aco
         kg_longitudinal = round(total_metros_barras * PESO_POR_METRO[bitola_mm], 2)
-        barras_longitudinal = _barras(total_metros_barras, barra_m)
+        barras_longitudinal = barras_comerciais(total_metros_barras, barra_m)
 
         if espacamento_estribo_cm > 0:
             diametro_interno_cm = diametro_cm - 2 * cobrimento_cm
@@ -174,7 +197,7 @@ def calcular_brocas(
             total_estribos = estribos_por_broca * quantidade
             total_metros_estribos = espiral_por_broca_m * quantidade * fator_aco
             kg_estribos = round(total_metros_estribos * PESO_POR_METRO[bitola_estribo_mm], 2)
-            barras_estribos = _barras(total_metros_estribos, barra_m)
+            barras_estribos = barras_comerciais(total_metros_estribos, barra_m)
 
     quilos_aco = round(kg_longitudinal + kg_estribos, 2)
     barras_12m = barras_longitudinal + barras_estribos  # nos EUA, são barras de 20 ft
@@ -214,22 +237,8 @@ def calcular_brocas(
 
     if eua:
         # Embalagens americanas (só nos EUA; o Brasil continua com as chaves de cima).
-        # Cimento: os kg do traço (sacos de 50 kg x 50) em sacos de 94 lb.
-        kg_cimento = volume_total_m3 * consumo["sacos_cimento"] * 50.0
-        arame_kg = resultado["arame_kg"]
-        resultado.update({
-            "sistema": IMPERIAL,
-            "sacos_cimento": math.ceil(kg_cimento / SACO_CIMENTO_EUA_KG),     # sacos de 94 lb
-            "areia_cuyd": round(volume_total_m3 * consumo["areia_m3"] / JARDA_CUBICA_M3, 2),
-            "pedra_cuyd": round(volume_total_m3 * consumo["pedra_m3"] / JARDA_CUBICA_M3, 2),
-            "volume_com_perda_cuyd": round(volume_total_m3 / JARDA_CUBICA_M3, 2),
-            "altura_gaiola_ft": round(altura_gaiola_m / PE_M, 2),   # direto, sem arredondar em m antes (10 ft = 5.00 ft, não 4.99)
-            # Ou concreto pronto em saco (cimento + areia + brita juntos): mais comum em obra pequena
-            "sacos_concreto_pronto": math.ceil(volume_total_m3 / SACO_CONCRETO_PRONTO_M3),   # sacos de 80 lb
-            "lb_longitudinal": round(kg_longitudinal / KG_POR_LB, 1),
-            "lb_estribos": round(kg_estribos / KG_POR_LB, 1),
-            "lb_aco": round(quilos_aco / KG_POR_LB, 1),
-            "arame_lb": round(arame_kg / KG_POR_LB, 1),
-            "rolos_arame": rolos_arame_eua(arame_kg),
-        })
+        resultado.update(embalagens_eua(volume_total_m3, consumo, kg_longitudinal, kg_estribos,
+                                        quilos_aco, resultado["arame_kg"]))
+        # Direto, sem arredondar em m antes (10 ft = 5.00 ft, não 4.99)
+        resultado["altura_gaiola_ft"] = round(altura_gaiola_m / PE_M, 2)
     return resultado

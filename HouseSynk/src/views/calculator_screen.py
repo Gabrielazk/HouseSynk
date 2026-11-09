@@ -258,8 +258,8 @@ def abas_ordem(sistema=None):
     return [aba for _, abas in etapas_do_pais(sistema) for aba in abas]
 
 # Abas que já usam o ferro americano nos EUA (bitolas #3, #4 e #5, barras de 20 ft).
-# Parte A da versão EUA: cada aba adaptada entra aqui (o Baldrame entra no próximo passo).
-ABAS_FERRO_EUA = ["brocas"]
+# Parte A da versão EUA: cada aba adaptada entra aqui (Brocas e Baldrame em Nov 9, 2026).
+ABAS_FERRO_EUA = ["brocas", "baldrame"]
 
 
 def etapa_da_aba(aba):
@@ -2372,7 +2372,8 @@ class CalculatorScreen(MDScreen):
         num_barras = int(t_barras) if t_barras else 0
         esp_estribo = self._numero(e.get("esp_estribo"), 0.0)
         preco_mo = self._numero(e.get("mo"), 0.0)
-        bitola = self.bitola["baldrame"]
+        bitolas, padrao = self._bitolas_aba("baldrame")
+        bitola = self.bitola["baldrame"] if self.bitola["baldrame"] in bitolas else padrao
         imperm = self.imperm["baldrame"]
 
         # Viga menor que o mínimo do engenheiro (ex.: 0,2 digitado pensando em metros, mas o campo é em cm):
@@ -2401,13 +2402,6 @@ class CalculatorScreen(MDScreen):
         if "erro" in res:
             return {"erro": self._txt_erro(res['erro'])}
 
-        custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
-        custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
-        custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
-        custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if res['incluiu_ferragem'] else 0.0
-        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
-        custo_aco += custo_arame  # o arame entra no custo da ferragem
-        custo_mo = comp * preco_mo
         # Impermeabilizante: preço por litro, sobre os litros das embalagens compradas
         # (Brasil: 18 L e 3,6 L; EUA: balde de 5 gal com 4,75 gal e galão de 1 gal).
         # Litros exatos das embalagens: o 'litros_compra_imperm' vem arredondado (11,4 L em vez de
@@ -2417,6 +2411,21 @@ class CalculatorScreen(MDScreen):
         balde_l, galao_l = EMBALAGENS_IMPERM_L[sistema]
         litros_compra = res['latas_imperm'] * balde_l + res['galoes_imperm'] * galao_l
         custo_imperm = litros_compra * preco_imperm if res['incluiu_impermeabilizacao'] else 0.0
+        inputs = {
+            "comp": comp, "larg": larg, "alt": alt, "perda": perda, "mo": preco_mo,
+            "traco": res["traco"], "barras": num_barras, "bitola": bitola,
+            "esp_estribo": esp_estribo, "imperm": imperm
+        }
+        if sistema == IMPERIAL:
+            return self._resultado_baldrame_eua(res, comp, preco_mo, custo_imperm, inputs)
+
+        custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
+        custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
+        custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
+        custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if res['incluiu_ferragem'] else 0.0
+        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if res['incluiu_ferragem'] else 0.0
+        custo_aco += custo_arame  # o arame entra no custo da ferragem
+        custo_mo = comp * preco_mo
         custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_imperm
         custo_total = custo_mat + custo_mo
 
@@ -2460,14 +2469,80 @@ class CalculatorScreen(MDScreen):
             "aco_kg": res['quilos_aco'], "barras_12m": res['barras_12m'],
             "arame_kg": res['arame_kg'] if res['incluiu_ferragem'] else 0.0,
             "imperm_litros": res['litros_imperm'],
-            "sistema": sistema_unidades(),  # país da conta (a lista de compras usa as embalagens dele)
+            "sistema": sistema,  # país da conta (a lista de compras usa as embalagens dele)
             "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
             "resumo_texto": texto_res,
-            "inputs": {
-                "comp": comp, "larg": larg, "alt": alt, "perda": perda, "mo": preco_mo,
-                "traco": res["traco"], "barras": num_barras, "bitola": bitola,
-                "esp_estribo": esp_estribo, "imperm": imperm
-            }
+            "inputs": inputs
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _resultado_baldrame_eua(self, res, comp, preco_mo, custo_imperm, inputs):
+        """Resultado do Baldrame nos EUA: a mesma conta, com as embalagens americanas, igual às Brocas
+        (cimento em sacos de 94 lb, areia e brita em cu yd, concreto pronto em sacos de 80 lb, ferro em lb
+        e barras de 20 ft, arame em rolos de 3.5 lb) e a impermeabilização da Parte 1 (baldes de 5 gal).
+        Os preços ainda são os provisórios (passo de preços)."""
+        ferragem = res['incluiu_ferragem']
+        # Custos: cimento por saco (o preço do país), areia e brita por m³, aço e arame por kg
+        custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
+        custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
+        custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
+        custo_aco = res['quilos_aco'] * TABELA_PRECOS_GLOBAL.aco_kg if ferragem else 0.0
+        custo_arame = res['arame_kg'] * PRECO_ARAME_KG if ferragem else 0.0
+        custo_mo = comp * preco_mo
+        custo_mat = custo_cimento + custo_areia + custo_pedra + custo_aco + custo_arame + custo_imperm
+        custo_total = custo_mat + custo_mo
+
+        texto_res = (
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
+            f"{txt('label_volume')} ({self._txt_perda(res['perda_percentual'])}): {fmt_num(res['volume_com_perda_cuyd'], 2)} cu yd\n"
+            f"{self._linhas_concreto_eua(res, custo_cimento, custo_areia, custo_pedra)}"
+        )
+        if ferragem:
+            barras_l = res['barras_12m_longitudinal']
+            linha_ferro = (
+                f"• {txt('label_ferro')} {self._rotulo_bitola(res['bitola_mm'])}: "
+                f"{fmt_num(res['lb_longitudinal'], 1)} lb ({fmt_int(barras_l)} {self._unidade(barras_l, 'un_barra20ft', 'un_barras20ft')})"
+            )
+            if res['traspasse_m'] > 0:  # viga maior que 20 ft: as barras têm emendas
+                linha_ferro += f" ({txt('label_traspasse').format(m=fmt_num(res['traspasse_ft'], 2))})"
+            texto_res += linha_ferro + "\n"
+            if res['incluiu_estribos']:
+                barras_e = res['barras_12m_estribos']
+                texto_res += (
+                    f"• {txt('label_estribos')} {self._rotulo_bitola(res['bitola_estribo_mm'])} "
+                    f"{txt('label_estribo_cada')} {self._med_curto(res['espacamento_estribo_cm'], 'centimetro')}: "
+                    f"{fmt_num(res['lb_estribos'], 1)} lb ({fmt_int(barras_e)} {self._unidade(barras_e, 'un_barra20ft', 'un_barras20ft')})\n"
+                )
+            texto_res += f"• {txt('label_aco')}: {fmt_num(res['lb_aco'], 1)} lb ({fmt_moeda(custo_aco)})\n"
+            texto_res += (
+                f"• {txt('label_arame')}: {fmt_num(res['arame_lb'], 1)} lb = "
+                f"{self._texto_rolos_arame(res['rolos_arame'])} ({fmt_moeda(custo_arame)})\n"
+            )
+        if res['incluiu_impermeabilizacao']:
+            texto_res += (
+                f"• {txt('label_imperm_item')}: {self._med(res['area_imperm_m2'], 'area', 1)} · "
+                f"{self._med(res['litros_imperm'], 'litro', 1)} = "
+                f"{self._texto_latas_galoes(res['latas_imperm'], res['galoes_imperm'])} ({fmt_moeda(custo_imperm)})\n"
+            )
+        if custo_mo > 0:
+            texto_res += f"• {txt('label_mo')}: {self._med(comp, 'comprimento', 1)} ({fmt_moeda(custo_mo)})\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_total)}"
+
+        resultado = {
+            "etapa": txt("secao_baldrame"),
+            "tipo": "baldrame",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a lista de compras soma as dos EUA separado (igual às Brocas)
+            "cimento": 0, "areia": 0, "pedra": 0, "aco_kg": 0, "barras_12m": 0, "arame_kg": 0,
+            "cimento_94lb": res['sacos_cimento'], "areia_cuyd": res['areia_cuyd'], "pedra_cuyd": res['pedra_cuyd'],
+            "concreto_80lb": res['sacos_concreto_pronto'],
+            "aco_lb": res['lb_aco'] if ferragem else 0.0,
+            "barras_20ft": res['barras_12m'] if ferragem else 0,
+            "arame_lb": res['arame_lb'] if ferragem else 0.0,
+            "imperm_litros": res['litros_imperm'],
+            "custo_mat": custo_mat, "custo_mo": custo_mo, "custo_total": custo_total,
+            "resumo_texto": texto_res,
+            "inputs": inputs
         }
         return {"texto": texto_res, "resultado": resultado}
 

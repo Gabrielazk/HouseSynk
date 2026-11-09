@@ -1,6 +1,6 @@
 # Testes da Rodada 3 (EUA, português): Piso, Azulejo, Rejunte, Pintura e Baldrame (impermeabilização)
 
-Criado em 05/11/2026. **Rodada fechada em 06/11/2026:** as 9 pendências (P1 a P9) foram corrigidas, os 162 casos deram OK no rodada3.py e a Gabi conferiu o visual no app. O esperado completo agora fica dentro do rodada3.py (ESPERADO) e entra no pytest pelo tests\rodadas\test_rodada3.py. **A versão principal fica no PC da Gabi** (testes_manuais\testes_rodada3.md, na pasta do app).
+Criado em 05/11/2026. **Atualizado em 09/11/2026 (Parte A da versão EUA, o resto do Baldrame):** o concreto e o ferro do Baldrame passaram para as embalagens americanas, e 18 casos do Baldrame mudaram (ver "BALDRAME" abaixo); o BA-A passou a usar a bitola **#5**. **Rodada fechada em 06/11/2026:** as 9 pendências (P1 a P9) foram corrigidas, os 162 casos deram OK no rodada3.py e a Gabi conferiu o visual no app. O esperado completo agora fica dentro do rodada3.py (ESPERADO) e entra no pytest pelo tests\rodadas\test_rodada3.py. **A versão principal fica no PC da Gabi** (testes_manuais\testes_rodada3.md, na pasta do app).
 
 Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho do botão Calcular), com o país trocado pelo próprio `alternar_pais` das Configurações (EUA, estado NY, `$`, ponto decimal e preços dos EUA) e o app em português. **O esperado é o que o app DEVE mostrar** (decisão da Gabi, 05/11/2026): durante a rodada, os casos das pendências ficaram marcados com ⚠️ e davam DIFERENTE até a correção (as marcas foram tiradas no fechamento, em 06/11/2026). Antes de montar este arquivo, o Leo aplicou as correções propostas numa cópia do código, fora do PC, só para tirar os números: com elas, o rodada1.py e o rodada2.py continuaram com 353 OK cada (o Brasil não muda).
 
@@ -16,14 +16,13 @@ Todos os resultados abaixo foram tirados rodando o código real (o mesmo caminho
 - **Medidas digitadas em ft, in e sq ft** convertem certo, inclusive com fração ("2 1/2", "3/8", "11 3/4") e com o milhar americano ("1,500" = mil e quinhentos; "2,5" continua 2.5).
 - **Números com ponto e milhar com vírgula:** "1,000.00 sq ft", "$ 2,197.16". Nenhuma vírgula decimal e nenhum "R$".
 - **Embalagens americanas:** sacos de 50 lb (thinset), caixas de 10 lb, sacos de 25 lb e caixas de 7 lb (rejunte), baldes de 5 gal e galões de 1 gal (tinta, primer e impermeabilizante).
-- **Nenhum texto do Brasil** nas 5 abas: m, cm, mm, m², kg, L, "lata", "AC-I", vírgula decimal. Única exceção: o concreto e o ferro do Baldrame (Parte 2).
+- **Nenhum texto do Brasil** nas 5 abas: m, cm, mm, m², kg, L, "lata", "AC-I", vírgula decimal (desde 09/11/2026, também no concreto e no ferro do Baldrame).
 - **Polegadas em fração:** "12 x 12 in", "1/8 in", "5/16 in", "11 3/4 x 12 in" (nunca "11.75" nem "0.031").
 - **Avisos de limite** com as unidades dos EUA: "Área de 21,529 sq ft: o limite é 21,528 sq ft.", "Junta de 5/8 in: o normal é de 1/16 in a 9/16 in.".
 - **"?"** de cada aba com a legenda das siglas no fim (só em português).
 - O que já valia nas rodadas 1 e 2 continua: Limpar, Anterior, Próximo, Finalizar, tema claro e escuro, barra de rolagem, número e unidade sem quebra de linha.
 
 **Não é erro nesta rodada:**
-- No Baldrame, o concreto e o ferro saem em m³, sacos de 50 kg, kg e barras de 12 m (Parte 2 da versão EUA).
 - Os preços são os provisórios (muitos são os do Brasil, só que em dólar, ex.: piso $ 50 por m², rodapé $ 15 por m). Confere-se só a quantidade e se o custo é a quantidade vezes o preço.
 - Nas outras 9 abas, os resultados ainda saem em métrico.
 
@@ -1857,6 +1856,8 @@ Custo Estimado da Etapa: $ 10,748.96
 
 **29 casos.** Todos OK (os 13 das pendências P4, P5 e P6 foram corrigidos em 06/11/2026).
 
+**Atualizado em 09/11/2026 (Parte A):** o concreto e o ferro saem como nos EUA, igual às Brocas: volume em cu yd, cimento em sacos de 94 lb, areia e brita em cu yd, a linha "Ou concreto pronto: X sacos de 80 lb" (sem preço, fora do custo), ferro #3, #4 e #5 em lb e barras de 20 ft (emenda de 40 vezes a bitola a cada 20 ft de viga), estribo #3 com 3 in de cobrimento, arame em lb e rolos de 3.5 lb. Mudaram 18 casos: BA-A, BA-B a BA-B7, BA-C5 a BA-C8, BA-C10, BA-C11-continuar, BA-C12, BA-C13, BA-C17 e BA-C18. A impermeabilização não mudou. Os preços continuam os provisórios (o saco de 94 lb custa o mesmo $ 12 do saco de 50 kg; areia e brita continuam cobradas por m³).
+
 **Como aparece** (confira se nenhuma dica fica cortada):
 
 - Dimensões (Obrigatório)
@@ -1868,7 +1869,7 @@ Custo Estimado da Etapa: $ 10,748.96
 - Mão de obra por ft (opcional, ex: 8.00)
 - Armadura / Ferragem (Opcional)
 - Nº de barras por viga (opcional, ex: 4)
-- Bitola do ferro (mm) (Parte 2: ainda em mm, não é erro)
+- Bitola do ferro: já vem **#4** (opções #3, #4 e #5)
 - Espaçamento dos estribos em in (ex: 8): já vem **8**
 - Impermeabilização (Opcional): Sim · Não
 
@@ -1876,25 +1877,26 @@ Custo Estimado da Etapa: $ 10,748.96
 
 #### BA-A
 
-Digite: Comprimento **100**; Largura **10**; Altura **16**; Perda **8**; Mão de obra **8.00**; Nº de barras **4**; Espaçamento dos estribos **6**; Traço **1:3:3**; Bitola **12.5 mm**; Impermeabilização **Sim**.
+Digite: Comprimento **100**; Largura **10**; Altura **16**; Perda **8**; Mão de obra **8.00**; Nº de barras **4**; Espaçamento dos estribos **6**; Traço **1:3:3**; Bitola **#5**; Impermeabilização **Sim**.
 
 ```
 Traço: 1:3:3
-Volume Total (com 8% de perda): 3.398 m³
-• Cimento: 22 sacos de 50 kg ($ 264.00)
-• Areia: 2.18 m³ ($ 98.10)
-• Brita: 2.18 m³ ($ 87.20)
-• Ferro 12.5 mm: 133.4 kg (12 barras de 12 m) (inclui 4.00 m de emendas)
-• Estribos 5 mm c/ 6 in: 38.3 kg (21 barras de 12 m)
-• Aço/Ferragem: 171.7 kg ($ 429.25)
-• Arame recozido: 3.4 kg ($ 51.45)
+Volume Total (com 8% de perda): 4.44 cu yd
+• Cimento: 26 sacos de 94 lb ($ 312.00)
+• Areia: 2.86 cu yd ($ 98.10)
+• Brita: 2.86 cu yd ($ 87.20)
+• Ou concreto pronto: 200 sacos de 80 lb (no lugar de cimento, areia e brita)
+• Ferro #5: 497.2 lb (24 barras de 20 ft) (inclui 33.33 ft de emendas)
+• Estribos #3 c/ 6 in: 207.6 lb (28 barras de 20 ft)
+• Aço/Ferragem: 704.8 lb ($ 799.20)
+• Arame recozido: 14.1 lb = 5 rolos de 3.5 lb ($ 95.85)
 • Impermeabilizante: 350.0 sq ft · 6.9 gal = 1 balde de 5 gal e 3 galões de 1 gal ($ 65.18)
 • Mão de Obra: 100.0 ft ($ 800.00)
 
-Custo Estimado da Etapa: $ 1,795.18
+Custo Estimado da Etapa: $ 2,257.53
 ```
 
-Pra entender: O concreto e o ferro continuam em m³, kg e barras de 12 m (Parte 2: não é erro). Impermeabilização: 100 ft × (10 + 2 × 16) in = 350 sq ft; 2 demãos de 0,4 L/m² → **6.9 gal** → 1 balde (4,75 gal de produto) + 2,1 gal → 3 galões. Custo sobre o que se compra: (4,75 + 3) gal × $ 39.95 ÷ 4,75 gal = **$ 65.18**. Mão de obra: 100 ft × $ 8.00 = $ 800.00.
+Pra entender: 100 ft de viga = 4 emendas em cada barra (a cada 20 ft); 4 barras × 4 emendas × 25 in (40 × 5/8 in, a bitola #5) = 400 in = **33.33 ft** de emendas. Ferro: (100 × 4 + 33.33) ft × 1,10 = 476.7 ft × 1.043 lb/ft = **497.2 lb** → 24 barras de 20 ft. Estribos: 10 × 16 in com 3 in de cobrimento ficam 4 × 10 in por dentro; 201 estribos (100 ft ÷ 6 in + 1) de 28 in + o gancho de 5 cm, com 10% de perda, em #3 (0.376 lb/ft) = **207.6 lb**. Impermeabilização: 100 ft × (10 + 2 × 16) in = 350 sq ft; 2 demãos de 0,4 L/m² → **6.9 gal** → 1 balde (4,75 gal de produto) + 2,1 gal → 3 galões. Custo sobre o que se compra: (4,75 + 3) gal × $ 39.95 ÷ 4,75 gal = **$ 65.18**. Mão de obra: 100 ft × $ 8.00 = $ 800.00.
 
 ## Teste B: só os obrigatórios (e variações)
 
@@ -1904,15 +1906,16 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**.
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
 
-Custo Estimado da Etapa: $ 113.60
+Custo Estimado da Etapa: $ 125.60
 ```
 
-Pra entender: Sem impermeabilização: só o concreto (Parte 2: m³ e sacos de 50 kg ainda são do Brasil, não é erro). 40 ft × 8 in × 12 in = 0,755 m³ × 1,05 = 0,793 m³.
+Pra entender: Sem impermeabilização: só o concreto. 40 ft × 8 in × 12 in = 0,755 m³ × 1,05 = 0,793 m³ = **1.04 cu yd**. Cimento do traço 1:2:3: 0,793 m³ × 375 kg = 297 kg ÷ 42,64 kg (94 lb) = 6,98 → **7 sacos de 94 lb**. Concreto pronto: 0,793 m³ ÷ 0,017 m³ (0.60 cu ft por saco) = 46,7 → **47 sacos de 80 lb**.
 
 #### BA-B2
 
@@ -1920,16 +1923,17 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Impermeabilização **
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 106.7 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
 
-Custo Estimado da Etapa: $ 138.83
+Custo Estimado da Etapa: $ 150.83
 ```
 
-Pra entender: Impermeabilização: 40 ft × (8 + 2 × 12) in = **106.7 sq ft** = 9,91 m² × 0,8 L/m² (2 demãos) = 7,93 L = **2.1 gal** → não chega aos 4,75 gal do balde → **3 galões de 1 gal**. Custo: 3 gal × $ 39.95 ÷ 4,75 gal = **$ 25.23** (hoje o app mostra $ 25.33: é a pendência P5).
+Pra entender: Impermeabilização: 40 ft × (8 + 2 × 12) in = **106.7 sq ft** = 9,91 m² × 0,8 L/m² (2 demãos) = 7,93 L = **2.1 gal** → não chega aos 4,75 gal do balde → **3 galões de 1 gal**. Custo: 3 gal × $ 39.95 ÷ 4,75 gal = **$ 25.23**.
 
 #### BA-B3
 
@@ -1937,13 +1941,14 @@ Digite: Comprimento **75**; Largura **8**; Altura **12**; Impermeabilização **
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 1.487 m³
-• Cimento: 12 sacos de 50 kg ($ 144.00)
-• Areia: 0.74 m³ ($ 33.30)
-• Brita: 1.11 m³ ($ 44.40)
+Volume Total (com 5% de perda): 1.94 cu yd
+• Cimento: 14 sacos de 94 lb ($ 168.00)
+• Areia: 0.97 cu yd ($ 33.30)
+• Brita: 1.46 cu yd ($ 44.40)
+• Ou concreto pronto: 88 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 200.0 sq ft · 3.9 gal = 4 galões de 1 gal ($ 33.64)
 
-Custo Estimado da Etapa: $ 255.34
+Custo Estimado da Etapa: $ 279.34
 ```
 
 #### BA-B4
@@ -1952,13 +1957,14 @@ Digite: Comprimento **80**; Largura **8**; Altura **12**; Impermeabilização **
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 1.586 m³
-• Cimento: 12 sacos de 50 kg ($ 144.00)
-• Areia: 0.79 m³ ($ 35.55)
-• Brita: 1.19 m³ ($ 47.60)
+Volume Total (com 5% de perda): 2.07 cu yd
+• Cimento: 14 sacos de 94 lb ($ 168.00)
+• Areia: 1.04 cu yd ($ 35.55)
+• Brita: 1.56 cu yd ($ 47.60)
+• Ou concreto pronto: 94 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 213.3 sq ft · 4.2 gal = 1 balde de 5 gal ($ 39.95)
 
-Custo Estimado da Etapa: $ 267.10
+Custo Estimado da Etapa: $ 291.10
 ```
 
 #### BA-B5
@@ -1967,13 +1973,14 @@ Digite: Comprimento **100**; Largura **8**; Altura **12**; Impermeabilização *
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 1.982 m³
-• Cimento: 15 sacos de 50 kg ($ 180.00)
-• Areia: 0.99 m³ ($ 44.55)
-• Brita: 1.49 m³ ($ 59.60)
+Volume Total (com 5% de perda): 2.59 cu yd
+• Cimento: 18 sacos de 94 lb ($ 216.00)
+• Areia: 1.30 cu yd ($ 44.55)
+• Brita: 1.94 cu yd ($ 59.60)
+• Ou concreto pronto: 117 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 266.6 sq ft · 5.2 gal = 1 balde de 5 gal e 1 galão de 1 gal ($ 48.36)
 
-Custo Estimado da Etapa: $ 332.51
+Custo Estimado da Etapa: $ 368.51
 ```
 
 #### BA-B6
@@ -1982,16 +1989,17 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Nº de barras **4**.
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
-• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
-• Estribos 5 mm c/ 8 in: 8.5 kg (5 barras de 12 m)
-• Aço/Ferragem: 30.3 kg ($ 75.72)
-• Arame recozido: 0.6 kg ($ 9.15)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
+• Ferro #4: 122.5 lb (10 barras de 20 ft) (inclui 6.67 ft de emendas)
+• Estribos #3 c/ 8 in: 37.8 lb (6 barras de 20 ft)
+• Aço/Ferragem: 160.3 lb ($ 181.72)
+• Arame recozido: 3.2 lb = 1 rolo de 3.5 lb ($ 21.75)
 
-Custo Estimado da Etapa: $ 198.47
+Custo Estimado da Etapa: $ 329.07
 ```
 
 #### BA-B7
@@ -2000,13 +2008,14 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Mão de obra **8.00**.
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Mão de Obra: 40.0 ft ($ 320.00)
 
-Custo Estimado da Etapa: $ 433.60
+Custo Estimado da Etapa: $ 445.60
 ```
 
 ## Teste C: erros de digitação e limites
@@ -2049,13 +2058,14 @@ Digite: Comprimento **40,5**; Largura **8**; Altura **12**; Impermeabilização 
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.803 m³
-• Cimento: 7 sacos de 50 kg ($ 84.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.60 m³ ($ 24.00)
+Volume Total (com 5% de perda): 1.05 cu yd
+• Cimento: 8 sacos de 94 lb ($ 96.00)
+• Areia: 0.53 cu yd ($ 18.00)
+• Brita: 0.79 cu yd ($ 24.00)
+• Ou concreto pronto: 48 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
 
-Custo Estimado da Etapa: $ 151.23
+Custo Estimado da Etapa: $ 163.23
 ```
 
 #### BA-C6
@@ -2064,13 +2074,14 @@ Digite: Comprimento **40.5**; Largura **8**; Altura **12**; Impermeabilização 
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.803 m³
-• Cimento: 7 sacos de 50 kg ($ 84.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.60 m³ ($ 24.00)
+Volume Total (com 5% de perda): 1.05 cu yd
+• Cimento: 8 sacos de 94 lb ($ 96.00)
+• Areia: 0.53 cu yd ($ 18.00)
+• Brita: 0.79 cu yd ($ 24.00)
+• Ou concreto pronto: 48 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
 
-Custo Estimado da Etapa: $ 151.23
+Custo Estimado da Etapa: $ 163.23
 ```
 
 #### BA-C7
@@ -2079,13 +2090,14 @@ Digite: Comprimento **40 1/2**; Largura **8**; Altura **12**; Impermeabilizaçã
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.803 m³
-• Cimento: 7 sacos de 50 kg ($ 84.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.60 m³ ($ 24.00)
+Volume Total (com 5% de perda): 1.05 cu yd
+• Cimento: 8 sacos de 94 lb ($ 96.00)
+• Areia: 0.53 cu yd ($ 18.00)
+• Brita: 0.79 cu yd ($ 24.00)
+• Ou concreto pronto: 48 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 108.0 sq ft · 2.1 gal = 3 galões de 1 gal ($ 25.23)
 
-Custo Estimado da Etapa: $ 151.23
+Custo Estimado da Etapa: $ 163.23
 ```
 
 #### BA-C8
@@ -2094,13 +2106,14 @@ Digite: Comprimento **1,500**; Largura **8**; Altura **12**; Impermeabilização
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 29.733 m³
-• Cimento: 223 sacos de 50 kg ($ 2,676.00)
-• Areia: 14.87 m³ ($ 669.15)
-• Brita: 22.30 m³ ($ 892.00)
+Volume Total (com 5% de perda): 38.89 cu yd
+• Cimento: 262 sacos de 94 lb ($ 3,144.00)
+• Areia: 19.44 cu yd ($ 669.15)
+• Brita: 29.17 cu yd ($ 892.00)
+• Ou concreto pronto: 1,750 sacos de 80 lb (no lugar de cimento, areia e brita)
 • Impermeabilizante: 4,000.0 sq ft · 78.5 gal = 16 baldes de 5 gal e 3 galões de 1 gal ($ 664.43)
 
-Custo Estimado da Etapa: $ 4,901.58
+Custo Estimado da Etapa: $ 5,369.58
 ```
 
 #### BA-C9
@@ -2117,12 +2130,13 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Perda **2.5**.
 
 ```
 Traço: 1:2:3
-Volume Total (com 2.5% de perda): 0.774 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.39 m³ ($ 17.55)
-• Brita: 0.58 m³ ($ 23.20)
+Volume Total (com 2.5% de perda): 1.01 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.51 cu yd ($ 17.55)
+• Brita: 0.76 cu yd ($ 23.20)
+• Ou concreto pronto: 46 sacos de 80 lb (no lugar de cimento, areia e brita)
 
-Custo Estimado da Etapa: $ 112.75
+Custo Estimado da Etapa: $ 124.75
 ```
 
 #### BA-C11-cancelar
@@ -2141,12 +2155,13 @@ Digite: Comprimento **40**; Largura **7**; Altura **12**. Na janela, toque em **
 ```
 [JANELA] Viga de 7 in x 12 in: o mínimo é 8 in de largura e 12 in de altura.
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.694 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.35 m³ ($ 15.75)
-• Brita: 0.52 m³ ($ 20.80)
+Volume Total (com 5% de perda): 0.91 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.45 cu yd ($ 15.75)
+• Brita: 0.68 cu yd ($ 20.80)
+• Ou concreto pronto: 41 sacos de 80 lb (no lugar de cimento, areia e brita)
 
-Custo Estimado da Etapa: $ 108.55
+Custo Estimado da Etapa: $ 120.55
 ```
 
 #### BA-C12
@@ -2156,12 +2171,13 @@ Digite: Comprimento **40**; Largura **7 7/8**; Altura **11 7/8**. Na janela, toq
 ```
 [JANELA] Viga de 7 7/8 in x 11 7/8 in: o mínimo é 8 in de largura e 12 in de altura.
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.772 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.39 m³ ($ 17.55)
-• Brita: 0.58 m³ ($ 23.20)
+Volume Total (com 5% de perda): 1.01 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.51 cu yd ($ 17.55)
+• Brita: 0.76 cu yd ($ 23.20)
+• Ou concreto pronto: 46 sacos de 80 lb (no lugar de cimento, areia e brita)
 
-Custo Estimado da Etapa: $ 112.75
+Custo Estimado da Etapa: $ 124.75
 ```
 
 #### BA-C13
@@ -2171,8 +2187,9 @@ Digite: Comprimento **40**; Largura **0.2**; Altura **0.3**. Na janela, toque em
 ```
 [JANELA] Viga de 0.2 in x 0.3 in: o mínimo é 8 in de largura e 12 in de altura.
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.000 m³
-• Cimento: 1 saco de 50 kg ($ 12.00)
+Volume Total (com 5% de perda): 0.00 cu yd
+• Cimento: 1 saco de 94 lb ($ 12.00)
+• Ou concreto pronto: 1 saco de 80 lb (no lugar de cimento, areia e brita)
 
 Custo Estimado da Etapa: $ 12.00
 ```
@@ -2207,15 +2224,16 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Nº de barras **4**; E
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
-• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
-• Aço/Ferragem: 21.8 kg ($ 54.38)
-• Arame recozido: 0.4 kg ($ 6.45)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
+• Ferro #4: 122.5 lb (10 barras de 20 ft) (inclui 6.67 ft de emendas)
+• Aço/Ferragem: 122.5 lb ($ 138.88)
+• Arame recozido: 2.4 lb = 1 rolo de 3.5 lb ($ 16.65)
 
-Custo Estimado da Etapa: $ 174.43
+Custo Estimado da Etapa: $ 281.12
 ```
 
 #### BA-C18
@@ -2224,16 +2242,17 @@ Digite: Comprimento **40**; Largura **8**; Altura **12**; Nº de barras **4**; E
 
 ```
 Traço: 1:2:3
-Volume Total (com 5% de perda): 0.793 m³
-• Cimento: 6 sacos de 50 kg ($ 72.00)
-• Areia: 0.40 m³ ($ 18.00)
-• Brita: 0.59 m³ ($ 23.60)
-• Ferro 8 mm: 21.8 kg (5 barras de 12 m) (inclui 1.28 m de emendas)
-• Estribos 5 mm c/ 4 1/2 in: 15.0 kg (9 barras de 12 m)
-• Aço/Ferragem: 36.7 kg ($ 91.80)
-• Arame recozido: 0.7 kg ($ 10.95)
+Volume Total (com 5% de perda): 1.04 cu yd
+• Cimento: 7 sacos de 94 lb ($ 84.00)
+• Areia: 0.52 cu yd ($ 18.00)
+• Brita: 0.78 cu yd ($ 23.60)
+• Ou concreto pronto: 47 sacos de 80 lb (no lugar de cimento, areia e brita)
+• Ferro #4: 122.5 lb (10 barras de 20 ft) (inclui 6.67 ft de emendas)
+• Estribos #3 c/ 4 1/2 in: 66.3 lb (9 barras de 20 ft)
+• Aço/Ferragem: 188.7 lb ($ 214.03)
+• Arame recozido: 3.8 lb = 2 rolos de 3.5 lb ($ 25.65)
 
-Custo Estimado da Etapa: $ 216.35
+Custo Estimado da Etapa: $ 365.27
 ```
 
 #### BA-C19
@@ -2257,7 +2276,7 @@ Erro: Viga muito pequena para colocar estribos.
 
 - Estribo vem com **8** (in) e perda com **5**.
 - **P9:** o "?" diz "baldes de 5 gal (com 4,75 gal de produto)": nos EUA o certo é **"4.75 gal"** (com ponto).
-- **Parte 2 (não é erro nesta rodada):** traço, m³ do volume, sacos de 50 kg, m³ de areia e brita, "Ferro 8 mm", kg, "barras de 12 m", "(inclui 1.28 m de emendas)", "Arame recozido ... kg" e o título "Bitola do ferro (mm)".
+- **Desde 09/11/2026 (Parte A):** o título "Bitola do ferro" (sem "(mm)") com #3, #4 e #5; o "?" fala do padrão americano do ferro e do concreto pronto; nenhum m³, kg, "sacos de 50 kg", "barras de 12 m" ou "mm" no resultado.
 
 ---
 
@@ -2425,7 +2444,7 @@ caso("PT-C24", "pintura", {"parede": "53821"})
 # BALDRAME (impermeabilização)
 BA = {"comp": "40", "larg": "8", "alt": "12"}
 caso("BA-A", "baldrame", {"comp": "100", "larg": "10", "alt": "16", "perda": "8", "mo": "8.00", "barras": "4", "esp_estribo": "6"},
-     {"traco": "1:3:3", "bitola": 12.5, "imperm": True})
+     {"traco": "1:3:3", "bitola": 15.875, "imperm": True})
 caso("BA-B", "baldrame", BA)
 caso("BA-B2", "baldrame", BA, {"imperm": True})
 caso("BA-B3", "baldrame", {**BA, "comp": "75"}, {"imperm": True})

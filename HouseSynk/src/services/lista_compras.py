@@ -45,7 +45,7 @@ def _sistema(item):
 
 
 def _linhas_concreto_ferro_eua(itens, basico):
-    """Concreto, ferro e arame das abas já adaptadas aos EUA (hoje, as Brocas), com as embalagens
+    """Concreto, ferro e arame das abas já adaptadas aos EUA (Brocas e Baldrame), com as embalagens
     de lá e os mesmos textos da aba (regra 17). Ficam separados dos do Brasil porque são outras
     embalagens: saco de 94 lb não soma com saco de 50 kg, e barra de 20 ft não soma com barra de 12 m."""
     C = CalculatorScreen

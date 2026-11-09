@@ -32,7 +32,10 @@ TEXTOS_EUA = {
         "un_barras20ft": "barras de 20 ft",
         "un_rolo_arame": "rolo de 3.5 lb",
         "un_rolos_arame": "rolos de 3.5 lb",
-        "ajuda_baldrame": "Informe o comprimento total das vigas, a largura e a altura. Se quiser, inclua a quantidade de barras, a bitola, o espaçamento dos estribos e a impermeabilização.\n\nA impermeabilização (emulsão asfáltica para fundação) sai em baldes de 5 gal (com 4.75 gal de produto) e galões de 1 gal.",
+        "ajuda_baldrame": "Informe o comprimento total das vigas, a largura e a altura. Se quiser, inclua a quantidade de barras, a bitola, o espaçamento dos estribos e a impermeabilização.\n\nO ferro segue o padrão americano, igual às Brocas: bitolas #3, #4 e #5, barras de 20 ft (com emenda de 40 vezes a bitola a cada 20 ft de viga), estribo #3 e 3 in de concreto em volta do ferro (código IRC). O cimento sai em sacos de 94 lb, e o app mostra também quantos sacos de concreto pronto de 80 lb dariam no lugar de cimento, areia e brita.\n\nA impermeabilização (emulsão asfáltica para fundação) sai em baldes de 5 gal (com 4.75 gal de produto) e galões de 1 gal.",
+        # Baldrame (Parte A, Nov 9, 2026): emendas em ft; bitola sem "(mm)" (nos EUA é #3, #4, #5)
+        "label_traspasse": "inclui {m} ft de emendas",
+        "label_bitola": "Bitola do ferro",
         # --- Paredes e Reboco ---
         "hint_area_parede": "Área bruta das paredes em sq ft (ex: 320)",
         "hint_vaos": "Portas/janelas em sq ft (opcional, ex: 50)",
@@ -109,9 +112,9 @@ TEXTOS_EUA = {
         "hint_diam": "Diameter, in (e.g. 12)",
         "hint_esp_estribo": "Stirrup spacing, in (e.g. 8)",
         "hint_mo": "Labor cost per ft (optional, e.g. 8.00)",
-        "hint_comprimento": "Total length, ft (ex: 40)",
-        "hint_largura": "Beam width, in (ex: 8)",
-        "hint_altura": "Beam height, in (ex: 12)",
+        "hint_comprimento": "Total length, ft (e.g. 40)",
+        "hint_largura": "Beam width, in (e.g. 8)",
+        "hint_altura": "Beam height, in (e.g. 12)",
         "ajuda_brocas": "Enter the number of piles, the diameter (e.g. 12 in) and the average depth of each one. If you like, add the rebar. The app estimates the concrete and steel needed.\n\nStirrups are only included if you enter the bars. To leave stirrups out, keep the spacing empty.\n\nRebar follows the US standard: bar sizes #3, #4 and #5, 20 ft bars, #3 stirrups and 3 in of concrete cover (IRC). Cement comes in 94 lb bags, and the app also shows how many 80 lb bags of ready-mix concrete would replace the cement, sand and gravel.",
         # Piles (Part A, Nov 9, 2026): US packaging for concrete, rebar and tie wire
         "label_gaiola": "Rebar cage: {m} ft of each pile",
@@ -125,7 +128,10 @@ TEXTOS_EUA = {
         "un_barras20ft": "bars of 20 ft",
         "un_rolo_arame": "roll of 3.5 lb",
         "un_rolos_arame": "rolls of 3.5 lb",
-        "ajuda_baldrame": "Enter the total length of the grade beams, their width and height. If you like, add the number of bars, bar size, stirrup spacing and waterproofing.\n\nThe waterproofing (asphalt emulsion foundation coating) comes in 5 gal pails (4.75 gal of product) and 1 gal cans.",
+        "ajuda_baldrame": "Enter the total length of the grade beams, their width and height. If you like, add the number of bars, bar size, stirrup spacing and waterproofing.\n\nRebar follows the US standard, as in Piles: bar sizes #3, #4 and #5, 20 ft bars (with a lap splice of 40 bar diameters every 20 ft of beam), #3 stirrups and 3 in of concrete cover (IRC). Cement comes in 94 lb bags, and the app also shows how many 80 lb bags of ready-mix concrete would replace the cement, sand and gravel.\n\nThe waterproofing (asphalt emulsion foundation coating) comes in 5 gal pails (4.75 gal of product) and 1 gal cans.",
+        # Grade beam (Part A, Nov 9, 2026): lap splices in ft; bar size without "(mm)" (#3, #4, #5 in the US)
+        "label_traspasse": "includes {m} ft of lap splices",
+        "label_bitola": "Rebar size",
         # --- Walls and plaster ---
         "hint_area_parede": "Gross wall area, sq ft (ex: 320)",
         "hint_vaos": "Doors/windows, sq ft (optional, ex: 50)",

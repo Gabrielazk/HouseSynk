@@ -180,6 +180,8 @@ from src.calculators.paredes import (
     JUNTA_MINIMA_CM,
     JUNTA_MAXIMA_CM,
     QUEBRA_MAXIMA_PERCENTUAL,
+    TIJOLOS_EUA,
+    tijolos_do_pais,
 )
 from src.calculators.tracos import (
     TRACOS_CONCRETO,
@@ -346,7 +348,7 @@ class CalculatorScreen(MDScreen):
         self.textos_resultado = {}   # último resultado mostrado em cada aba
         self._sistema_estado = sistema_unidades()  # em que unidades o texto do estado_abas está
         self.traco = {"brocas": TRACO_CONCRETO_PADRAO, "baldrame": TRACO_CONCRETO_PADRAO, "paredes": TRACO_MASSA_PADRAO, "contrapiso": TRACO_PADRAO_CONTRAPISO, "reboco": TRACO_MASSA_PADRAO, "laje": TRACO_CONCRETO_PADRAO}
-        self.tijolo = {"paredes": TIJOLO_PADRAO}
+        self.tijolo = {"paredes": tijolos_do_pais(self._sistema_estado)[1]}  # baiano no Brasil, CMU 8x8x16 nos EUA
         self.assent = {"paredes": ASSENTAMENTO_PADRAO}
         self.bitola = {"brocas": self._bitolas_aba("brocas")[1], "baldrame": self._bitolas_aba("baldrame")[1]}
         self.imperm = {"baldrame": False}
@@ -396,6 +398,7 @@ class CalculatorScreen(MDScreen):
         self._converter_estado_abas(self._sistema_estado, sistema)
         self._trocar_argamassa_de_pais(sistema)
         self._trocar_bitola_de_pais(sistema)
+        self._trocar_tijolo_de_pais(sistema)
         self._sistema_estado = sistema
         self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi convertido
 
@@ -412,6 +415,14 @@ class CalculatorScreen(MDScreen):
             atual = self.bitola.get(aba)
             nova = padrao if atual == padrao_antigo else equivalente.get(atual)
             self.bitola[aba] = nova if nova in bitolas else padrao
+
+    def _trocar_tijolo_de_pais(self, sistema):
+        """Cada país tem os seus tijolos e blocos (nos EUA, só o CMU 8x8x16). Ao trocar de país,
+        o tijolo que não existe no país novo vira o padrão de lá (baiano no Brasil, CMU nos EUA)."""
+        tijolos, padrao = tijolos_do_pais(sistema)
+        for aba in self.tijolo:
+            if self.tijolo[aba] not in tijolos:
+                self.tijolo[aba] = padrao
 
     def _trocar_argamassa_de_pais(self, sistema):
         """Cada país tem os seus tipos de argamassa colante. Ao trocar de país, troca pelo
@@ -722,7 +733,9 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.lbl_obrigatorio_par)
         box_form.add_widget(self.in_par_area)
         self._montar_seletor_tijolo(box_form, "paredes")
-        self._montar_seletor_assent(box_form, "paredes")
+        eua = (sistema_unidades() == IMPERIAL)
+        if not eua:  # nos EUA o bloco CMU vai sempre do mesmo jeito (decisão da Gabi, Nov 9, 2026)
+            self._montar_seletor_assent(box_form, "paredes")
 
         # --- Opcionais (já vêm preenchidos com valores padrão; os rótulos dizem "opcional") ---
         self.in_par_vaos = MDTextField(MDTextFieldHintText(text=txt("hint_vaos")), mode="outlined", write_tab=False, readonly=ro)
@@ -737,7 +750,8 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.in_par_vaos)
         box_form.add_widget(self.in_par_junta)
         box_form.add_widget(self.in_par_quebra)
-        self._montar_seletor_traco(box_form, "paredes")
+        if not eua:  # nos EUA a massa já vem pronta (tipo S), sem traço para escolher
+            self._montar_seletor_traco(box_form, "paredes")
 
         self._campos = {
             "area": self.in_par_area, "vaos": self.in_par_vaos,
@@ -1673,7 +1687,7 @@ class CalculatorScreen(MDScreen):
         self._avisos_aceitos.pop(aba, None)
         self.traco[aba] = self._tabela_traco(aba)[1]
         if aba in self.tijolo:
-            self.tijolo[aba] = TIJOLO_PADRAO
+            self.tijolo[aba] = tijolos_do_pais(sistema_unidades())[1]
         if aba in self.assent:
             self.assent[aba] = ASSENTAMENTO_PADRAO
         if aba in self.bitola:
@@ -1825,11 +1839,18 @@ class CalculatorScreen(MDScreen):
     # --- Tijolo / bloco e assentamento (Paredes) ---
     @staticmethod
     def _rotulo_tijolo(chave):
+        """Nome do tijolo ou bloco. O CMU dos EUA tem o texto no textos_eua.py: txt_do_pais acha o nome
+        mesmo com o país trocado para o Brasil (ex.: lista de compras de um orçamento feito nos EUA)."""
+        if chave in TIJOLOS_EUA:
+            return txt_do_pais(f"tj_{chave}", IMPERIAL)
         return txt(f"tj_{chave}")
 
     def _montar_seletor_tijolo(self, box_form, aba):
+        tijolos, padrao = tijolos_do_pais(sistema_unidades())
+        if self.tijolo[aba] not in tijolos:  # segurança: tijolo do outro país
+            self.tijolo[aba] = padrao
         self._botoes_tijolo[aba] = self._montar_dropdown(
-            box_form, txt("label_tijolo"), list(TIJOLOS.keys()), self.tijolo[aba],
+            box_form, txt("label_tijolo"), list(tijolos.keys()), self.tijolo[aba],
             lambda t: self._escolher_tijolo(aba, t), rotulo=self._rotulo_tijolo, largura=None
         )
 
@@ -3354,7 +3375,9 @@ class CalculatorScreen(MDScreen):
         vaos = self._numero(e.get("vaos"), 0.0)
         junta = self._numero(e.get("junta"), JUNTA_PADRAO_CM)
         quebra = self._numero(e.get("quebra"), QUEBRA_PADRAO_PERCENTUAL)
-        tijolo = self.tijolo["paredes"]
+        sistema = sistema_unidades()
+        tijolos, padrao = tijolos_do_pais(sistema)
+        tijolo = self.tijolo["paredes"] if self.tijolo["paredes"] in tijolos else padrao
         assent = self.assent["paredes"]
 
         # Limites de conferência (paredes.py): passar deles pergunta se quer continuar.
@@ -3379,10 +3402,12 @@ class CalculatorScreen(MDScreen):
         res = calcular_paredes(
             area_bruta_m2=area, tijolo=tijolo, assentamento=assent,
             desconto_vaos_m2=vaos, junta_cm=junta, quebra_percentual=quebra,
-            traco=self.traco["paredes"]
+            traco=self.traco["paredes"], sistema=sistema
         )
         if "erro" in res:
             return {"erro": self._txt_erro(res['erro'])}
+        if sistema == IMPERIAL:
+            return self._resultado_paredes_eua(res, area, vaos, junta, quebra, tijolo)
 
         custo_tijolo = res['unidades'] * res['preco_unitario']
         custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
@@ -3416,6 +3441,61 @@ class CalculatorScreen(MDScreen):
             }
         }
         return {"texto": texto_res, "resultado": resultado}
+
+    def _resultado_paredes_eua(self, res, area, vaos, junta, quebra, tijolo):
+        """Resultado das Paredes nos EUA: blocos CMU 8x8x16 e a massa pronta tipo S em sacos de 80 lb,
+        com a alternativa do cimento de alvenaria tipo S (70 lb) + areia, sem preço e fora do custo
+        (igual ao concreto pronto das Brocas). Áreas em sq ft. Os preços ainda são os provisórios:
+        o bloco vem do paredes.py e o saco de massa usa o preço do cimento do país (passo de preços)."""
+        custo_tijolo = res['unidades'] * res['preco_unitario']
+        custo_massa = res['sacos_massa_pronta'] * TABELA_PRECOS_GLOBAL.cimento_50kg
+        custo_mat = custo_tijolo + custo_massa
+
+        # Áreas digitadas, sem o arredondamento em m² do paredes.py (senão 320 sq ft voltava 320.01 sq ft)
+        texto_res = f"{txt('label_area_bruta')}: {self._med(area, 'area', 2)}\n"
+        if vaos > 0:
+            texto_res += f"{txt('label_vaos')}: {self._med(vaos, 'area', 2)}\n"
+            texto_res += f"{txt('label_area_liquida')}: {self._med(area - vaos, 'area', 2)}\n"
+        qtd = res['unidades']
+        texto_res += (
+            f"• {self._rotulo_tijolo(tijolo)}: {fmt_int(qtd)} {self._unidade(qtd, 'un_unidade', 'un_unidades')} "
+            f"({fmt_moeda(custo_tijolo)})\n"
+        )
+        if res['sacos_massa_pronta'] > 0:
+            sacos = res['sacos_massa_pronta']
+            texto_res += (f"• {txt('label_massa_pronta')}: {fmt_int(sacos)} "
+                          f"{self._unidade(sacos, 'un_saco_80', 'un_sacos_80')} ({fmt_moeda(custo_massa)})\n")
+        if res['sacos_cimento_alvenaria'] > 0:
+            texto_res += f"• {self._texto_cimento_alvenaria(res['sacos_cimento_alvenaria'], res['areia_lb'])}\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        resultado = {
+            "etapa": txt("secao_paredes"),
+            "tipo": "paredes",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a massa dos EUA tem chaves próprias (outras embalagens)
+            "cimento": 0, "cal": 0, "areia": 0,
+            "tijolos": res['unidades'],
+            "massa_80lb": res['sacos_massa_pronta'],
+            "cimento_alv_70lb": res['sacos_cimento_alvenaria'],
+            "areia_alv_lb": res['areia_lb'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {
+                "area": area, "vaos": vaos, "junta": junta, "quebra": quebra,
+                "tijolo": tijolo, "assent": res["assentamento"], "traco": res["traco"]
+            }
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    @staticmethod
+    def _texto_cimento_alvenaria(sacos, areia_lb):
+        """"Ou: 9 sacos de cimento de alvenaria tipo S de 70 lb + 2,160 lb de areia (no lugar da massa pronta)".
+        É uma alternativa (sem preço e fora do custo): quem compra a massa pronta não compra estes."""
+        unidade = CalculatorScreen._unidade(sacos, 'un_saco_cim_alv', 'un_sacos_cim_alv', IMPERIAL)
+        return (f"{txt_do_pais('label_ou', IMPERIAL)}: {fmt_int(sacos)} {unidade} + "
+                f"{txt_do_pais('txt_areia_lb', IMPERIAL).format(lb=fmt_int(areia_lb))} "
+                f"({txt_do_pais('txt_no_lugar_massa', IMPERIAL)})")
 
     def executar_calculo(self, instance=None):
         """Botão Calcular: calcula a aba aberta e mostra o resultado."""
@@ -3451,7 +3531,8 @@ class CalculatorScreen(MDScreen):
         traco = inputs_dict.get("traco")
         self.traco[aba] = traco if traco in tabela_tracos else traco_padrao
         if aba in self.tijolo:
-            self.tijolo[aba] = inputs_dict.get("tijolo") if inputs_dict.get("tijolo") in TIJOLOS else TIJOLO_PADRAO
+            tijolos, padrao = tijolos_do_pais(sistema_unidades())
+            self.tijolo[aba] = inputs_dict.get("tijolo") if inputs_dict.get("tijolo") in tijolos else padrao
         if aba in self.assent:
             self.assent[aba] = inputs_dict.get("assent") if inputs_dict.get("assent") in ASSENTAMENTOS else ASSENTAMENTO_PADRAO
         if aba in self.bitola:

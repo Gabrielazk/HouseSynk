@@ -7,6 +7,7 @@ from datetime import datetime
 from src.calculators.hidraulica import BARRA_TUBO_M
 from src.calculators.baldrame import EMBALAGENS_IMPERM_L
 from src.calculators.brocas import rolos_arame_eua
+from src.calculators.paredes import TIJOLOS_EUA
 from src.calculators.embalagens import grandes_e_pequenas
 from src.calculators.unidades import METRICO, IMPERIAL, KG_POR_LB, do_metrico
 from src.views.comum import CONFIG_APP, txt, fmt_num, fmt_int, fmt_moeda
@@ -74,6 +75,19 @@ def _linhas_concreto_ferro_eua(itens, basico):
                       f"{C._texto_rolos_arame(rolos_arame_eua(total * KG_POR_LB))}")
 
 
+def _linhas_massa_eua(itens, basico):
+    """Massa de assentar das Paredes dos EUA (Nov 9, 2026), com os mesmos textos da aba (regra 17):
+    a massa pronta tipo S em sacos de 80 lb e a alternativa do cimento de alvenaria + areia."""
+    C = CalculatorScreen
+    total = _soma(itens, "massa_80lb")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_massa_pronta', IMPERIAL)}: {fmt_int(total)} "
+                      f"{C._unidade(total, 'un_saco_80', 'un_sacos_80', IMPERIAL)}")
+    total = _soma(itens, "cimento_alv_70lb")
+    if total > 0:
+        basico.append(C._texto_cimento_alvenaria(total, _soma(itens, "areia_alv_lb")))
+
+
 def montar_lista_compras(itens):
     """Recebe o orçamento (lista de resultados das abas) e devolve [(grupo, [linhas]), ...],
     só com os grupos que têm algum material. Cada material aparece só se for maior que zero."""
@@ -92,8 +106,9 @@ def montar_lista_compras(itens):
     for tipo, total in por_tijolo.items():
         rotulo = C._rotulo_tijolo(tipo) if tipo else txt('label_tijolos_resumo')
         milheiros = total / 1000.0
-        basico.append(f"{rotulo}: {fmt_int(total)} {C._unidade(total, 'un_unidade', 'un_unidades')}"
-                      f"{C._txt_milheiros(milheiros)}")
+        # O bloco CMU dos EUA não é vendido por milheiro: só as peças (igual à aba)
+        txt_milheiro = "" if tipo in TIJOLOS_EUA else C._txt_milheiros(milheiros)
+        basico.append(f"{rotulo}: {fmt_int(total)} {C._unidade(total, 'un_unidade', 'un_unidades')}{txt_milheiro}")
     total = _soma(itens, "cimento")
     if total > 0:
         basico.append(f"{txt('label_cimento')}: {fmt_int(total)} {C._unidade(total, 'un_saco', 'un_sacos')}")
@@ -113,6 +128,7 @@ def montar_lista_compras(itens):
     if total > 0:
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
     _linhas_concreto_ferro_eua(itens, basico)
+    _linhas_massa_eua(itens, basico)
     for item in _do_tipo(itens, "baldrame"):
         litros = item.get("imperm_litros", 0)
         if litros > 0:

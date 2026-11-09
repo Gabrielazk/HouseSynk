@@ -6,7 +6,7 @@ from src.calculators.tracos import (
     SACO_CAL_KG,
     materiais_da_massa,
 )
-from src.calculators.unidades import arredondar  # arredonda certo (1,575 -> 1,58)
+from src.calculators.unidades import arredondar, METRICO, IMPERIAL  # arredondar: arredonda certo (1,575 -> 1,58)
 
 # As mensagens de erro são CHAVES de texto (ex.: "erro_perda_negativa"): a tela mostra a frase
 # no idioma escolhido com o txt() (os textos ficam no comum.py). Assim aqui só ficam as contas.
@@ -22,6 +22,32 @@ TIJOLOS = {
     "bloco_19":    {"largura": 19.0, "altura": 19.0, "comprimento": 39.0, "preco": 6.00},
 }
 TIJOLO_PADRAO = "baiano"
+
+# ==========================================
+# EUA (Parte A da versão EUA, Nov 9, 2026; pesquisa em claude/pesquisa_embalagens_eua.md, item 4)
+# Nos EUA a parede de alvenaria é de bloco de concreto (CMU). A Gabi escolheu só o 8x8x16 (o da pesquisa).
+# Medida real: 7 5/8 x 7 5/8 x 15 5/8 in; com a junta de 3/8 in fica 8 x 16 in = 1,125 bloco por sq ft.
+# ==========================================
+POL_CM = 2.54
+TIJOLOS_EUA = {
+    # preço PROVISÓRIO: o mesmo número do bloco 19x19x39 do Brasil, em dólar (passo de preços)
+    "cmu_8": {"largura": 7.625 * POL_CM, "altura": 7.625 * POL_CM, "comprimento": 15.625 * POL_CM, "preco": 6.00},
+}
+TIJOLO_PADRAO_EUA = "cmu_8"
+
+# Massa de assentar nos EUA: a pronta (Quikrete Mason Mix tipo S, saco de 80 lb) assenta até 13 blocos.
+# Alternativa: cimento de alvenaria tipo S (saco de 70 lb) + 240 lb de areia = cerca de 46 blocos.
+# Os dois números são do fabricante (Quikrete); a perda da massa (10%) entra igual ao Brasil.
+BLOCOS_POR_SACO_MASSA_PRONTA = 13
+BLOCOS_POR_SACO_CIMENTO_ALVENARIA = 46
+AREIA_LB_POR_SACO_CIMENTO_ALVENARIA = 240
+
+
+def tijolos_do_pais(sistema=METRICO):
+    """(tijolos e blocos do país, o padrão): os 5 do Brasil, ou só o CMU 8x8x16 nos EUA."""
+    if sistema == IMPERIAL:
+        return TIJOLOS_EUA, TIJOLO_PADRAO_EUA
+    return TIJOLOS, TIJOLO_PADRAO
 
 # Assentamento: qual lado do tijolo fica como espessura da parede.
 #   em pé:   aparece o comprimento x a altura; a espessura da parede é a largura
@@ -52,12 +78,21 @@ def calcular_paredes(
     junta_cm: float = JUNTA_PADRAO_CM,
     quebra_percentual: float = QUEBRA_PADRAO_PERCENTUAL,
     traco: str = TRACO_MASSA_PADRAO,
+    sistema: str = METRICO,
 ) -> dict:
+    """Tijolos ou blocos e a massa de assentar. sistema=IMPERIAL (EUA): bloco CMU 8x8x16 (o assentamento
+    e o traço não valem: o bloco vai sempre do mesmo jeito e a massa já vem pronta) e a massa em sacos de
+    80 lb (Mason Mix), com a alternativa do cimento de alvenaria. No Brasil o resultado é o mesmo de sempre."""
+    eua = (sistema == IMPERIAL)
+    tijolos, _ = tijolos_do_pais(sistema)
+    if eua:
+        assentamento = ASSENTAMENTO_PADRAO   # o CMU tem a face quadrada: em pé ou deitado dá na mesma
+        traco = TRACO_MASSA_PADRAO           # não é usado nos EUA (a massa vem pronta)
     if area_bruta_m2 <= 0:
         return {"erro": "erro_area_parede_zero"}
     if desconto_vaos_m2 < 0 or junta_cm < 0 or quebra_percentual < 0:
         return {"erro": "erro_desconto_junta_quebra_negativos"}
-    if tijolo not in TIJOLOS:
+    if tijolo not in tijolos:
         return {"erro": "erro_tijolo_invalido"}
     if assentamento not in ASSENTAMENTOS:
         return {"erro": "erro_assentamento_invalido"}
@@ -68,7 +103,7 @@ def calcular_paredes(
     if area_liquida_m2 <= 0:
         return {"erro": "erro_desconto_vaos"}
 
-    dados = TIJOLOS[tijolo]
+    dados = tijolos[tijolo]
     if assentamento == "em_pe":
         face_comprimento_cm = dados["comprimento"]
         face_altura_cm = dados["altura"]
@@ -81,7 +116,9 @@ def calcular_paredes(
     # Quantas peças cabem em 1 m2 (a junta entra na medida de cada peça)
     peca_com_junta_m2 = ((face_comprimento_cm + junta_cm) / 100.0) * ((face_altura_cm + junta_cm) / 100.0)
     pecas_por_m2 = 1.0 / peca_com_junta_m2
-    unidades = math.ceil(area_liquida_m2 * pecas_por_m2 * (1 + quebra_percentual / 100.0))
+    # O "- 1e-9" é a folguinha do erro do computador com número quebrado (a mesma das barras de ferro):
+    # 320 sq ft de bloco CMU com 5% de quebra davam 378,00000001 e viravam 379 blocos.
+    unidades = math.ceil(area_liquida_m2 * pecas_por_m2 * (1 + quebra_percentual / 100.0) - 1e-9)
     milheiros = unidades / 1000.0
 
     # Volume de massa = o que sobra na parede depois de tirar o volume dos tijolos, mais a perda da massa
@@ -95,7 +132,7 @@ def calcular_paredes(
     sacos_cal = math.ceil(materiais["cal_kg"] / SACO_CAL_KG - 1e-9)
     areia_m3 = arredondar(materiais["areia_m3"], 2)
 
-    return {
+    resultado = {
         "area_bruta_m2": arredondar(area_bruta_m2, 2),
         "desconto_vaos_m2": arredondar(desconto_vaos_m2, 2),
         "area_liquida_m2": arredondar(area_liquida_m2, 2),
@@ -114,3 +151,17 @@ def calcular_paredes(
         "sacos_cal": sacos_cal,
         "areia_m3": areia_m3,
     }
+
+    if eua:
+        # A massa sai pelos números do fabricante, pelos blocos assentados (os quebrados não levam massa),
+        # mais a perda da massa. Cimento, cal e areia do Brasil ficam zerados.
+        blocos_assentados = area_liquida_m2 * pecas_por_m2 * (1 + PERDA_MASSA_PERCENTUAL / 100.0)
+        sacos_alvenaria = math.ceil(blocos_assentados / BLOCOS_POR_SACO_CIMENTO_ALVENARIA - 1e-9)
+        resultado.update({
+            "sistema": IMPERIAL,
+            "sacos_cimento": 0, "sacos_cal": 0, "areia_m3": 0.0,
+            "sacos_massa_pronta": math.ceil(blocos_assentados / BLOCOS_POR_SACO_MASSA_PRONTA - 1e-9),  # 80 lb
+            "sacos_cimento_alvenaria": sacos_alvenaria,                                                # 70 lb
+            "areia_lb": sacos_alvenaria * AREIA_LB_POR_SACO_CIMENTO_ALVENARIA,
+        })
+    return resultado

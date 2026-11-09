@@ -216,6 +216,6 @@ Os valores são **estimativas** e não substituem o projeto de um engenheiro ou 
 
 ## 📄 Licença
 
-© 2026 Gabriela Salviatto. Todos os direitos reservados.
+© 2026 Gabriella Salviatto. Todos os direitos reservados. Veja o arquivo [LICENSE](LICENSE).
 
 A fonte usada no PDF (Liberation Sans) é distribuída sob a licença SIL Open Font License; o texto da licença está em `HouseSynk/assets/fonts`.

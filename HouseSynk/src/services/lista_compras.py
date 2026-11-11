@@ -46,7 +46,7 @@ def _sistema(item):
 
 
 def _linhas_concreto_ferro_eua(itens, basico):
-    """Concreto, ferro e arame das abas já adaptadas aos EUA (Brocas e Baldrame), com as embalagens
+    """Concreto, ferro e arame das abas já adaptadas aos EUA (Brocas, Baldrame e Laje), com as embalagens
     de lá e os mesmos textos da aba (regra 17). Ficam separados dos do Brasil porque são outras
     embalagens: saco de 94 lb não soma com saco de 50 kg, e barra de 20 ft não soma com barra de 12 m."""
     C = CalculatorScreen
@@ -63,6 +63,9 @@ def _linhas_concreto_ferro_eua(itens, basico):
     total = _soma(itens, "concreto_80lb")
     if total > 0:
         basico.append(C._texto_concreto_pronto(total))
+    total = _soma(itens, "concreto_caminhao_cuyd")  # só a Laje dos EUA tem (concreto usinado)
+    if total > 0:
+        basico.append(C._texto_concreto_caminhao(total))
     total = _soma(itens, "aco_lb")
     if total > 0:
         barras = _soma(itens, "barras_20ft")
@@ -86,6 +89,23 @@ def _linhas_massa_eua(itens, basico):
     total = _soma(itens, "cimento_alv_70lb")
     if total > 0:
         basico.append(C._texto_cimento_alvenaria(total, _soma(itens, "areia_alv_lb")))
+
+
+def _linhas_laje_eua(itens, basico):
+    """Base de brita, lona e tela da Laje dos EUA (Nov 9, 2026), com os mesmos textos da aba (regra 17).
+    A tela fica separada da tela do Brasil: painel de 5 x 10 ft não soma com painel de 2 x 3 m."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    total = _soma(itens, "base_brita_cuyd")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_base_brita_res', eua)}: {fmt_num(total, 2)} cu yd")
+    total = _soma(itens, "lona_rolos")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_lona_res', eua)}: {fmt_int(total)} {C._unidade(total, 'un_rolo_lona', 'un_rolos_lona', eua)}")
+    total = _soma(itens, "tela_paineis_eua")
+    if total > 0:
+        basico.append(f"{txt_do_pais('label_tela_res', eua)}: {fmt_int(total)} "
+                      f"{C._unidade(total, 'un_painel_tela_eua', 'un_paineis_tela_eua', eua)}")
 
 
 def montar_lista_compras(itens):
@@ -129,6 +149,7 @@ def montar_lista_compras(itens):
         basico.append(f"{txt('label_arame')}: {fmt_num(total, 1)} kg")
     _linhas_concreto_ferro_eua(itens, basico)
     _linhas_massa_eua(itens, basico)
+    _linhas_laje_eua(itens, basico)
     for item in _do_tipo(itens, "baldrame"):
         litros = item.get("imperm_litros", 0)
         if litros > 0:

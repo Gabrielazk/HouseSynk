@@ -90,6 +90,13 @@ from src.calculators.laje import (
     CAPA_MAXIMA_CM,
     ESPESSURA_MACICA_MINIMA_CM,
     ESPESSURA_MACICA_MAXIMA_CM,
+    calcular_laje_eua,
+    TIPO_SLAB_EUA,
+    ESPESSURA_SLAB_PADRAO_CM,
+    ESPESSURA_SLAB_MINIMA_CM,
+    ESPESSURA_SLAB_MAXIMA_CM,
+    PRECO_PAINEL_TELA_EUA,
+    PRECO_ROLO_LONA_EUA,
 )
 from src.calculators.telhado import (
     calcular_telhado,
@@ -281,7 +288,7 @@ CAMPOS_ABA = {
     "piso": ["area", "larg", "alt", "caixa", "perda", "rodape", "rodape_peca"],
     "azulejo": ["area", "larg", "alt", "vaos", "caixa", "perda"],
     "rejunte": ["area", "larg", "alt", "junta", "esp", "perda"],
-    "laje": ["area", "capa", "esp", "perda"],
+    "laje": ["area", "capa", "esp", "esp_slab", "perda"],  # esp_slab: espessura da laje dos EUA (slab-on-grade)
     "telhado": ["area", "incl", "cumeeira", "perda"],
     "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100", "perda"],
@@ -320,7 +327,7 @@ UNIDADE_CAMPO = {
              "rodape_peca": "comprimento"},
     "azulejo": {"area": "area", "larg": "centimetro", "alt": "centimetro", "vaos": "area", "caixa": "area"},
     "rejunte": {"area": "area", "larg": "centimetro", "alt": "centimetro", "junta": "milimetro", "esp": "milimetro"},
-    "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro"},
+    "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro", "esp_slab": "centimetro"},
     "telhado": {"area": "area", "cumeeira": "comprimento"},
     "eletrica": {chave: "comprimento" for chave in CAMPOS_ABA["eletrica"] if chave == "conduite" or chave.startswith("fio")},
     "hidraulica": {chave: "comprimento" for chave in CAMPOS_ABA["hidraulica"] if chave.startswith("tubo_")},
@@ -362,7 +369,9 @@ class CalculatorScreen(MDScreen):
         self.laje_enchimento = ENCHIMENTO_PADRAO
         self.telha_tipo = TIPO_TELHA_PADRAO
         self.madeiramento = {"telhado": False}
-        self.tela = {"laje": False}  # tela soldada na capa da laje pré-moldada
+        self.tela = {"laje": False}  # tela soldada na capa da laje pré-moldada (nos EUA, na laje inteira)
+        self.lona = {"laje": True}         # EUA: lona plástica por baixo da laje (o código IRC exige)
+        self.base_brita = {"laje": True}   # EUA: base de brita de 4 in embaixo da lona
         self.selador = {"pintura": False}
         self.fundo = {"pintura": False}
         self.massa_tipo = "nenhuma"
@@ -969,13 +978,14 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(self.btn_dica_contrapiso)
 
     # ==========================================
-    # CONTEÚDO DA ABA LAJE (pré-moldada treliçada ou maciça)
+    # CONTEÚDO DA ABA LAJE (pré-moldada treliçada ou maciça; nos EUA, o piso de concreto no chão)
     # ==========================================
     def montar_conteudo_laje(self):
         scroll = RolagemComBarra()
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
+        eua = (sistema_unidades() == IMPERIAL)
         premoldada = (self.laje_tipo == "premoldada")
 
         def campo(hint, texto=""):
@@ -986,20 +996,30 @@ class CalculatorScreen(MDScreen):
         self.in_laje_area = campo(txt("hint_area_laje"))
         self.in_laje_capa = campo(txt("hint_capa_laje"), self._texto_padrao(CAPA_PADRAO_CM, "centimetro"))
         self.in_laje_esp = campo(txt("hint_esp_laje"))
+        # Espessura da laje dos EUA (slab-on-grade): opcional, já vem com 4 in. Existe também no Brasil
+        # (escondida), para o que foi digitado voltar ao trocar de país.
+        self.in_laje_esp_slab = campo(txt("hint_esp_slab"), self._texto_padrao(ESPESSURA_SLAB_PADRAO_CM, "centimetro"))
         self.in_laje_perda = campo(txt("hint_perda_bal"), self._texto_campo(PERDA_PADRAO_LAJE))
 
         # --- Obrigatórios ---
         box_form.add_widget(MDLabel(text=txt("secao_dimensoes"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
         box_form.add_widget(self.in_laje_area)
-        self._botao_laje_tipo = self._montar_dropdown(
-            box_form, txt("label_tipo_laje"), TIPOS_LAJE, self.laje_tipo,
-            self._escolher_laje_tipo, rotulo=self._rotulo_laje, largura=None
-        )
-        if not premoldada:
+        if eua:
+            # EUA: um tipo só (piso de concreto no chão), então o menu de tipo e o enchimento somem
+            box_form.add_widget(self.in_laje_esp_slab)
+            self._montar_sim_nao(box_form, txt("label_tela"), self.tela, "laje", "tela")
+            self._montar_sim_nao(box_form, txt("label_lona"), self.lona, "laje", "lona")
+            self._montar_sim_nao(box_form, txt("label_base_brita"), self.base_brita, "laje", "base_brita")
+        else:
+            self._botao_laje_tipo = self._montar_dropdown(
+                box_form, txt("label_tipo_laje"), TIPOS_LAJE, self.laje_tipo,
+                self._escolher_laje_tipo, rotulo=self._rotulo_laje, largura=None
+            )
+        if not eua and not premoldada:
             box_form.add_widget(self.in_laje_esp)
 
         # --- Opcionais (já vêm com valor padrão) ---
-        if premoldada:
+        if not eua and premoldada:
             self._botao_laje_ench = self._montar_dropdown(
                 box_form, txt("label_enchimento"), ENCHIMENTOS, self.laje_enchimento,
                 self._escolher_laje_enchimento, rotulo=self._rotulo_laje, largura=None
@@ -1011,7 +1031,7 @@ class CalculatorScreen(MDScreen):
 
         self._campos = {
             "area": self.in_laje_area, "capa": self.in_laje_capa,
-            "esp": self.in_laje_esp, "perda": self.in_laje_perda,
+            "esp": self.in_laje_esp, "esp_slab": self.in_laje_esp_slab, "perda": self.in_laje_perda,
         }
 
         if not ro:
@@ -1706,6 +1726,8 @@ class CalculatorScreen(MDScreen):
             self.laje_tipo = TIPO_LAJE_PADRAO
             self.laje_enchimento = ENCHIMENTO_PADRAO
             self.tela["laje"] = False
+            self.lona["laje"] = True
+            self.base_brita["laje"] = True
         if aba == "telhado":
             self.telha_tipo = TIPO_TELHA_PADRAO
             self.madeiramento[aba] = False
@@ -2849,6 +2871,8 @@ class CalculatorScreen(MDScreen):
         return {"texto": texto_res, "resultado": resultado}
 
     def _calcular_laje(self, e):
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_laje_eua(e)
         premoldada = (self.laje_tipo == "premoldada")
         obrigatorios = ("area",) if premoldada else ("area", "esp")
         if not all((e.get(k) or "").strip() for k in obrigatorios):
@@ -2929,6 +2953,94 @@ class CalculatorScreen(MDScreen):
             }
         }
         return {"texto": texto_res, "resultado": resultado}
+
+    def _calcular_laje_eua(self, e):
+        """Laje nos EUA (Parte A, Nov 9, 2026): o piso de concreto no chão (slab-on-grade).
+        Concreto com as embalagens das Brocas (sacos de 94 lb, areia e brita em cu yd), as duas
+        alternativas sem preço (concreto pronto em sacos de 80 lb e concreto usinado do caminhão),
+        tela soldada em painéis de 5 x 10 ft, lona em rolos de 10 x 100 ft e base de brita de 4 in.
+        Os preços ainda são os provisórios (passo de preços)."""
+        if not (e.get("area") or "").strip():
+            return {"erro": txt("msg_erro_num")}
+
+        area = self._numero(e["area"])
+        esp = self._numero(e.get("esp_slab"), ESPESSURA_SLAB_PADRAO_CM)
+        perda = self._numero(e.get("perda"), PERDA_PADRAO_LAJE)
+        tela, lona, base = self.tela["laje"], self.lona["laje"], self.base_brita["laje"]
+
+        # Limites com aviso (laje.py): área até 2.000 m² e espessura de 3 1/2 a 8 in
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_LAJE_M2, "area")
+        self._aviso_faixa(avisos, "aviso_espessura", esp, ESPESSURA_SLAB_MINIMA_CM, ESPESSURA_SLAB_MAXIMA_CM, "centimetro")
+        pendentes = self._avisos_pendentes("laje", avisos)
+        if pendentes:
+            return pendentes
+
+        res = calcular_laje_eua(area, esp, perda, self.traco["laje"], tela_soldada=tela, lona=lona, base_brita=base)
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        # Custos: cimento por saco (o preço do país), areia e brita por m³ (a base também), tela e lona por unidade
+        custo_cimento = res['sacos_cimento'] * TABELA_PRECOS_GLOBAL.cimento_50kg
+        custo_areia = res['areia_m3'] * TABELA_PRECOS_GLOBAL.areia_m3
+        custo_pedra = res['pedra_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
+        custo_base = res['base_m3'] * TABELA_PRECOS_GLOBAL.pedra_m3
+        custo_tela = res['tela_paineis'] * PRECO_PAINEL_TELA_EUA
+        custo_lona = res['lona_rolos'] * PRECO_ROLO_LONA_EUA
+        custo_mat = custo_cimento + custo_areia + custo_pedra + custo_base + custo_tela + custo_lona
+
+        texto_res = (
+            f"{txt('label_area')}: {self._med(area, 'area')}\n"   # a área digitada (sem o arredondamento em m²)
+            f"{txt('label_tipo_laje')}: {self._rotulo_laje(TIPO_SLAB_EUA)}\n"
+            f"{txt('label_espessura_laje')}: {self._med(esp, 'centimetro')}\n"
+            f"{txt('label_traco_curto')}: {self._rotulo_traco(res['traco'])}\n"
+            f"{txt('label_volume')} ({self._txt_perda(perda)}): {fmt_num(res['volume_com_perda_cuyd'], 2)} cu yd\n"
+        )
+        # Na ordem da obra: a base de brita, a lona por cima dela e a tela; depois o concreto
+        if res['incluiu_base']:
+            texto_res += f"• {txt('label_base_brita_res')}: {fmt_num(res['base_cuyd'], 2)} cu yd ({fmt_moeda(custo_base)})\n"
+        if res['incluiu_lona']:
+            qtd = res['lona_rolos']
+            texto_res += (
+                f"• {txt('label_lona_res')}: {self._med(res['lona_m2'], 'area')} = "
+                f"{fmt_int(qtd)} {self._unidade(qtd, 'un_rolo_lona', 'un_rolos_lona')} ({fmt_moeda(custo_lona)})\n"
+            )
+        if res['incluiu_tela']:
+            qtd = res['tela_paineis']
+            texto_res += (
+                f"• {txt('label_tela_res')}: {self._med(res['tela_m2'], 'area')} = "
+                f"{fmt_int(qtd)} {self._unidade(qtd, 'un_painel_tela_eua', 'un_paineis_tela_eua')} ({fmt_moeda(custo_tela)})\n"
+            )
+        texto_res += self._linhas_concreto_eua(res, custo_cimento, custo_areia, custo_pedra)
+        if res['caminhao_cuyd'] > 0:
+            texto_res += f"• {self._texto_concreto_caminhao(res['caminhao_cuyd'])}\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        resultado = {
+            "etapa": txt("secao_laje"),
+            "tipo": "laje",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a lista de compras soma as dos EUA separado (igual às Brocas)
+            "cimento": 0, "areia": 0, "pedra": 0, "laje_premoldada_m2": 0.0, "lajotas": 0, "tela_paineis": 0,
+            "cimento_94lb": res['sacos_cimento'], "areia_cuyd": res['areia_cuyd'], "pedra_cuyd": res['pedra_cuyd'],
+            "concreto_80lb": res['sacos_concreto_pronto'], "concreto_caminhao_cuyd": res['caminhao_cuyd'],
+            "base_brita_cuyd": res['base_cuyd'] if res['incluiu_base'] else 0.0,
+            "lona_rolos": res['lona_rolos'], "tela_paineis_eua": res['tela_paineis'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {
+                "area": area, "esp_slab": esp, "perda": perda, "traco": res["traco"],
+                "tipo_laje": TIPO_SLAB_EUA, "tela": tela, "lona": lona, "base_brita": base
+            }
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    @staticmethod
+    def _texto_concreto_caminhao(cuyd):
+        """"Ou concreto usinado (caminhão): 6.50 cu yd (no lugar de cimento, areia e brita)".
+        Alternativa da Laje dos EUA (sem preço e fora do custo), igual ao concreto pronto em saco."""
+        return (f"{txt_do_pais('label_concreto_caminhao', IMPERIAL)}: {fmt_num(cuyd, 2)} cu yd "
+                f"({txt_do_pais('txt_no_lugar_concreto', IMPERIAL)})")
 
     def _calcular_telhado(self, e):
         if not (e.get("area") or "").strip():
@@ -3557,6 +3669,9 @@ class CalculatorScreen(MDScreen):
             ench = inputs_dict.get("enchimento")
             self.laje_enchimento = ench if ench in ENCHIMENTOS else ENCHIMENTO_PADRAO
             self.tela["laje"] = bool(inputs_dict.get("tela"))
+            # EUA: lona e base de brita (orçamento do Brasil ou antigo não tem: ficam no padrão, Sim)
+            self.lona["laje"] = bool(inputs_dict.get("lona", True))
+            self.base_brita["laje"] = bool(inputs_dict.get("base_brita", True))
         if aba == "telhado":
             telha = inputs_dict.get("tipo_telha")
             self.telha_tipo = telha if telha in TIPOS_TELHA else TIPO_TELHA_PADRAO

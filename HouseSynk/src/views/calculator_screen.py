@@ -139,6 +139,15 @@ from src.calculators.eletrica import (
     INTERRUPTORES_MAXIMO,
     LUZES_MAXIMO,
     CHUVEIROS_MAXIMO,
+    # EUA (Parte A, Nov 11, 2026): cabo Romex 14/2 e 12/2, sem conduíte e sem chuveiro elétrico
+    calcular_eletrica_eua,
+    ROLO_CABO_EUA_M,
+    PRECO_ROLO_CABO_EUA,
+    PRECO_CAIXA_1GANG_EUA,
+    PRECO_CAIXA_REDONDA_EUA,
+    PRECO_TOMADA_EUA,
+    PRECO_TOMADA_GFCI_EUA,
+    PRECO_INTERRUPTOR_EUA,
 )
 from src.calculators.hidraulica import (
     calcular_hidraulica,
@@ -305,7 +314,9 @@ CAMPOS_ABA = {
     "rejunte": ["area", "larg", "alt", "junta", "esp", "perda"],
     "laje": ["area", "capa", "esp", "esp_slab", "perda"],  # esp_slab: espessura da laje dos EUA (slab-on-grade)
     "telhado": ["area", "incl", "cumeeira", "perimetro", "perda"],  # perimetro: só nos EUA (starter e pingadeira)
-    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
+    # tomadas20, cabo14 e cabo12: só nos EUA (tomadas de 20 A e cabos Romex do projeto)
+    "eletrica": ["tomadas", "tomadas20", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6",
+                 "cabo14", "cabo12", "perda"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100", "perda"],
     "pintura": ["parede", "teto", "demaos", "rend", "perda"],
     "esquadrias": ["qtd", "larg", "alt"],  # campos do formulário "Nova porta ou janela"; a lista fica em self.esquadrias_itens
@@ -322,7 +333,8 @@ CAMPOS_INICIAIS = {
     "rejunte": ["area", "larg", "alt", "junta"],
     "laje": ["area", "esp"],
     "telhado": ["area", "cumeeira", "perimetro"],
-    "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
+    "eletrica": ["tomadas", "tomadas20", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6",
+                 "cabo14", "cabo12"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100"],
     "pintura": ["parede", "teto"],
     "esquadrias": ["qtd", "larg", "alt"],
@@ -345,7 +357,7 @@ UNIDADE_CAMPO = {
     "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro", "esp_slab": "centimetro"},
     # A inclinação: % no Brasil e pitch (x/12) nos EUA (6/12 = 50%)
     "telhado": {"area": "area", "incl": "inclinacao", "cumeeira": "comprimento", "perimetro": "comprimento"},
-    "eletrica": {chave: "comprimento" for chave in CAMPOS_ABA["eletrica"] if chave == "conduite" or chave.startswith("fio")},
+    "eletrica": {chave: "comprimento" for chave in CAMPOS_ABA["eletrica"] if chave == "conduite" or chave.startswith(("fio", "cabo"))},
     "hidraulica": {chave: "comprimento" for chave in CAMPOS_ABA["hidraulica"] if chave.startswith("tubo_")},
     "pintura": {"parede": "area", "teto": "area", "rend": "rendimento"},
 }
@@ -1214,36 +1226,55 @@ class CalculatorScreen(MDScreen):
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
+        eua = (sistema_unidades() == IMPERIAL)
 
         def campo(hint, texto=""):
             return MDTextField(MDTextFieldHintText(text=hint), text=texto, mode="outlined", write_tab=False, readonly=ro)
 
-        # --- Obrigatórios ---
-        box_form.add_widget(MDLabel(text=txt("secao_quantidades"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
+        # Todos os campos existem nos dois países (o que foi digitado volta ao trocar de país),
+        # mas só aparecem os do país escolhido. EUA (Nov 11, 2026): tomadas comuns e de 20 A e os
+        # cabos Romex; somem os chuveiros, o conduíte e os fios em mm².
         self.in_ele_tomadas = campo(txt("hint_tomadas"))
+        self.in_ele_tomadas20 = campo(txt("hint_tomadas20"))      # EUA: cozinha, banheiro, lavanderia e garagem
         self.in_ele_interruptores = campo(txt("hint_interruptores"))
         self.in_ele_luzes = campo(txt("hint_luzes"))
         self.in_ele_chuveiros = campo(txt("hint_chuveiros"))      # acima de 5.500 W: fio 6 mm²
         self.in_ele_chuveiros4 = campo(txt("hint_chuveiros4"))    # até 5.500 W: fio 4 mm²
+        self.in_ele_conduite = campo(txt("hint_conduite"))
+        self.in_ele_cabo14 = campo(txt("hint_cabo14"))
+        self.in_ele_cabo12 = campo(txt("hint_cabo12"))
+        self._campos = {
+            "tomadas": self.in_ele_tomadas, "tomadas20": self.in_ele_tomadas20,
+            "interruptores": self.in_ele_interruptores, "luzes": self.in_ele_luzes,
+            "chuveiros": self.in_ele_chuveiros, "chuveiros4": self.in_ele_chuveiros4,
+            "conduite": self.in_ele_conduite, "cabo14": self.in_ele_cabo14, "cabo12": self.in_ele_cabo12,
+        }
+        campos_fio = []
+        for bitola in BITOLAS_FIO:
+            campo_fio = campo(txt("hint_fio").format(b=self._rotulo_bitola_fio(bitola)))
+            self._campos[self._chave_fio(bitola)] = campo_fio
+            campos_fio.append(campo_fio)
+
+        # --- Obrigatórios ---
+        box_form.add_widget(MDLabel(text=txt("secao_quantidades"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
         box_form.add_widget(self.in_ele_tomadas)
+        if eua:
+            box_form.add_widget(self.in_ele_tomadas20)
         box_form.add_widget(self.in_ele_interruptores)
         box_form.add_widget(self.in_ele_luzes)
-        box_form.add_widget(self.in_ele_chuveiros)
-        box_form.add_widget(self.in_ele_chuveiros4)
+        if not eua:
+            box_form.add_widget(self.in_ele_chuveiros)
+            box_form.add_widget(self.in_ele_chuveiros4)
 
         # --- Opcionais: metragens de quem já tem o projeto (vazio = o app estima) ---
         box_form.add_widget(MDLabel(text=txt("secao_projeto"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
-        self.in_ele_conduite = campo(txt("hint_conduite"))
-        box_form.add_widget(self.in_ele_conduite)
-        self._campos = {
-            "tomadas": self.in_ele_tomadas, "interruptores": self.in_ele_interruptores,
-            "luzes": self.in_ele_luzes, "chuveiros": self.in_ele_chuveiros,
-            "chuveiros4": self.in_ele_chuveiros4, "conduite": self.in_ele_conduite,
-        }
-        for bitola in BITOLAS_FIO:
-            campo_fio = campo(txt("hint_fio").format(b=self._rotulo_bitola_fio(bitola)))
-            box_form.add_widget(campo_fio)
-            self._campos[self._chave_fio(bitola)] = campo_fio
+        if eua:
+            box_form.add_widget(self.in_ele_cabo14)
+            box_form.add_widget(self.in_ele_cabo12)
+        else:
+            box_form.add_widget(self.in_ele_conduite)
+            for campo_fio in campos_fio:
+                box_form.add_widget(campo_fio)
         self.in_ele_perda = campo(txt("hint_perda"), self._texto_campo(PERDA_PADRAO_ELETRICA))
         box_form.add_widget(self.in_ele_perda)
         self._campos["perda"] = self.in_ele_perda
@@ -2087,7 +2118,25 @@ class CalculatorScreen(MDScreen):
             pintura["rend"] = self._rend_padrao_texto(novo)
         # Telhado: a telha de cada país e a inclinação e a perda padrão (6/12 e 10% nos EUA)
         self._trocar_telha_de_pais(antigo, novo, incl_antes)
+        # Elétrica: no Brasil não existem as tomadas de 20 A; elas somam nas tomadas
+        if novo != IMPERIAL and "eletrica" in self.estado_abas:
+            self._juntar_tomadas20(self.estado_abas["eletrica"])
         self.textos_resultado.clear()
+
+    @staticmethod
+    def _juntar_tomadas20(estado):
+        """Brasil: as tomadas de 20 A dos EUA (cozinha, banheiro, lavanderia e garagem) viram tomadas
+        comuns, somadas no campo de tomadas (no Brasil não tem essa separação). Assim nenhuma tomada
+        some ao trocar de país ou ao abrir no Brasil um orçamento dos EUA. Texto inválido fica como está."""
+        texto20 = (estado.get("tomadas20") or "").strip()
+        if not texto20:
+            return
+        try:
+            total = int((estado.get("tomadas") or "0").strip() or "0") + int(texto20)
+        except ValueError:
+            return
+        estado["tomadas"] = str(total)
+        estado["tomadas20"] = ""
 
     @staticmethod
     def _rend_padrao_texto(sistema):
@@ -3525,6 +3574,9 @@ class CalculatorScreen(MDScreen):
         return {"texto": texto_res, "resultado": resultado}
 
     def _calcular_eletrica(self, e):
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_eletrica_eua(e)
+
         def inteiro(chave):
             texto = (e.get(chave) or "").strip()
             return int(texto) if texto else 0
@@ -3619,6 +3671,99 @@ class CalculatorScreen(MDScreen):
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": inputs,
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _calcular_eletrica_eua(self, e):
+        """Elétrica nos EUA (Parte A, Nov 11, 2026): cabo Romex 14/2 (tomadas comuns, interruptores
+        e luz) e 12/2 (tomadas de 20 A da cozinha, do banheiro, da lavanderia e da garagem, contadas
+        como GFCI), em rolos de 250 ft; caixas de 1 gang e caixas redondas de 4 in. Sem conduíte e
+        sem chuveiro elétrico. Os preços ainda são os provisórios (passo de preços)."""
+        def inteiro(chave):
+            texto = (e.get(chave) or "").strip()
+            return int(texto) if texto else 0
+
+        tomadas = inteiro("tomadas")
+        tomadas20 = inteiro("tomadas20")
+        interruptores = inteiro("interruptores")
+        luzes = inteiro("luzes")
+        cabos_projeto = {}
+        for chave, cabo in (("cabo14", "14/2"), ("cabo12", "12/2")):
+            texto = (e.get(chave) or "").strip()
+            if texto:  # vazio = o app estima
+                cabos_projeto[cabo] = self._numero(texto)
+        perda = self._numero(e.get("perda"), PERDA_PADRAO_ELETRICA)
+
+        # Limites com aviso (eletrica.py): o mesmo limite de tomadas vale para cada campo de tomada
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_tomadas_max", tomadas, TOMADAS_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_tomadas20_max", tomadas20, TOMADAS_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_interruptores_max", interruptores, INTERRUPTORES_MAXIMO)
+        self._aviso_maximo(avisos, "aviso_luzes_max", luzes, LUZES_MAXIMO)
+        pendentes = self._avisos_pendentes("eletrica", avisos)
+        if pendentes:
+            return pendentes
+
+        res = calcular_eletrica_eua(tomadas, tomadas20, interruptores, luzes, cabos_projeto, perda)
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        custo_cabos = {c: d['rolos'] * PRECO_ROLO_CABO_EUA[c] for c, d in res['cabos'].items()}
+        custo_caixas_1g = res['caixas_1gang'] * PRECO_CAIXA_1GANG_EUA
+        custo_caixas_red = res['caixas_redondas'] * PRECO_CAIXA_REDONDA_EUA
+        custo_tomadas = tomadas * PRECO_TOMADA_EUA
+        custo_gfci = tomadas20 * PRECO_TOMADA_GFCI_EUA
+        custo_interruptores = interruptores * PRECO_INTERRUPTOR_EUA
+        custo_mat = (sum(custo_cabos.values()) + custo_caixas_1g + custo_caixas_red
+                     + custo_tomadas + custo_gfci + custo_interruptores)
+
+        def un(qtd):
+            return f"{fmt_int(qtd)} {self._unidade(qtd, 'un_unidade', 'un_unidades')}"
+
+        # Quantidades do topo: o que for zero não aparece
+        texto_res = ""
+        for qtd, rotulo in ((tomadas, "label_tomadas"), (tomadas20, "label_tomadas20"),
+                            (interruptores, "label_interruptores"), (luzes, "label_luzes")):
+            if qtd > 0:
+                texto_res += f"{txt(rotulo)}: {fmt_int(qtd)}\n"
+        for cabo, d in res['cabos'].items():
+            origem = txt("label_do_projeto") if d['do_projeto'] else txt("label_estimado")
+            qtd = d['rolos']
+            texto_res += (
+                f"• {txt('label_cabo').format(c=cabo)} ({origem}, {self._txt_perda(perda)}): "
+                f"{self._med(d['metros'], 'comprimento', 1)} = {fmt_int(qtd)} "
+                f"{self._unidade(qtd, 'un_rolo_cabo', 'un_rolos_cabo')} ({fmt_moeda(custo_cabos[cabo])})\n"
+            )
+        if res['caixas_1gang'] > 0:
+            texto_res += f"• {txt('label_caixa_4x2')}: {un(res['caixas_1gang'])} ({fmt_moeda(custo_caixas_1g)})\n"
+        if res['caixas_redondas'] > 0:
+            texto_res += f"• {txt('label_caixa_oct')}: {un(res['caixas_redondas'])} ({fmt_moeda(custo_caixas_red)})\n"
+        if tomadas > 0:
+            texto_res += f"• {txt('label_tomadas')}: {un(tomadas)} ({fmt_moeda(custo_tomadas)})\n"
+        if tomadas20 > 0:
+            texto_res += f"• {txt('label_tomadas_gfci')}: {un(tomadas20)} ({fmt_moeda(custo_gfci)})\n"
+        if interruptores > 0:
+            texto_res += f"• {txt('label_interruptores')}: {un(interruptores)} ({fmt_moeda(custo_interruptores)})\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        resultado = {
+            "etapa": txt("secao_eletrica"),
+            "tipo": "eletrica",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a lista de compras escreve as dos EUA separado
+            "rolos_conduite": 0, "fios": {}, "caixas_4x2": 0, "caixas_octogonais": 0,
+            "tomadas": 0, "interruptores": 0, "chuveiros": 0, "chuveiros4": 0,
+            "cabos_eua": {c: d['rolos'] for c, d in res['cabos'].items()},
+            "caixas_1gang": res['caixas_1gang'], "caixas_redondas": res['caixas_redondas'],
+            "tomadas_eua": tomadas, "tomadas_gfci": tomadas20, "interruptores_eua": interruptores,
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {
+                "tomadas": tomadas if tomadas else "", "tomadas20": tomadas20 if tomadas20 else "",
+                "interruptores": interruptores if interruptores else "", "luzes": luzes if luzes else "",
+                "cabo14": cabos_projeto.get("14/2", ""), "cabo12": cabos_projeto.get("12/2", ""),
+                "perda": perda,
+            },
         }
         return {"texto": texto_res, "resultado": resultado}
 
@@ -3886,6 +4031,8 @@ class CalculatorScreen(MDScreen):
                 estado[chave] = "" if (chave == "esp_estribo" and not valor) else self._texto_medida(aba, chave, valor)
             elif chave == "esp_estribo":
                 estado[chave] = ""  # orçamento antigo: não tinha estribos
+        if aba == "eletrica" and sistema_unidades() != IMPERIAL:
+            self._juntar_tomadas20(estado)  # orçamento dos EUA aberto no Brasil
         self.estado_abas[aba] = estado
         self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi carregado
         self.montar_tela()

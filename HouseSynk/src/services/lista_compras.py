@@ -131,6 +131,22 @@ def _linhas_telhado_eua(item, basico):
     linha(txt_do_pais("label_pregos_telhado", eua), item.get("pregos_caixas", 0), "un_caixa_pregos", "un_caixas_pregos")
 
 
+def _linhas_eletrica_eua(item, ele):
+    """Elétrica dos EUA (Nov 11, 2026), com os mesmos nomes da aba (regra 17): cabos Romex em
+    rolos de 250 ft, caixas, tomadas comuns, tomadas GFCI de 20 A e interruptores."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    for cabo, qtd in item.get("cabos_eua", {}).items():
+        ele.append(f"{txt_do_pais('label_cabo', eua).format(c=cabo)}: {fmt_int(qtd)} "
+                   f"{C._unidade(qtd, 'un_rolo_cabo', 'un_rolos_cabo', eua)}")
+    for chave, rotulo in (("caixas_1gang", "label_caixa_4x2"), ("caixas_redondas", "label_caixa_oct"),
+                          ("tomadas_eua", "label_tomadas"), ("tomadas_gfci", "label_tomadas_gfci"),
+                          ("interruptores_eua", "label_interruptores")):
+        qtd = item.get(chave, 0)
+        if qtd > 0:
+            ele.append(f"{txt_do_pais(rotulo, eua)}: {fmt_int(qtd)} {C._unidade(qtd, 'un_unidade', 'un_unidades', eua)}")
+
+
 def montar_lista_compras(itens):
     """Recebe o orçamento (lista de resultados das abas) e devolve [(grupo, [linhas]), ...],
     só com os grupos que têm algum material. Cada material aparece só se for maior que zero."""
@@ -285,6 +301,9 @@ def montar_lista_compras(itens):
     # ---------------- ELÉTRICA ----------------
     ele = grupos["eletrica"]
     for item in _do_tipo(itens, "eletrica"):
+        if _sistema(item) == IMPERIAL:
+            _linhas_eletrica_eua(item, ele)
+            continue
         if item.get("rolos_conduite", 0) > 0:
             qtd = item["rolos_conduite"]
             ele.append(f"{txt('label_conduite')}: {fmt_int(qtd)} {txt('un_rolo_conduite') if qtd == 1 else txt('un_rolos_conduite')}")

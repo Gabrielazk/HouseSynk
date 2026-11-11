@@ -111,3 +111,71 @@ def calcular_eletrica(
         "caixas_4x2": tomadas + interruptores,
         "caixas_octogonais": pontos_luz,
     }
+
+# ==========================================
+# EUA (Parte A da versão EUA, Nov 11, 2026; pesquisa em claude/pesquisa_embalagens_eua.md)
+# Na casa americana a fiação é o cabo Romex (NM-B): os fios e o terra vêm juntos num cabo só,
+# passado por furos na madeira, sem conduíte. Chuveiro elétrico quase não existe (aquecimento central).
+# Decisões da Gabi (Nov 11, 2026): dois campos de tomada (comuns no 14/2; cozinha, banheiro,
+# lavanderia e garagem no 12/2, como pede o código NEC 210.11(C)) e as tomadas de 20 A contadas
+# como GFCI (o NEC 210.8 exige a proteção nessas áreas). A conta continua em métrico por dentro.
+# ==========================================
+PE_M = 0.3048
+CABO_POR_PONTO_EUA_M = 15 * PE_M     # 15 ft de cabo por tomada, interruptor ou ponto de luz (PROVISÓRIO ⚠️, Mike Holt)
+ROLO_CABO_EUA_M = 250 * PE_M         # rolo de 250 ft (Southwire 14/2 e 12/2; pesquisa ✅)
+CABOS_EUA = ["14/2", "12/2"]         # 14/2: circuito de 15 A (tomadas comuns e luz); 12/2: 20 A
+
+# Preços PROVISÓRIOS ($) até a tabela de preços ser refeita
+PRECO_ROLO_CABO_EUA = {"14/2": 95.00, "12/2": 140.00}   # rolo de 250 ft
+PRECO_CAIXA_1GANG_EUA = 2.50       # caixa de tomada e interruptor (o mesmo número da caixinha 4x2 do Brasil)
+PRECO_CAIXA_REDONDA_EUA = 5.00     # caixa redonda de 4 in da luz (o mesmo número da octogonal do Brasil)
+PRECO_TOMADA_EUA = 15.00           # tomada comum (o mesmo número do Brasil)
+PRECO_TOMADA_GFCI_EUA = 25.00      # tomada GFCI de 20 A
+PRECO_INTERRUPTOR_EUA = 12.00      # (o mesmo número do Brasil)
+
+
+def calcular_eletrica_eua(
+    tomadas: int,
+    tomadas_20a: int,
+    interruptores: int,
+    pontos_luz: int,
+    cabos_m: dict = None,
+    perda_percentual: float = PERDA_PADRAO_ELETRICA,
+) -> dict:
+    """Elétrica dos EUA. tomadas: comuns (cabo 14/2); tomadas_20a: cozinha, banheiro, lavanderia
+    e garagem (cabo 12/2, tomadas GFCI). cabos_m: metragens do projeto ({"14/2": m, "12/2": m});
+    o cabo que não vier do projeto é estimado por ponto. Recebe e devolve em métrico."""
+    if min(tomadas, tomadas_20a, interruptores, pontos_luz) < 0:
+        return {"erro": "erro_quantidades_negativas"}
+    if tomadas + tomadas_20a + interruptores + pontos_luz <= 0:
+        return {"erro": "erro_pontos_eletrica"}
+    cabos_m = cabos_m or {}
+    if perda_percentual < 0 or any(v < 0 for v in cabos_m.values()):
+        return {"erro": "erro_valores_negativos"}
+
+    fator = 1 + perda_percentual / 100.0
+    estimado = {
+        "14/2": (tomadas + interruptores + pontos_luz) * CABO_POR_PONTO_EUA_M,
+        "12/2": tomadas_20a * CABO_POR_PONTO_EUA_M,
+    }
+    cabos = {}
+    for cabo in CABOS_EUA:
+        base = cabos_m[cabo] if cabo in cabos_m else estimado[cabo]
+        total = base * fator
+        if total > 0:
+            cabos[cabo] = {
+                "metros": total,
+                "rolos": math.ceil(total / ROLO_CABO_EUA_M - 1e-9),
+                "do_projeto": cabo in cabos_m,
+            }
+
+    return {
+        "tomadas": tomadas,
+        "tomadas_20a": tomadas_20a,
+        "interruptores": interruptores,
+        "pontos_luz": pontos_luz,
+        "perda_percentual": perda_percentual,
+        "cabos": cabos,
+        "caixas_1gang": tomadas + tomadas_20a + interruptores,
+        "caixas_redondas": pontos_luz,
+    }

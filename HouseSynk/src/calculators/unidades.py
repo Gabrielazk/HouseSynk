@@ -40,7 +40,13 @@ UNIDADES = {
     "consumo": ("kg/m²", "lb/sq ft", KG_POR_LB / M2_POR_SQFT),
     # Preço por comprimento (mão de obra): $ 1 por ft = $ 3,28 por m (1 m tem 1/0,3048 ft)
     "preco_comprimento": ("/m", "/ft", 1 / 0.3048),
+    # Inclinação do telhado: no Brasil em %, nos EUA em pitch (quanto sobe a cada 12; 6/12 = 50%)
+    "inclinacao": ("%", "/12", 100 / 12),
 }
+
+# Pitch digitado com o "/12" no fim ("6/12" ou "6:12"): o "/12" sai antes de ler o número,
+# senão o ler_numero leria "6/12" como a fração 0,5
+_SUFIXO_PITCH = re.compile(r"\s*[/:]\s*12\s*$")
 
 # Fração: "1/8", "2 1/2" ou "2-1/2" (a parte inteira é opcional)
 _FRACAO = re.compile(r"(?:(\d+)[\s-]+)?(\d+)\s*/\s*(\d+)")
@@ -111,6 +117,18 @@ def ler_numero(texto, separador_decimal=",", padrao=0.0):
     if inteiro is not None and int(numerador) >= int(denominador):
         raise ValueError(f"Número inválido: {texto}")  # ex.: "1 21/2" ou "2 2/2"
     return int(inteiro or 0) + int(numerador) / int(denominador)
+
+
+def ler_pitch(texto, separador_decimal=".", padrao=0.0):
+    """Lê a inclinação em pitch (EUA): "6", "6/12", "6:12" e "6 1/2" valem 6 e 6,5.
+    Nos EUA a inclinação do telhado é dita assim: 6/12 = sobe 6 a cada 12 de largura."""
+    texto = _SUFIXO_PITCH.sub("", (texto or "").strip())
+    return ler_numero(texto, separador_decimal, padrao)
+
+
+def texto_pitch(pitch):
+    """Pitch para mostrar na tela: 6 -> "6/12", 2.5 -> "2.5/12" (sempre com ponto: só existe nos EUA)."""
+    return f"{round(pitch, 2):g}/12"
 
 
 def texto_polegadas(valor, aproximar=False, divisao=16):

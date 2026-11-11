@@ -108,6 +108,29 @@ def _linhas_laje_eua(itens, basico):
                       f"{C._unidade(total, 'un_painel_tela_eua', 'un_paineis_tela_eua', eua)}")
 
 
+def _linhas_telhado_eua(item, basico):
+    """Telhado dos EUA (Nov 11, 2026), com os mesmos nomes e embalagens da aba (regra 17):
+    shingle em fardos (ou telhas de concreto), cumeeira, manta, OSB, pingadeira, starter e pregos."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    tipo = item.get("tipo_telha")
+    shingle = (tipo == "shingle")
+
+    def linha(rotulo, qtd, singular, plural):
+        if qtd > 0:
+            basico.append(f"{rotulo}: {fmt_int(qtd)} {C._unidade(qtd, singular, plural, eua)}")
+
+    linha(C._rotulo_telha(tipo, eua), item.get("telhas_eua", 0),
+          *(("un_fardo", "un_fardos") if shingle else ("un_unidade", "un_unidades")))
+    linha(txt_do_pais("label_cumeeira", eua), item.get("cumeeiras_eua", 0),
+          *(("un_fardo_cumeeira", "un_fardos_cumeeira") if shingle else ("un_peca", "un_pecas")))
+    linha(txt_do_pais("label_manta_res", eua), item.get("manta_rolos", 0), "un_rolo_manta", "un_rolos_manta")
+    linha(txt_do_pais("label_osb_res", eua), item.get("osb_chapas", 0), "un_chapa_osb", "un_chapas_osb")
+    linha(txt_do_pais("label_pingadeira", eua), item.get("pingadeira_pecas", 0), "un_peca_10ft", "un_pecas_10ft")
+    linha(txt_do_pais("label_starter", eua), item.get("starter_fardos", 0), "un_fardo_starter", "un_fardos_starter")
+    linha(txt_do_pais("label_pregos_telhado", eua), item.get("pregos_caixas", 0), "un_caixa_pregos", "un_caixas_pregos")
+
+
 def montar_lista_compras(itens):
     """Recebe o orçamento (lista de resultados das abas) e devolve [(grupo, [linhas]), ...],
     só com os grupos que têm algum material. Cada material aparece só se for maior que zero."""
@@ -175,6 +198,9 @@ def montar_lista_compras(itens):
     if total > 0:
         basico.append(f"{txt('label_tela_res')}: {fmt_int(total)} {txt('un_painel_tela') if total == 1 else txt('un_paineis_tela')}")
     for item in _do_tipo(itens, "telhado"):
+        if _sistema(item) == IMPERIAL:
+            _linhas_telhado_eua(item, basico)
+            continue
         linha = f"{txt('label_telhas_resumo')} ({C._rotulo_telha(item['tipo_telha'])}): {fmt_int(item['telhas'])} {C._unidade(item['telhas'], 'un_unidade', 'un_unidades')}"
         if item.get("cumeeiras", 0) > 0:
             linha += f" + {fmt_int(item['cumeeiras'])} {C._unidade(item['cumeeiras'], 'un_peca', 'un_pecas')} {txt('un_de')} {txt('label_cumeeira').lower()}"

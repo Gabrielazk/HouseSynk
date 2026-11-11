@@ -109,6 +109,21 @@ from src.calculators.telhado import (
     PRECO_MADEIRA_M,
     AREA_MAXIMA_TELHADO_M2,
     INCLINACAO_MAXIMA_PERCENTUAL,
+    # EUA (Parte A, Nov 11, 2026): shingle ou telha de concreto, pitch, manta, OSB, starter, pingadeira e pregos
+    calcular_telhado_eua,
+    tipos_telha_do_pais,
+    TIPOS_TELHA_EUA,
+    PERDA_PADRAO_TELHADO_EUA,
+    INCLINACAO_PADRAO_EUA,
+    INCLINACAO_MINIMA_EUA,
+    PERCENTUAL_POR_PITCH,
+    PRECO_TELHA_EUA,
+    PRECO_CUMEEIRA_EUA,
+    PRECO_ROLO_MANTA,
+    PRECO_CHAPA_OSB,
+    PRECO_FARDO_STARTER,
+    PRECO_PECA_PINGADEIRA,
+    PRECO_CAIXA_PREGOS,
 )
 from src.calculators.eletrica import (
     calcular_eletrica,
@@ -199,7 +214,7 @@ from src.calculators.tracos import (
 from kivymd.uix.widget import MDWidget
 from src.views.comum import CONFIG_APP, TABELA_PRECOS_GLOBAL, ORCAMENTO_FINAL, TEXTOS, txt, fmt_moeda, fmt_num, fmt_int, sistema_unidades, sem_quebra
 from src.views.textos_eua import TEXTOS_EUA
-from src.calculators.unidades import METRICO, IMPERIAL, arredondar, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade
+from src.calculators.unidades import METRICO, IMPERIAL, arredondar, ler_numero, para_metrico, do_metrico, texto_polegadas, nome_unidade, ler_pitch, texto_pitch
 
 
 def txt_do_pais(chave, sistema=None):
@@ -289,7 +304,7 @@ CAMPOS_ABA = {
     "azulejo": ["area", "larg", "alt", "vaos", "caixa", "perda"],
     "rejunte": ["area", "larg", "alt", "junta", "esp", "perda"],
     "laje": ["area", "capa", "esp", "esp_slab", "perda"],  # esp_slab: espessura da laje dos EUA (slab-on-grade)
-    "telhado": ["area", "incl", "cumeeira", "perda"],
+    "telhado": ["area", "incl", "cumeeira", "perimetro", "perda"],  # perimetro: só nos EUA (starter e pingadeira)
     "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6", "perda"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100", "perda"],
     "pintura": ["parede", "teto", "demaos", "rend", "perda"],
@@ -306,7 +321,7 @@ CAMPOS_INICIAIS = {
     "azulejo": ["area", "larg", "alt"],
     "rejunte": ["area", "larg", "alt", "junta"],
     "laje": ["area", "esp"],
-    "telhado": ["area", "cumeeira"],
+    "telhado": ["area", "cumeeira", "perimetro"],
     "eletrica": ["tomadas", "interruptores", "luzes", "chuveiros", "chuveiros4", "conduite", "fio1.5", "fio2.5", "fio4", "fio6"],
     "hidraulica": ["fria", "quente", "esgoto", "tubo_fria", "tubo_quente", "tubo_esg40", "tubo_esg100"],
     "pintura": ["parede", "teto"],
@@ -314,7 +329,7 @@ CAMPOS_INICIAIS = {
 }
 # Versão EUA: a unidade de cada campo com medida (os tipos estão em src/calculators/unidades.py).
 # Nos EUA, o que a pessoa digita nesses campos é convertido para métrico antes da conta.
-# Campo que não está aqui não muda (quantidades, perdas, barras, inclinação, demãos, pontos).
+# Campo que não está aqui não muda (quantidades, perdas, barras, demãos, pontos).
 # Esquadrias não está aqui: as medidas dela são convertidas ao tocar em "Adicionar à lista".
 UNIDADE_CAMPO = {
     "brocas": {"prof": "comprimento", "diam": "centimetro", "esp_estribo": "centimetro", "mo": "preco_comprimento"},
@@ -328,7 +343,8 @@ UNIDADE_CAMPO = {
     "azulejo": {"area": "area", "larg": "centimetro", "alt": "centimetro", "vaos": "area", "caixa": "area"},
     "rejunte": {"area": "area", "larg": "centimetro", "alt": "centimetro", "junta": "milimetro", "esp": "milimetro"},
     "laje": {"area": "area", "capa": "centimetro", "esp": "centimetro", "esp_slab": "centimetro"},
-    "telhado": {"area": "area", "cumeeira": "comprimento"},
+    # A inclinação: % no Brasil e pitch (x/12) nos EUA (6/12 = 50%)
+    "telhado": {"area": "area", "incl": "inclinacao", "cumeeira": "comprimento", "perimetro": "comprimento"},
     "eletrica": {chave: "comprimento" for chave in CAMPOS_ABA["eletrica"] if chave == "conduite" or chave.startswith("fio")},
     "hidraulica": {chave: "comprimento" for chave in CAMPOS_ABA["hidraulica"] if chave.startswith("tubo_")},
     "pintura": {"parede": "area", "teto": "area", "rend": "rendimento"},
@@ -367,8 +383,10 @@ class CalculatorScreen(MDScreen):
         self.desenho = {"piso": False, "azulejo": False}  # assentamento com desenho: perda de 25%
         self.laje_tipo = TIPO_LAJE_PADRAO
         self.laje_enchimento = ENCHIMENTO_PADRAO
-        self.telha_tipo = TIPO_TELHA_PADRAO
+        self.telha_tipo = tipos_telha_do_pais(sistema)[1]  # cerâmica no Brasil, shingle nos EUA
         self.madeiramento = {"telhado": False}
+        self.manta = {"telhado": True}   # EUA: manta (underlayment) embaixo do shingle (o código IRC exige)
+        self.osb = {"telhado": False}    # EUA: base de OSB (no lugar do madeiramento do Brasil)
         self.tela = {"laje": False}  # tela soldada na capa da laje pré-moldada (nos EUA, na laje inteira)
         self.lona = {"laje": True}         # EUA: lona plástica por baixo da laje (o código IRC exige)
         self.base_brita = {"laje": True}   # EUA: base de brita de 4 in embaixo da lona
@@ -1076,6 +1094,7 @@ class CalculatorScreen(MDScreen):
         box_form = MDBoxLayout(orientation="vertical", spacing="16dp", padding="8dp", size_hint_y=None)
         box_form.bind(minimum_height=box_form.setter('height'))
         ro = self.modo_somente_leitura
+        eua = (sistema_unidades() == IMPERIAL)
 
         def campo(hint, texto=""):
             return MDTextField(MDTextFieldHintText(text=hint), text=texto, mode="outlined", write_tab=False, readonly=ro)
@@ -1085,22 +1104,31 @@ class CalculatorScreen(MDScreen):
         self.in_tel_area = campo(txt("hint_area_telhado"))
         box_form.add_widget(self.in_tel_area)
         self._botao_telha_tipo = self._montar_dropdown(
-            box_form, txt("label_tipo_telha"), TIPOS_TELHA, self.telha_tipo,
+            box_form, txt("label_tipo_telha"), tipos_telha_do_pais(sistema_unidades())[0], self.telha_tipo,
             self._escolher_telha_tipo, rotulo=self._rotulo_telha, largura=None
         )
 
         # --- Opcionais (já vêm com valor padrão) ---
-        self.in_tel_incl = campo(txt("hint_inclinacao"), self._texto_campo(INCLINACAO_PADRAO[self.telha_tipo]))
+        # Nos EUA a inclinação é em pitch (6/12) e a perda padrão é 10%. O perímetro existe também
+        # no Brasil (escondido), para o que foi digitado voltar ao trocar de país.
+        self.in_tel_incl = campo(txt("hint_inclinacao"), self._incl_padrao_texto(self.telha_tipo, sistema_unidades()))
         self.in_tel_cumeeira = campo(txt("hint_cumeeira"))
-        self.in_tel_perda = campo(txt("hint_perda_bal"), self._texto_campo(PERDA_PADRAO_TELHADO))
+        self.in_tel_perimetro = campo(txt("hint_perimetro_telhado"))
+        self.in_tel_perda = campo(txt("hint_perda_bal"), self._perda_telhado_padrao_texto(sistema_unidades()))
         box_form.add_widget(self.in_tel_incl)
         box_form.add_widget(self.in_tel_cumeeira)
-        self._montar_sim_nao(box_form, txt("label_madeiramento"), self.madeiramento, "telhado", "madeiramento")
+        if eua:
+            # EUA: shingle sem ripa e caibro; o perímetro (beirais + oitões) dá o starter e a pingadeira
+            box_form.add_widget(self.in_tel_perimetro)
+            self._montar_sim_nao(box_form, txt("label_manta"), self.manta, "telhado", "manta")
+            self._montar_sim_nao(box_form, txt("label_osb_telhado"), self.osb, "telhado", "osb")
+        else:
+            self._montar_sim_nao(box_form, txt("label_madeiramento"), self.madeiramento, "telhado", "madeiramento")
         box_form.add_widget(self.in_tel_perda)
 
         self._campos = {
             "area": self.in_tel_area, "incl": self.in_tel_incl,
-            "cumeeira": self.in_tel_cumeeira, "perda": self.in_tel_perda,
+            "cumeeira": self.in_tel_cumeeira, "perimetro": self.in_tel_perimetro, "perda": self.in_tel_perda,
         }
 
         if not ro:
@@ -1122,17 +1150,52 @@ class CalculatorScreen(MDScreen):
         return scroll
 
     @staticmethod
-    def _rotulo_telha(chave):
+    def _rotulo_telha(chave, sistema=None):
+        """Nome da telha. Nos EUA o menu é "Shingle asfáltico" / "Telha de concreto"
+        (textos opcao_eua_* do textos_eua.py); no Brasil, "Cerâmica", "Concreto", "Fibrocimento"."""
+        sistema = sistema or sistema_unidades()
+        if sistema == IMPERIAL and chave in TIPOS_TELHA_EUA:
+            return txt_do_pais(f"opcao_eua_{chave}", IMPERIAL)
         return txt(f"opcao_{chave}")
+
+    @staticmethod
+    def _incl_padrao_texto(tipo, sistema):
+        """Inclinação que já vem preenchida: "30" (%) na telha cerâmica do Brasil, "6" (6/12) nos EUA."""
+        if sistema == IMPERIAL:
+            return f"{INCLINACAO_PADRAO_EUA / PERCENTUAL_POR_PITCH:g}"
+        return CalculatorScreen._texto_campo(INCLINACAO_PADRAO.get(tipo, INCLINACAO_PADRAO[TIPO_TELHA_PADRAO]))
+
+    @staticmethod
+    def _perda_telhado_padrao_texto(sistema):
+        """Perda que já vem preenchida no Telhado: 5% no Brasil, 10% nos EUA."""
+        return CalculatorScreen._texto_campo(PERDA_PADRAO_TELHADO_EUA if sistema == IMPERIAL else PERDA_PADRAO_TELHADO)
 
     def _escolher_telha_tipo(self, valor):
         antigo = self.telha_tipo
         self.telha_tipo = valor
         self._botao_telha_tipo.text = self._rotulo_telha(valor)
         # Se a inclinação ainda é a padrão do tipo antigo (ou está vazia), troca pela padrão do tipo novo
+        # (nos EUA as duas telhas têm o mesmo padrão, 6/12)
+        sistema = sistema_unidades()
         incl_atual = self.in_tel_incl.text.strip()
-        if not incl_atual or incl_atual == self._texto_campo(INCLINACAO_PADRAO[antigo]):
-            self.in_tel_incl.text = self._texto_campo(INCLINACAO_PADRAO[valor])
+        if not incl_atual or incl_atual == self._incl_padrao_texto(antigo, sistema):
+            self.in_tel_incl.text = self._incl_padrao_texto(valor, sistema)
+
+    def _trocar_telha_de_pais(self, antigo, novo, incl_antes):
+        """O país mudou: a telha que não existe no país novo vira a parecida (concreto continua
+        concreto; cerâmica e fibrocimento viram shingle; shingle vira cerâmica). A inclinação e a
+        perda que ainda eram as padrão do país antigo viram as padrão do novo (30% <-> 6/12; 5% <-> 10%),
+        em vez de números quebrados como 3.6/12."""
+        tipos, padrao = tipos_telha_do_pais(novo)
+        tipo_antigo = self.telha_tipo
+        self.telha_tipo = tipo_antigo if tipo_antigo in tipos else padrao
+        estado = self.estado_abas.get("telhado")
+        if estado is None:
+            return
+        if incl_antes == self._incl_padrao_texto(tipo_antigo, antigo):
+            estado["incl"] = self._incl_padrao_texto(self.telha_tipo, novo)
+        if (estado.get("perda") or "").strip() == self._perda_telhado_padrao_texto(antigo):
+            estado["perda"] = self._perda_telhado_padrao_texto(novo)
 
     # ==========================================
     # CONTEÚDO DA ABA ELÉTRICA (estimativa por ponto, ou metragens do projeto)
@@ -1729,8 +1792,10 @@ class CalculatorScreen(MDScreen):
             self.lona["laje"] = True
             self.base_brita["laje"] = True
         if aba == "telhado":
-            self.telha_tipo = TIPO_TELHA_PADRAO
+            self.telha_tipo = tipos_telha_do_pais(sistema_unidades())[1]
             self.madeiramento[aba] = False
+            self.manta[aba] = True
+            self.osb[aba] = False
         if aba == "pintura":
             self.selador[aba] = False
             self.fundo[aba] = False
@@ -1991,7 +2056,9 @@ class CalculatorScreen(MDScreen):
         for chave, tipo in UNIDADE_CAMPO.get(aba, {}).items():
             texto = (e.get(chave) or "").strip()
             if texto:
-                convertido[chave] = repr(para_metrico(self._numero(texto), tipo, sistema))
+                # Pitch: "6/12" é 6 (sobe 6 a cada 12), e não a fração 0,5
+                numero = ler_pitch(texto, CONFIG_APP["separador_decimal"]) if tipo == "inclinacao" else self._numero(texto)
+                convertido[chave] = repr(para_metrico(numero, tipo, sistema))
         return convertido
 
     def _converter_estado_abas(self, antigo, novo):
@@ -1999,13 +2066,17 @@ class CalculatorScreen(MDScreen):
         (ex.: 3 m vira 9.84 ft). Os resultados antigos são apagados (estavam na unidade velha)."""
         separador = "," if antigo == METRICO else "."
         rend_antes = ((self.estado_abas.get("pintura") or {}).get("rend") or "").strip()
+        incl_antes = ((self.estado_abas.get("telhado") or {}).get("incl") or "").strip()
         for aba, estado in self.estado_abas.items():
             for chave, tipo in UNIDADE_CAMPO.get(aba, {}).items():
                 texto = (estado.get(chave) or "").strip()
                 if not texto:
                     continue
                 try:
-                    valor = ler_numero(texto, separador)
+                    if tipo == "inclinacao" and antigo == IMPERIAL:
+                        valor = ler_pitch(texto, separador)  # "6/12" é 6, e não a fração 0,5
+                    else:
+                        valor = ler_numero(texto, separador)
                 except ValueError:
                     continue  # texto inválido fica como está (o Calcular avisa)
                 estado[chave] = self._formatar_medida(para_metrico(valor, tipo, antigo), tipo, novo)
@@ -2014,6 +2085,8 @@ class CalculatorScreen(MDScreen):
         pintura = self.estado_abas.get("pintura")
         if pintura is not None and rend_antes == self._rend_padrao_texto(antigo):
             pintura["rend"] = self._rend_padrao_texto(novo)
+        # Telhado: a telha de cada país e a inclinação e a perda padrão (6/12 e 10% nos EUA)
+        self._trocar_telha_de_pais(antigo, novo, incl_antes)
         self.textos_resultado.clear()
 
     @staticmethod
@@ -3043,6 +3116,8 @@ class CalculatorScreen(MDScreen):
                 f"({txt_do_pais('txt_no_lugar_concreto', IMPERIAL)})")
 
     def _calcular_telhado(self, e):
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_telhado_eua(e)
         if not (e.get("area") or "").strip():
             return {"erro": txt("msg_erro_num")}
 
@@ -3106,6 +3181,118 @@ class CalculatorScreen(MDScreen):
             "inputs": {
                 "area": area, "incl": incl, "cumeeira": cumeeira if cumeeira > 0 else "", "perda": perda,
                 "tipo_telha": tipo, "madeiramento": madeira
+            }
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _calcular_telhado_eua(self, e):
+        """Telhado nos EUA (Parte A, Nov 11, 2026): shingle asfáltico (fardos, 3 por square) ou telha
+        de concreto, inclinação em pitch (x/12), cumeeira, manta (underlayment), base de OSB, e com o
+        perímetro, starter e pingadeira (drip edge); no shingle, também os pregos.
+        Os preços ainda são os provisórios (passo de preços)."""
+        if not (e.get("area") or "").strip():
+            return {"erro": txt("msg_erro_num")}
+
+        tipo = self.telha_tipo
+        area = self._numero(e["area"])
+        incl = self._numero(e.get("incl"), INCLINACAO_PADRAO_EUA)   # já em % (o _estado_metrico converte o pitch)
+        cumeeira = self._numero(e.get("cumeeira"), 0.0)
+        perimetro = self._numero(e.get("perimetro"), 0.0)
+        perda = self._numero(e.get("perda"), PERDA_PADRAO_TELHADO_EUA)
+        manta, osb = self.manta["telhado"], self.osb["telhado"]
+
+        # Limites com aviso (telhado.py): área até 2.000 m² (21,528 sq ft) e pitch de 2/12
+        # (2 1/2/12 na telha de concreto, o mínimo do código IRC) até 12/12
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_TELHADO_M2, "area")
+        pitch = incl / PERCENTUAL_POR_PITCH
+        if incl > INCLINACAO_MAXIMA_PERCENTUAL + 1e-9:
+            avisos.append(txt("aviso_inclinacao_max").format(
+                valor=texto_pitch(pitch), max=texto_pitch(INCLINACAO_MAXIMA_PERCENTUAL / PERCENTUAL_POR_PITCH)))
+        minimo = INCLINACAO_MINIMA_EUA.get(tipo, 0.0)
+        if 0 <= incl < minimo - 1e-9:
+            avisos.append(txt("aviso_inclinacao_min").format(
+                valor=texto_pitch(pitch), telha=self._rotulo_telha(tipo).lower(),
+                min=texto_pitch(minimo / PERCENTUAL_POR_PITCH)))
+        pendentes = self._avisos_pendentes("telhado", avisos)
+        if pendentes:
+            return pendentes
+
+        res = calcular_telhado_eua(area, tipo, incl, cumeeira, perimetro, manta, osb, perda)
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        shingle = (tipo == "shingle")
+        custo_telhas = res['telhas'] * PRECO_TELHA_EUA[tipo]
+        custo_cumeeira = res['cumeeiras'] * PRECO_CUMEEIRA_EUA[tipo]
+        custo_manta = res['manta_rolos'] * PRECO_ROLO_MANTA
+        custo_osb = res['osb_chapas'] * PRECO_CHAPA_OSB
+        custo_starter = res['starter_fardos'] * PRECO_FARDO_STARTER
+        custo_pingadeira = res['pingadeira_pecas'] * PRECO_PECA_PINGADEIRA
+        custo_pregos = res['pregos_caixas'] * PRECO_CAIXA_PREGOS
+        custo_mat = (custo_telhas + custo_cumeeira + custo_manta + custo_osb
+                     + custo_starter + custo_pingadeira + custo_pregos)
+
+        texto_res = (
+            f"{txt('label_area_planta')}: {self._med(area, 'area')}\n"   # a área digitada (sem o arredondamento em m²)
+            f"{txt('label_inclinacao')}: {texto_pitch(pitch)} ({self._num_curto(incl, 1)}%)\n"
+            f"{txt('label_area_real')}: {self._med(res['area_real_m2'], 'area')}\n"
+            f"{txt('label_tipo_telha')}: {self._rotulo_telha(tipo)}\n"
+        )
+        # Na ordem da obra: a base de OSB, a manta, a pingadeira, o starter, as telhas, a cumeeira e os pregos
+        if res['incluiu_osb']:
+            qtd = res['osb_chapas']
+            texto_res += f"• {txt('label_osb_res')}: {fmt_int(qtd)} {self._unidade(qtd, 'un_chapa_osb', 'un_chapas_osb')} ({fmt_moeda(custo_osb)})\n"
+        if res['incluiu_manta']:
+            qtd = res['manta_rolos']
+            rotulo = txt('label_manta_res')
+            if res['camadas_manta'] == 2:
+                rotulo += f", {txt('txt_manta_dupla')}"   # ex.: "Manta (underlayment), 2 camadas (abaixo de 4/12)"
+            texto_res += f"• {rotulo}: {fmt_int(qtd)} {self._unidade(qtd, 'un_rolo_manta', 'un_rolos_manta')} ({fmt_moeda(custo_manta)})\n"
+        if res['pingadeira_pecas'] > 0:
+            qtd = res['pingadeira_pecas']
+            texto_res += (f"• {txt('label_pingadeira')}: {self._med(res['perimetro_m'], 'comprimento', 1)} = "
+                          f"{fmt_int(qtd)} {self._unidade(qtd, 'un_peca_10ft', 'un_pecas_10ft')} ({fmt_moeda(custo_pingadeira)})\n")
+        if res['starter_fardos'] > 0:
+            qtd = res['starter_fardos']
+            texto_res += (f"• {txt('label_starter')}: {self._med(res['perimetro_m'], 'comprimento', 1)} = "
+                          f"{fmt_int(qtd)} {self._unidade(qtd, 'un_fardo_starter', 'un_fardos_starter')} ({fmt_moeda(custo_starter)})\n")
+        qtd = res['telhas']
+        if shingle:
+            unidade = self._unidade(qtd, 'un_fardo', 'un_fardos')
+        else:
+            unidade = self._unidade(qtd, 'un_unidade', 'un_unidades')
+        texto_res += (f"• {self._rotulo_telha(tipo)} ({self._txt_perda(perda)}): {fmt_num(res['squares'], 2)} squares = "
+                      f"{fmt_int(qtd)} {unidade} ({fmt_moeda(custo_telhas)})\n")
+        if res['cumeeiras'] > 0:
+            qtd = res['cumeeiras']
+            if shingle:
+                unidade = self._unidade(qtd, 'un_fardo_cumeeira', 'un_fardos_cumeeira')
+            else:
+                unidade = self._unidade(qtd, 'un_peca', 'un_pecas')
+            texto_res += (f"• {txt('label_cumeeira')}: {self._med(res['cumeeira_m'], 'comprimento', 1)} = "
+                          f"{fmt_int(qtd)} {unidade} ({fmt_moeda(custo_cumeeira)})\n")
+        if res['pregos_caixas'] > 0:
+            qtd = res['pregos_caixas']
+            texto_res += (f"• {txt('label_pregos_telhado')}: {fmt_int(qtd)} "
+                          f"{self._unidade(qtd, 'un_caixa_pregos', 'un_caixas_pregos')} ({fmt_moeda(custo_pregos)})\n")
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        resultado = {
+            "etapa": txt("secao_telhado"),
+            "tipo": "telhado",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a lista de compras escreve as dos EUA separado
+            "telhas": 0, "tipo_telha": tipo, "cumeeiras": 0, "ripas_m": 0.0, "caibros_m": 0.0, "tercas_m": 0.0,
+            "telhas_eua": res['telhas'], "cumeeiras_eua": res['cumeeiras'], "manta_rolos": res['manta_rolos'],
+            "osb_chapas": res['osb_chapas'], "starter_fardos": res['starter_fardos'],
+            "pingadeira_pecas": res['pingadeira_pecas'], "pregos_caixas": res['pregos_caixas'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {
+                "area": area, "incl": incl, "cumeeira": cumeeira if cumeeira > 0 else "",
+                "perimetro": perimetro if perimetro > 0 else "", "perda": perda,
+                "tipo_telha": tipo, "manta": manta, "osb": osb
             }
         }
         return {"texto": texto_res, "resultado": resultado}
@@ -3673,9 +3860,15 @@ class CalculatorScreen(MDScreen):
             self.lona["laje"] = bool(inputs_dict.get("lona", True))
             self.base_brita["laje"] = bool(inputs_dict.get("base_brita", True))
         if aba == "telhado":
+            # Telha de outro país (orçamento do Brasil aberto nos EUA, ou o contrário) vira a parecida
+            tipos, padrao = tipos_telha_do_pais(sistema_unidades())
             telha = inputs_dict.get("tipo_telha")
-            self.telha_tipo = telha if telha in TIPOS_TELHA else TIPO_TELHA_PADRAO
+            parecida = {"concreto": "concreto"}
+            self.telha_tipo = telha if telha in tipos else parecida.get(telha, padrao)
             self.madeiramento[aba] = bool(inputs_dict.get("madeiramento"))
+            # EUA: manta e OSB (orçamento do Brasil ou antigo não tem: manta Sim, OSB Não)
+            self.manta[aba] = bool(inputs_dict.get("manta", True))
+            self.osb[aba] = bool(inputs_dict.get("osb", False))
         if aba == "pintura":
             self.selador[aba] = bool(inputs_dict.get("selador"))
             self.fundo[aba] = bool(inputs_dict.get("fundo"))

@@ -108,6 +108,22 @@ def _linhas_laje_eua(itens, basico):
                       f"{C._unidade(total, 'un_painel_tela_eua', 'un_paineis_tela_eua', eua)}")
 
 
+def _linhas_reboco_eua(itens, basico):
+    """Stucco do Reboco dos EUA (Nov 13, 2026), com os mesmos nomes da aba (regra 17): papel de 2 camadas,
+    tela metálica, base coat e finish coat em sacos de 80 lb. Ficam separados da massa do Brasil."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    for chave, rotulo, singular, plural in (
+        ("papel_stucco_rolos", "label_papel_stucco", "un_rolo_papel", "un_rolos_papel"),
+        ("tela_stucco_folhas", "label_tela_stucco", "un_folha_tela", "un_folhas_tela"),
+        ("stucco_base_80lb", "label_base_stucco", "un_saco_80", "un_sacos_80"),
+        ("stucco_acab_80lb", "label_acabamento_stucco", "un_saco_80", "un_sacos_80"),
+    ):
+        total = _soma(itens, chave)
+        if total > 0:
+            basico.append(f"{txt_do_pais(rotulo, eua)}: {fmt_int(total)} {C._unidade(total, singular, plural, eua)}")
+
+
 def _linhas_telhado_eua(item, basico):
     """Telhado dos EUA (Nov 11, 2026), com os mesmos nomes e embalagens da aba (regra 17):
     shingle em fardos (ou telhas de concreto), cumeeira, manta, OSB, pingadeira, starter e pregos."""
@@ -204,6 +220,7 @@ def montar_lista_compras(itens):
     _linhas_concreto_ferro_eua(itens, basico)
     _linhas_massa_eua(itens, basico)
     _linhas_laje_eua(itens, basico)
+    _linhas_reboco_eua(itens, basico)
     for item in _do_tipo(itens, "baldrame"):
         litros = item.get("imperm_litros", 0)
         if litros > 0:

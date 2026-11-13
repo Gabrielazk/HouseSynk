@@ -78,3 +78,71 @@ def calcular_reboco(
         "sacos_cal": math.ceil(cal_kg / SACO_CAL_KG),
         "areia_m3": round(areia_m3, 2),
     }
+
+# ==========================================
+# EUA (Parte A da versão EUA, Nov 13, 2026): o reboco vira o STUCCO, só na parede de fora
+# (por dentro, a casa americana usa drywall: Parte B). Pesquisa em claude/pesquisa_embalagens_eua.md, item 9.
+# Decisões da Gabi (Nov 13, 2026): menu "Parede de" madeira ou bloco/concreto, e o stucco pronto em
+# sacos de 80 lb (base coat + finish coat), igual à massa pronta das Paredes dos EUA. Sem traço,
+# sem chapisco e sem "dois lados": a espessura vem do sistema de demãos.
+# Código IRC (R703.7 e Tabela R702.1): sobre madeira, 3 demãos sobre tela metálica (3/8 + 3/8 + 1/8 in
+# = 7/8 in) e papel em 2 camadas (Grade D) por baixo; sobre bloco ou concreto, 2 demãos
+# (3/8 + 1/8 in = 1/2 in), sem tela e sem papel. A conta continua em métrico por dentro.
+# ==========================================
+PE2_M2 = 0.09290304          # 1 sq ft em m²
+POL2_M2 = 0.00064516         # 1 in² em m²
+
+PAREDES_STUCCO = ["madeira", "bloco"]
+PAREDE_STUCCO_PADRAO = "madeira"             # a casa mais comum de stucco nos EUA (estrutura de madeira com OSB)
+DEMAOS_BASE_STUCCO = {"madeira": 2, "bloco": 1}  # demãos de base coat de 3/8 in (scratch e brown; no bloco, só uma)
+
+# Embalagens e rendimentos (pesquisa ✅)
+COBERTURA_BASE_M2 = 20 * PE2_M2          # base coat 80 lb: 20 a 24 sq ft por saco a 3/8 in (Quikrete); o menor, para não faltar
+COBERTURA_ACABAMENTO_M2 = 70 * PE2_M2    # finish coat 80 lb: 70 sq ft por saco a 1/8 in (Quikrete)
+# Tela metálica 2.5 lb em folhas de 27 x 96 in, com 1/2 in de sobreposição do lado e 1 in na ponta (IRC)
+FOLHA_TELA_UTIL_M2 = (27 - 0.5) * (96 - 1) * POL2_M2
+# Papel de 2 camadas (60 minutos, Grade D) em rolos de 162 sq ft (40 in de largura); emenda de 2 in
+# na horizontal, então cada rolo cobre 38 de cada 40 in
+ROLO_PAPEL_UTIL_M2 = 162 * PE2_M2 * 38 / 40
+
+# Preços PROVISÓRIOS ($) até a tabela de preços ser refeita
+PRECO_SACO_BASE_STUCCO = 15.00
+PRECO_SACO_ACABAMENTO_STUCCO = 25.00
+PRECO_FOLHA_TELA_STUCCO = 20.00
+PRECO_ROLO_PAPEL_STUCCO = 25.00
+
+
+def calcular_reboco_eua(
+    area_bruta_m2: float,
+    desconto_vaos_m2: float = 0.0,
+    parede: str = PAREDE_STUCCO_PADRAO,
+    perda_percentual: float = PERDA_PADRAO_REBOCO,
+) -> dict:
+    """Stucco dos EUA. parede: "madeira" (3 demãos, tela e papel) ou "bloco" (2 demãos).
+    Recebe e devolve em métrico (a tela converte)."""
+    if area_bruta_m2 <= 0:
+        return {"erro": "erro_area_zero_stucco"}
+    if desconto_vaos_m2 < 0 or perda_percentual < 0:
+        return {"erro": "erro_desconto_perda_negativos"}
+    if parede not in PAREDES_STUCCO:
+        parede = PAREDE_STUCCO_PADRAO
+
+    area_liquida_m2 = area_bruta_m2 - desconto_vaos_m2
+    if area_liquida_m2 <= 0:
+        return {"erro": "erro_desconto_vaos"}
+
+    area_com_perda = area_liquida_m2 * (1 + perda_percentual / 100.0)
+    demaos_base = DEMAOS_BASE_STUCCO[parede]
+    madeira = (parede == "madeira")
+    return {
+        "area_bruta_m2": area_bruta_m2,
+        "desconto_vaos_m2": desconto_vaos_m2,
+        "area_liquida_m2": area_liquida_m2,
+        "parede": parede,
+        "demaos_base": demaos_base,
+        "perda_percentual": perda_percentual,
+        "sacos_base": math.ceil(area_com_perda * demaos_base / COBERTURA_BASE_M2 - 1e-9),
+        "sacos_acabamento": math.ceil(area_com_perda / COBERTURA_ACABAMENTO_M2 - 1e-9),
+        "folhas_tela": math.ceil(area_com_perda / FOLHA_TELA_UTIL_M2 - 1e-9) if madeira else 0,
+        "rolos_papel": math.ceil(area_com_perda / ROLO_PAPEL_UTIL_M2 - 1e-9) if madeira else 0,
+    }

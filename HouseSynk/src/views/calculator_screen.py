@@ -49,6 +49,14 @@ from src.calculators.reboco import (
     AREA_MAXIMA_REBOCO_M2,
     ESPESSURA_MINIMA_CM as ESPESSURA_MINIMA_REBOCO_CM,
     ESPESSURA_MAXIMA_CM as ESPESSURA_MAXIMA_REBOCO_CM,
+    # EUA (Parte A, Nov 13, 2026): stucco em sacos prontos de 80 lb, parede de madeira ou de bloco
+    calcular_reboco_eua,
+    PAREDES_STUCCO,
+    PAREDE_STUCCO_PADRAO,
+    PRECO_SACO_BASE_STUCCO,
+    PRECO_SACO_ACABAMENTO_STUCCO,
+    PRECO_FOLHA_TELA_STUCCO,
+    PRECO_ROLO_PAPEL_STUCCO,
 )
 from src.calculators.contrapiso import (
     calcular_contrapiso,
@@ -398,6 +406,7 @@ class CalculatorScreen(MDScreen):
         self.imperm = {"baldrame": False}
         self.dois_lados = {"reboco": False}
         self.chapisco = {"reboco": False}
+        self.parede_stucco = PAREDE_STUCCO_PADRAO  # EUA: stucco sobre parede de madeira ou de bloco
         # Argamassa colante: AC-I / AC-II no Brasil; A118.1 / A118.4 (thinset) nos EUA
         sistema = self._sistema_estado
         self.argamassa = {"piso": argamassa_padrao(True, sistema), "azulejo": argamassa_padrao(False, sistema)}
@@ -885,10 +894,19 @@ class CalculatorScreen(MDScreen):
             MDTextFieldHintText(text=txt("hint_esp_reboco")),
             text=self._texto_padrao(ESPESSURA_REBOCO_PADRAO_CM, "centimetro"), mode="outlined", write_tab=False, readonly=ro
         )
+        eua = (sistema_unidades() == IMPERIAL)
         box_form.add_widget(self.lbl_obrigatorio_reb)
         box_form.add_widget(self.in_reb_area)
-        box_form.add_widget(self.in_reb_esp)
-        self._montar_seletor_traco(box_form, "reboco")
+        if eua:
+            # EUA (stucco): a espessura vem do sistema de demãos e o stucco já vem pronto (sem traço).
+            # O campo da espessura continua existindo, escondido, para voltar ao trocar de país.
+            self._botao_parede_stucco = self._montar_dropdown(
+                box_form, txt("label_parede_stucco"), PAREDES_STUCCO, self.parede_stucco,
+                self._escolher_parede_stucco, rotulo=self._rotulo_parede_stucco, largura=None
+            )
+        else:
+            box_form.add_widget(self.in_reb_esp)
+            self._montar_seletor_traco(box_form, "reboco")
 
         # --- Opcionais ---
         self.in_reb_vaos = MDTextField(MDTextFieldHintText(text=txt("hint_vaos")), mode="outlined", write_tab=False, readonly=ro)
@@ -898,8 +916,9 @@ class CalculatorScreen(MDScreen):
         )
         box_form.add_widget(self.in_reb_vaos)
         box_form.add_widget(self.in_reb_perda)
-        self._montar_sim_nao(box_form, txt("label_dois_lados"), self.dois_lados, "reboco", "dois_lados")
-        self._montar_sim_nao(box_form, txt("label_chapisco"), self.chapisco, "reboco", "chapisco")
+        if not eua:  # o stucco é só por fora e o scratch coat já faz parte do sistema
+            self._montar_sim_nao(box_form, txt("label_dois_lados"), self.dois_lados, "reboco", "dois_lados")
+            self._montar_sim_nao(box_form, txt("label_chapisco"), self.chapisco, "reboco", "chapisco")
 
         self._campos = {
             "area": self.in_reb_area, "vaos": self.in_reb_vaos,
@@ -923,6 +942,15 @@ class CalculatorScreen(MDScreen):
         box_form.add_widget(box_res)
         scroll.add_widget(box_form)
         return scroll
+
+    @staticmethod
+    def _rotulo_parede_stucco(chave):
+        """"Madeira (com OSB)" / "Bloco ou concreto" (stucco dos EUA)."""
+        return txt_do_pais(f"opcao_stucco_{chave}", IMPERIAL)
+
+    def _escolher_parede_stucco(self, valor):
+        self.parede_stucco = valor
+        self._botao_parede_stucco.text = self._rotulo_parede_stucco(valor)
 
     # ==========================================
     # CONTEÚDO DAS ABAS PISO E AZULEJO (mesma tela, campos um pouco diferentes)
@@ -1831,6 +1859,8 @@ class CalculatorScreen(MDScreen):
             self.tela["laje"] = False
             self.lona["laje"] = True
             self.base_brita["laje"] = True
+        if aba == "reboco":
+            self.parede_stucco = PAREDE_STUCCO_PADRAO
         if aba == "telhado":
             self.telha_tipo = tipos_telha_do_pais(sistema_unidades())[1]
             self.madeiramento[aba] = False
@@ -2721,6 +2751,8 @@ class CalculatorScreen(MDScreen):
         return {"texto": texto_res, "resultado": resultado}
 
     def _calcular_reboco(self, e):
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_reboco_eua(e)
         if not (e.get("area") or "").strip() or not (e.get("esp") or "").strip():
             return {"erro": txt("msg_erro_num")}
 
@@ -2780,6 +2812,79 @@ class CalculatorScreen(MDScreen):
                 "area": area, "vaos": vaos, "esp": esp, "perda": perda,
                 "traco": res["traco"], "dois_lados": dois_lados, "chapisco": chapisco
             }
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _calcular_reboco_eua(self, e):
+        """Reboco nos EUA (Parte A, Nov 13, 2026): o stucco, só na parede de fora, em sacos prontos de 80 lb
+        (base coat e finish coat). Parede de madeira: 3 demãos, tela metálica e papel em 2 camadas;
+        parede de bloco ou concreto: 2 demãos, sem tela e sem papel (código IRC).
+        Os preços ainda são os provisórios (passo de preços)."""
+        if not (e.get("area") or "").strip():
+            return {"erro": txt("msg_erro_num")}
+
+        area = self._numero(e["area"])
+        vaos = self._numero(e.get("vaos"), 0.0)
+        perda = self._numero(e.get("perda"), PERDA_PADRAO_REBOCO)
+        parede = self.parede_stucco
+
+        # Limite com aviso (reboco.py): a área, igual ao Brasil (a espessura vem do sistema)
+        avisos = []
+        self._aviso_maximo(avisos, "aviso_area_max", area, AREA_MAXIMA_REBOCO_M2, "area")
+        pendentes = self._avisos_pendentes("reboco", avisos)
+        if pendentes:
+            return pendentes
+
+        res = calcular_reboco_eua(area, vaos, parede, perda)
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        custo_base = res['sacos_base'] * PRECO_SACO_BASE_STUCCO
+        custo_acab = res['sacos_acabamento'] * PRECO_SACO_ACABAMENTO_STUCCO
+        custo_tela = res['folhas_tela'] * PRECO_FOLHA_TELA_STUCCO
+        custo_papel = res['rolos_papel'] * PRECO_ROLO_PAPEL_STUCCO
+        custo_mat = custo_base + custo_acab + custo_tela + custo_papel
+
+        # Áreas digitadas, sem o arredondamento em m² (senão 320 sq ft voltava 320.01 sq ft)
+        texto_res = f"{txt('label_area_bruta')}: {self._med(area, 'area')}\n"
+        if vaos > 0:
+            texto_res += f"{txt('label_vaos')}: {self._med(vaos, 'area')}\n"
+            texto_res += f"{txt('label_area_liquida')}: {self._med(area - vaos, 'area')}\n"
+        texto_res += (
+            f"{txt('label_parede_stucco')}: {self._rotulo_parede_stucco(parede)}\n"
+            f"{txt('label_sistema_stucco')}: {txt('txt_stucco_' + parede)}\n"
+        )
+        perda_txt = self._txt_perda(perda)
+        # Na ordem da obra: o papel, a tela, as demãos de base e o acabamento
+        if res['rolos_papel'] > 0:
+            qtd = res['rolos_papel']
+            texto_res += (f"• {txt('label_papel_stucco')} ({perda_txt}): {fmt_int(qtd)} "
+                          f"{self._unidade(qtd, 'un_rolo_papel', 'un_rolos_papel')} ({fmt_moeda(custo_papel)})\n")
+        if res['folhas_tela'] > 0:
+            qtd = res['folhas_tela']
+            texto_res += (f"• {txt('label_tela_stucco')} ({perda_txt}): {fmt_int(qtd)} "
+                          f"{self._unidade(qtd, 'un_folha_tela', 'un_folhas_tela')} ({fmt_moeda(custo_tela)})\n")
+        n = res['demaos_base']
+        demaos = txt('txt_demaos_base').format(n=n) if n > 1 else txt('txt_demao_base')
+        qtd = res['sacos_base']
+        texto_res += (f"• {txt('label_base_stucco')}, {demaos} ({perda_txt}): {fmt_int(qtd)} "
+                      f"{self._unidade(qtd, 'un_saco_80', 'un_sacos_80')} ({fmt_moeda(custo_base)})\n")
+        qtd = res['sacos_acabamento']
+        texto_res += (f"• {txt('label_acabamento_stucco')} ({perda_txt}): {fmt_int(qtd)} "
+                      f"{self._unidade(qtd, 'un_saco_80', 'un_sacos_80')} ({fmt_moeda(custo_acab)})\n")
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        resultado = {
+            "etapa": txt("secao_reboco"),
+            "tipo": "reboco",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: o stucco tem chaves próprias (outras embalagens)
+            "cimento": 0, "cal": 0, "areia": 0,
+            "stucco_base_80lb": res['sacos_base'], "stucco_acab_80lb": res['sacos_acabamento'],
+            "tela_stucco_folhas": res['folhas_tela'], "papel_stucco_rolos": res['rolos_papel'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {"area": area, "vaos": vaos, "perda": perda, "parede_stucco": parede},
         }
         return {"texto": texto_res, "resultado": resultado}
 
@@ -4101,6 +4206,10 @@ class CalculatorScreen(MDScreen):
             # EUA: lona e base de brita (orçamento do Brasil ou antigo não tem: ficam no padrão, Sim)
             self.lona["laje"] = bool(inputs_dict.get("lona", True))
             self.base_brita["laje"] = bool(inputs_dict.get("base_brita", True))
+        if aba == "reboco":
+            # EUA: parede do stucco (orçamento do Brasil ou antigo não tem: madeira)
+            parede = inputs_dict.get("parede_stucco")
+            self.parede_stucco = parede if parede in PAREDES_STUCCO else PAREDE_STUCCO_PADRAO
         if aba == "telhado":
             # Telha de outro país (orçamento do Brasil aberto nos EUA, ou o contrário) vira a parecida
             tipos, padrao = tipos_telha_do_pais(sistema_unidades())

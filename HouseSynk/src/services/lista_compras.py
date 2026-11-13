@@ -147,6 +147,21 @@ def _linhas_eletrica_eua(item, ele):
             ele.append(f"{txt_do_pais(rotulo, eua)}: {fmt_int(qtd)} {C._unidade(qtd, 'un_unidade', 'un_unidades', eua)}")
 
 
+def _linhas_hidraulica_eua(item, hid):
+    """Hidráulica dos EUA (Nov 11, 2026), com os mesmos nomes da aba (regra 17): tubos PEX em rolos
+    de 100 ft, tubos de esgoto PVC DWV em barras de 10 ft, conexões e stop valves."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    for tubo, qtd in item.get("tubos_eua", {}).items():
+        hid.append(f"{txt_do_pais('label_tubo_eua_' + tubo, eua)}: {C._texto_tubo_eua(tubo, qtd)}")
+    for tipo, qtd in item.get("conexoes_eua", {}).items():
+        hid.append(f"{txt_do_pais('label_conexoes_eua_' + tipo, eua)}: {fmt_int(qtd)} "
+                   f"{C._unidade(qtd, 'un_unidade', 'un_unidades', eua)}")
+    qtd = item.get("registros_eua", 0)
+    if qtd > 0:
+        hid.append(f"{txt_do_pais('label_registros_eua', eua)}: {fmt_int(qtd)} {C._unidade(qtd, 'un_unidade', 'un_unidades', eua)}")
+
+
 def montar_lista_compras(itens):
     """Recebe o orçamento (lista de resultados das abas) e devolve [(grupo, [linhas]), ...],
     só com os grupos que têm algum material. Cada material aparece só se for maior que zero."""
@@ -317,6 +332,9 @@ def montar_lista_compras(itens):
     # ---------------- HIDRÁULICA ----------------
     hid = grupos["hidraulica"]
     for item in _do_tipo(itens, "hidraulica"):
+        if _sistema(item) == IMPERIAL:
+            _linhas_hidraulica_eua(item, hid)
+            continue
         for tubo, barras in item.get("tubos", {}).items():
             hid.append(f"{txt('label_tubo_' + tubo)}: {C._texto_barras(barras, BARRA_TUBO_M[tubo])}")
         for tipo, qtd in item.get("conexoes", {}).items():

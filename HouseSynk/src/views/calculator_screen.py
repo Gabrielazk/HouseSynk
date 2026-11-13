@@ -158,6 +158,15 @@ from src.calculators.hidraulica import (
     PRECO_CONEXAO,
     PRECO_REGISTRO,
     PONTOS_MAXIMO,
+    # EUA (Parte A, Nov 11, 2026): PEX 1/2 in (rolos de 100 ft), esgoto PVC DWV 2 in e 3 in
+    # (barras de 10 ft) e um stop valve por ponto de água
+    calcular_hidraulica_eua,
+    TUBOS_EUA,
+    CAMPO_TUBO_EUA,
+    TUBO_EM_ROLO_EUA,
+    PRECO_TUBO_EUA,
+    PRECO_CONEXAO_EUA,
+    PRECO_REGISTRO_EUA,
 )
 from src.calculators.pintura import (
     calcular_pintura,
@@ -3511,6 +3520,9 @@ class CalculatorScreen(MDScreen):
         return {"texto": texto_res, "resultado": resultado}
 
     def _calcular_hidraulica(self, e):
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_hidraulica_eua(e)
+
         def inteiro(chave):
             texto = (e.get(chave) or "").strip()
             return int(texto) if texto else 0
@@ -3572,6 +3584,91 @@ class CalculatorScreen(MDScreen):
             "inputs": inputs,
         }
         return {"texto": texto_res, "resultado": resultado}
+
+    def _calcular_hidraulica_eua(self, e):
+        """Hidráulica nos EUA (Parte A, Nov 11, 2026): PEX 1/2 in na água fria (azul) e na quente
+        (vermelho), em rolos de 100 ft; esgoto em PVC DWV de 2 in (pia, chuveiro, ralo e máquina) e
+        de 3 in (vaso), em barras de 10 ft; conexões estimadas e um stop valve por ponto de água.
+        Os campos de tubo são os mesmos do Brasil, cada um com o tubo parecido de lá (CAMPO_TUBO_EUA).
+        Os preços ainda são os provisórios (passo de preços)."""
+        def inteiro(chave):
+            texto = (e.get(chave) or "").strip()
+            return int(texto) if texto else 0
+
+        pontos = {chave: inteiro(chave) for chave in ("fria", "quente", "esgoto")}
+        tubos_projeto = {}
+        for tubo in TUBOS_EUA:
+            texto = (e.get(f"tubo_{CAMPO_TUBO_EUA[tubo]}") or "").strip()
+            if texto:  # vazio = o app estima
+                tubos_projeto[tubo] = self._numero(texto)
+        perda = self._numero(e.get("perda"), PERDA_PADRAO_HIDRAULICA)
+
+        # Limites com aviso (hidraulica.py): os mesmos do Brasil, para cada tipo de ponto
+        avisos = []
+        for chave in ("fria", "quente", "esgoto"):
+            self._aviso_maximo(avisos, f"aviso_{chave}_max", pontos[chave], PONTOS_MAXIMO)
+        pendentes = self._avisos_pendentes("hidraulica", avisos)
+        if pendentes:
+            return pendentes
+
+        res = calcular_hidraulica_eua(pontos["fria"], pontos["quente"], pontos["esgoto"], tubos_projeto, perda)
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        custo_tubos = {t: d['embalagens'] * PRECO_TUBO_EUA[t] for t, d in res['tubos'].items()}
+        custo_conexoes = {t: q * PRECO_CONEXAO_EUA[t] for t, q in res['conexoes'].items()}
+        custo_registros = res['registros'] * PRECO_REGISTRO_EUA
+        custo_mat = sum(custo_tubos.values()) + sum(custo_conexoes.values()) + custo_registros
+
+        def un(qtd):
+            return f"{fmt_int(qtd)} {self._unidade(qtd, 'un_unidade', 'un_unidades')}"
+
+        texto_res = ""
+        for chave in ("fria", "quente", "esgoto"):
+            if pontos[chave] > 0:  # ponto com zero não aparece
+                texto_res += f"{txt('label_pontos_' + chave)}: {fmt_int(pontos[chave])}\n"
+        for tubo, dados in res['tubos'].items():
+            origem = txt("label_do_projeto") if dados['do_projeto'] else txt("label_estimado")
+            texto_res += (
+                f"• {txt('label_tubo_eua_' + tubo)} ({origem}, {self._txt_perda(perda)}): "
+                f"{self._med(dados['metros'], 'comprimento', 1)} = "
+                f"{self._texto_tubo_eua(tubo, dados['embalagens'])} ({fmt_moeda(custo_tubos[tubo])})\n"
+            )
+        for tipo, qtd in res['conexoes'].items():
+            texto_res += f"• {txt('label_conexoes_eua_' + tipo)}: {un(qtd)} ({fmt_moeda(custo_conexoes[tipo])})\n"
+        if res['registros'] > 0:
+            texto_res += f"• {txt('label_registros_eua')}: {un(res['registros'])} ({fmt_moeda(custo_registros)})\n"
+        texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}"
+
+        # Histórico: os mesmos campos do Brasil (em metros), para o que foi digitado voltar ao trocar de país
+        inputs = {chave: (qtd if qtd else "") for chave, qtd in pontos.items()}
+        for tubo in TUBOS_EUA:
+            inputs[f"tubo_{CAMPO_TUBO_EUA[tubo]}"] = tubos_projeto.get(tubo, "")
+        inputs["perda"] = perda
+
+        resultado = {
+            "etapa": txt("secao_hidraulica"),
+            "tipo": "hidraulica",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            # As chaves do Brasil ficam zeradas: a lista de compras escreve as dos EUA separado
+            "tubos": {}, "conexoes": {}, "registros": 0,
+            "tubos_eua": {t: d['embalagens'] for t, d in res['tubos'].items()},
+            "conexoes_eua": res['conexoes'],
+            "registros_eua": res['registros'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": inputs,
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    @staticmethod
+    def _texto_tubo_eua(tubo, qtd):
+        """"2 rolos de 100 ft" (PEX) ou "9 barras de 10 ft" (PVC DWV), na Hidráulica dos EUA."""
+        if TUBO_EM_ROLO_EUA[tubo]:
+            unidade = CalculatorScreen._unidade(qtd, 'un_rolo_pex', 'un_rolos_pex', IMPERIAL)
+        else:
+            unidade = CalculatorScreen._unidade(qtd, 'un_barra_10ft', 'un_barras_10ft', IMPERIAL)
+        return f"{fmt_int(qtd)} {unidade}"
 
     def _calcular_eletrica(self, e):
         if sistema_unidades() == IMPERIAL:

@@ -178,6 +178,21 @@ def _linhas_hidraulica_eua(item, hid):
         hid.append(f"{txt_do_pais('label_registros_eua', eua)}: {fmt_int(qtd)} {C._unidade(qtd, 'un_unidade', 'un_unidades', eua)}")
 
 
+def _linhas_esquadrias_eua(item, basico):
+    """Insumos de fixação da Esquadrias dos EUA (Nov 13, 2026), com os mesmos nomes da aba (regra 17):
+    espuma em latas de 12 oz, pregos de 2 in em caixas de 1 lb e fita de flashing em rolos de 75 ft."""
+    C = CalculatorScreen
+    eua = IMPERIAL
+    for chave, rotulo, singular, plural in (
+        ("latas_espuma_eua", "label_res_espuma", "un_lata_espuma", "un_latas_espuma"),
+        ("caixas_pregos_eua", "label_res_pregos", "un_caixa_1lb", "un_caixas_1lb"),
+        ("rolos_fita_eua", "label_res_fita", "un_rolo_fita", "un_rolos_fita"),
+    ):
+        qtd = item.get(chave, 0)
+        if qtd > 0:
+            basico.append(f"{txt_do_pais(rotulo, eua)}: {fmt_int(qtd)} {C._unidade(qtd, singular, plural, eua)}")
+
+
 def montar_lista_compras(itens):
     """Recebe o orçamento (lista de resultados das abas) e devolve [(grupo, [linhas]), ...],
     só com os grupos que têm algum material. Cada material aparece só se for maior que zero."""
@@ -260,6 +275,9 @@ def montar_lista_compras(itens):
         if madeira:
             basico.append(f"{txt('label_madeira_resumo')}: {', '.join(madeira)}")
     for item in _do_tipo(itens, "esquadrias"):  # insumos de fixação das portas e janelas
+        if _sistema(item) == IMPERIAL:
+            _linhas_esquadrias_eua(item, basico)
+            continue
         if item.get("tubos_espuma", 0) > 0:
             qtd = item["tubos_espuma"]
             basico.append(f"{txt('label_res_espuma')}: {fmt_int(qtd)} {txt('un_tubo_500') if qtd == 1 else txt('un_tubos_500')}")

@@ -204,6 +204,13 @@ from src.calculators.esquadrias import (
     QUANTIDADE_MAXIMA as QUANTIDADE_MAXIMA_ESQUADRIA,
     LARGURA_MAXIMA_CM as LARGURA_MAXIMA_ESQUADRIA_CM,
     ALTURA_MAXIMA_CM as ALTURA_MAXIMA_ESQUADRIA_CM,
+    # EUA (Parte A, Nov 13, 2026): espuma em latas de 12 oz, pregos de 2 in e fita de flashing
+    calcular_esquadrias_eua,
+    materiais_do_pais,
+    MATERIAIS_EUA,
+    PRECO_LATA_ESPUMA_EUA,
+    PRECO_CAIXA_PREGOS_EUA,
+    PRECO_ROLO_FITA_EUA,
 )
 from src.calculators.rejunte import (
     calcular_rejunte,
@@ -426,7 +433,9 @@ class CalculatorScreen(MDScreen):
         self.esquadrias_itens = []   # lista de portas e janelas da aba Esquadrias (medidas sempre em cm)
         self.esq_tipo = TIPO_ESQUADRIA_PADRAO
         self.esq_material = MATERIAL_PADRAO
-        self.esq_fixacao = {"espuma": False, "parafusos": False, "argamassa": False}
+        # Insumos de fixação: espuma nos dois países; parafusos e argamassa só no Brasil;
+        # pregos e fita de flashing só nos EUA (o que foi escolhido volta ao trocar de país)
+        self.esq_fixacao = self._fixacao_inicial()
         self._campos = {}            # campos da aba aberta no momento
         self._botoes_traco = {}
         self._botoes_bitola = {}
@@ -456,6 +465,7 @@ class CalculatorScreen(MDScreen):
         self._trocar_argamassa_de_pais(sistema)
         self._trocar_bitola_de_pais(sistema)
         self._trocar_tijolo_de_pais(sistema)
+        self._trocar_material_de_pais(sistema)
         self._sistema_estado = sistema
         self._campos = {}  # não deixa os campos antigos sobrescreverem o que foi convertido
 
@@ -480,6 +490,14 @@ class CalculatorScreen(MDScreen):
         for aba in self.tijolo:
             if self.tijolo[aba] not in tijolos:
                 self.tijolo[aba] = padrao
+
+    def _trocar_material_de_pais(self, sistema):
+        """Esquadrias: o material escolhido no formulário que não existe no menu do país novo
+        (ex.: vidro temperado nos EUA, vinil no Brasil) volta para "Não informado".
+        Os itens que já estão na lista não mudam (o material é só informação para a cotação)."""
+        materiais, padrao = materiais_do_pais(sistema)
+        if self.esq_material not in materiais:
+            self.esq_material = padrao
 
     def _trocar_argamassa_de_pais(self, sistema):
         """Cada país tem os seus tipos de argamassa colante. Ao trocar de país, troca pelo
@@ -1525,8 +1543,11 @@ class CalculatorScreen(MDScreen):
                 box_form, txt("label_tipo_esquadria"), TIPOS_ESQUADRIA, self.esq_tipo,
                 self._escolher_esq_tipo, rotulo=self._rotulo_esq_tipo, largura=None
             )
+            materiais, padrao = materiais_do_pais(sistema_unidades())  # nos EUA: vinil, fibra de vidro, aço...
+            if self.esq_material not in materiais:
+                self.esq_material = padrao
             self._botao_esq_material = self._montar_dropdown(
-                box_form, txt("label_material"), MATERIAIS, self.esq_material,
+                box_form, txt("label_material"), materiais, self.esq_material,
                 self._escolher_esq_material, rotulo=self._rotulo_material, largura=None
             )
             box_form.add_widget(self.in_esq_qtd)
@@ -1554,9 +1575,14 @@ class CalculatorScreen(MDScreen):
 
         # --- Opcionais: insumos de fixação ---
         box_form.add_widget(MDLabel(text=txt("secao_fixacao"), font_style="Title", role="small", bold=True, theme_text_color="Primary"))
-        self._montar_sim_nao(box_form, txt("label_espuma"), self.esq_fixacao, "espuma", "fixacao")
-        self._montar_sim_nao(box_form, txt("label_parafusos"), self.esq_fixacao, "parafusos", "fixacao")
-        self._montar_sim_nao(box_form, txt("label_argamassa_fix"), self.esq_fixacao, "argamassa", "fixacao")
+        # Nos EUA (casa de madeira): espuma, pregos pela aba da janela e fita de flashing, sem argamassa
+        if sistema_unidades() == IMPERIAL:
+            insumos = ("espuma", "pregos", "fita")
+        else:
+            insumos = ("espuma", "parafusos", "argamassa")
+        for chave in insumos:
+            rotulo = "label_argamassa_fix" if chave == "argamassa" else f"label_{chave}"
+            self._montar_sim_nao(box_form, txt(rotulo), self.esq_fixacao, chave, "fixacao")
 
         if not ro:
             self.btn_calc_esq = MDButton(MDButtonText(text=txt("btn_calcular")), pos_hint={"center_x": 0.5}, on_release=self.executar_calculo)
@@ -1581,7 +1607,16 @@ class CalculatorScreen(MDScreen):
         return txt(f"opcao_{chave}")
 
     @staticmethod
+    def _fixacao_inicial():
+        """Todos os insumos de fixação (dos dois países) em Não."""
+        return {"espuma": False, "parafusos": False, "argamassa": False, "pregos": False, "fita": False}
+
+    @staticmethod
     def _rotulo_material(chave):
+        """Nome do material. Os que só existem nos EUA (vinil, fibra de vidro, aço) têm o texto no
+        textos_eua.py: txt_do_pais acha o nome mesmo com o país no Brasil (item feito nos EUA)."""
+        if chave in MATERIAIS_EUA and chave not in MATERIAIS:
+            return txt_do_pais(f"opcao_mat_{chave}", IMPERIAL)
         return txt(f"opcao_mat_{chave}")
 
     def _escolher_esq_tipo(self, valor):
@@ -1874,7 +1909,7 @@ class CalculatorScreen(MDScreen):
             self.esquadrias_itens = []
             self.esq_tipo = TIPO_ESQUADRIA_PADRAO
             self.esq_material = MATERIAL_PADRAO
-            self.esq_fixacao = {"espuma": False, "parafusos": False, "argamassa": False}
+            self.esq_fixacao = self._fixacao_inicial()
         self._campos = {}
         self.trocar_aba(aba)
         if self.dialog_limpar:
@@ -3466,6 +3501,8 @@ class CalculatorScreen(MDScreen):
             return {"erro": txt("msg_esquadria_pendente")}
         if not self.esquadrias_itens:
             return {"erro": txt("msg_lista_vazia")}
+        if sistema_unidades() == IMPERIAL:
+            return self._calcular_esquadrias_eua()
 
         fix = self.esq_fixacao
         res = calcular_esquadrias(self.esquadrias_itens, fix["espuma"], fix["parafusos"], fix["argamassa"])
@@ -3477,16 +3514,7 @@ class CalculatorScreen(MDScreen):
         custo_argamassa = res['sacos_argamassa'] * PRECO_SACO_ARGAMASSA_FIXACAO
         custo_mat = custo_espuma + custo_parafusos + custo_argamassa
 
-        texto_res = ""
-        for tipo, rotulo in (("porta", "label_portas"), ("janela", "label_janelas")):
-            itens_tipo = [i for i in self.esquadrias_itens if i["tipo"] == tipo]
-            if not itens_tipo:
-                continue
-            texto_res += f"{txt(rotulo)}:\n"
-            for item in itens_tipo:
-                area = (item["larg"] / 100.0) * (item["alt"] / 100.0)
-                texto_res += f"• {self._texto_item_esquadria(item)}: {fmt_num(area, 2)} m² {txt('label_cada')}\n"
-            texto_res += "\n"
+        texto_res = self._texto_lista_esquadrias()
         texto_res += (
             f"{txt('label_total')}: {self._texto_total_esquadrias(res['portas'], res['janelas'])}\n"
             f"{txt('label_area_vaos')}: {fmt_num(res['area_vaos_m2'], 2)} m²\n"
@@ -3517,6 +3545,77 @@ class CalculatorScreen(MDScreen):
             "esquadrias": [dict(i) for i in self.esquadrias_itens],
             "tubos_espuma": res['tubos_espuma'], "parafusos": res['parafusos'],
             "sacos_argamassa_fix": res['sacos_argamassa'],
+            "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
+            "resumo_texto": texto_res,
+            "inputs": {"itens": [dict(i) for i in self.esquadrias_itens], **fix},
+        }
+        return {"texto": texto_res, "resultado": resultado}
+
+    def _texto_lista_esquadrias(self):
+        """As portas e as janelas da lista, separadas por tipo, com a área de cada uma
+        ("• 3x Porta 80 x 210 cm (Madeira): 1,68 m² cada"; nos EUA, em sq ft)."""
+        eua = (sistema_unidades() == IMPERIAL)
+        texto = ""
+        for tipo, rotulo in (("porta", "label_portas"), ("janela", "label_janelas")):
+            itens_tipo = [i for i in self.esquadrias_itens if i["tipo"] == tipo]
+            if not itens_tipo:
+                continue
+            texto += f"{txt(rotulo)}:\n"
+            for item in itens_tipo:
+                area = (item["larg"] / 100.0) * (item["alt"] / 100.0)
+                area_txt = self._med(area, "area") if eua else f"{fmt_num(area, 2)} m²"
+                texto += f"• {self._texto_item_esquadria(item)}: {area_txt} {txt('label_cada')}\n"
+            texto += "\n"
+        return texto
+
+    def _calcular_esquadrias_eua(self):
+        """Esquadrias nos EUA (Parte A, Nov 13, 2026): a mesma lista para cotação, com as áreas em sq ft,
+        e os insumos de fixação da casa de madeira: espuma de baixa expansão em latas de 12 oz, pregos
+        galvanizados de 2 in pela aba da janela (caixas de 1 lb) e fita de flashing de 4 in (rolos de 75 ft).
+        Os preços ainda são os provisórios (passo de preços)."""
+        fix = self.esq_fixacao
+        res = calcular_esquadrias_eua(self.esquadrias_itens, fix["espuma"], fix["pregos"], fix["fita"])
+        if "erro" in res:
+            return {"erro": self._txt_erro(res['erro'])}
+
+        custo_espuma = res['latas_espuma'] * PRECO_LATA_ESPUMA_EUA
+        custo_pregos = res['caixas_pregos'] * PRECO_CAIXA_PREGOS_EUA
+        custo_fita = res['rolos_fita'] * PRECO_ROLO_FITA_EUA
+        custo_mat = custo_espuma + custo_pregos + custo_fita
+
+        texto_res = self._texto_lista_esquadrias()
+        texto_res += (
+            f"{txt('label_total')}: {self._texto_total_esquadrias(res['portas'], res['janelas'])}\n"
+            f"{txt('label_area_vaos')}: {self._med(res['area_vaos_m2'], 'area')}\n"
+        )
+        if res['latas_espuma'] or res['caixas_pregos'] or res['rolos_fita']:
+            texto_res += f"\n{txt('secao_fixacao')}:\n"
+        if res['latas_espuma'] > 0:
+            qtd = res['latas_espuma']
+            texto_res += (f"• {txt('label_res_espuma')}: {fmt_int(qtd)} "
+                          f"{self._unidade(qtd, 'un_lata_espuma', 'un_latas_espuma')} ({fmt_moeda(custo_espuma)})\n")
+        if res['caixas_pregos'] > 0:
+            pregos, caixas = res['pregos'], res['caixas_pregos']
+            texto_res += (f"• {txt('label_res_pregos')}: {fmt_int(pregos)} {self._unidade(pregos, 'un_prego', 'un_pregos')} = "
+                          f"{fmt_int(caixas)} {self._unidade(caixas, 'un_caixa_1lb', 'un_caixas_1lb')} ({fmt_moeda(custo_pregos)})\n")
+        if res['rolos_fita'] > 0:
+            qtd = res['rolos_fita']
+            texto_res += (f"• {txt('label_res_fita')}: {self._med(res['fita_m'], 'comprimento', 1)} = "
+                          f"{fmt_int(qtd)} {self._unidade(qtd, 'un_rolo_fita', 'un_rolos_fita')} ({fmt_moeda(custo_fita)})\n")
+        # Igual ao Brasil: sem insumo, só a frase (e não "$ 0.00"); com custo, uma linha em branco antes da frase
+        if custo_mat > 0:
+            texto_res += f"\n{txt('label_custo')}: {fmt_moeda(custo_mat)}\n"
+        texto_res += f"\n{txt('txt_esquadrias_orcamento')}"
+
+        resultado = {
+            "etapa": txt("secao_esquadrias"),
+            "tipo": "esquadrias",
+            "sistema": IMPERIAL,  # país da conta (a lista de compras usa as embalagens dele)
+            "esquadrias": [dict(i) for i in self.esquadrias_itens],
+            # As chaves do Brasil ficam zeradas: os insumos dos EUA têm chaves próprias (outras embalagens)
+            "tubos_espuma": 0, "parafusos": 0, "sacos_argamassa_fix": 0,
+            "latas_espuma_eua": res['latas_espuma'], "caixas_pregos_eua": res['caixas_pregos'],
+            "rolos_fita_eua": res['rolos_fita'],
             "custo_mat": custo_mat, "custo_mo": 0.0, "custo_total": custo_mat,
             "resumo_texto": texto_res,
             "inputs": {"itens": [dict(i) for i in self.esquadrias_itens], **fix},

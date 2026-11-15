@@ -85,6 +85,10 @@ PADRAO = {
     "azulejo": {},  # idem, com A118.4
     "rejunte": {"esp": "5/16", "perda": "10"},
     "pintura": {"demaos": "2", "rend": "400", "perda": "10"},
+    # ----- rodada 3b -----
+    "brocas": {"perda": "10", "esp_estribo": "8"},  # a bitola #4 vem do reiniciar
+    "paredes": {"junta": "3/8", "quebra": "5"},     # o bloco CMU 8x8x16 vem do reiniciar
+    "laje": {"esp_slab": "4", "perda": "5"},        # tela Não, lona e base Sim vêm do reiniciar
 }
 
 
@@ -308,16 +312,188 @@ caso("BA-C19", "baldrame", {**BA, "comp": "1-21/2"})
 caso("BA-C20", "baldrame", {**BA, "larg": "1 1/2", "barras": "4"})
 
 
+# ===== RODADA 3b (desde 15/11/2026) =====
+# Os casos da 3b ficam numa lista separada (CASOS_3B), fora da CASOS, para não entrar no pytest até o
+# fechamento da 3b (o test_rodada3.py lê só a CASOS). Enquanto não têm ESPERADO aqui dentro, o esperado
+# deles é lido do testes_rodada3.md: linha "#### NOME" (o nome vai até o primeiro espaço; o "⚠️ P.."
+# depois é só aviso) e o primeiro bloco ``` logo abaixo.
+CASOS_3B = []
+def caso_3b(nome, aba, campos, escolhas=None, continuar=True):
+    CASOS_3B.append((nome, aba, campos, escolhas, continuar))
+
+
+def esperado_do_roteiro():
+    """Lê o esperado de cada caso do testes_rodada3.md (mesma pasta deste arquivo)."""
+    linhas = (Path(__file__).resolve().parent / "testes_rodada3.md").read_text(encoding="utf-8").splitlines()
+    esp, nome, dentro, bloco = {}, None, False, []
+    for linha in linhas:
+        if dentro:
+            if linha.strip().startswith("```"):
+                esp[nome] = "\n".join(bloco)
+                nome, dentro, bloco = None, False, []
+            else:
+                bloco.append(linha)
+        elif linha.startswith("#### "):
+            nome = linha[5:].strip().split(" ")[0]
+        elif nome and linha.strip().startswith("```"):
+            dentro = True
+    return esp
+
+
+# ----- Lista copiada do fim do testes_rodada3.md ("RODADA 3b"), na mesma ordem -----
+# BROCAS (rodada 3b)
+BR = {"qtd": "10", "diam": "12", "prof": "10"}
+caso_3b("BR-A", "brocas", {"qtd": "12", "diam": "14", "prof": "12", "perda": "8", "mo": "9.50", "barras": "6", "esp_estribo": "6"},
+        {"traco": "1:3:3", "bitola": 15.875})
+caso_3b("BR-B", "brocas", BR)
+caso_3b("BR-B2", "brocas", {**BR, "barras": "4"})
+caso_3b("BR-B3", "brocas", {**BR, "barras": "4", "mo": "8.00"})
+caso_3b("BR-B4", "brocas", {**BR, "barras": "4"}, {"bitola": 9.525})
+caso_3b("BR-B5", "brocas", {**BR, "barras": "4"}, {"bitola": 15.875})
+caso_3b("BR-B6", "brocas", BR, {"traco": "1.5:5:5"})
+caso_3b("BR-B7", "brocas", {**BR, "mo": "8.00"})
+caso_3b("BR-B8", "brocas", {"qtd": "1", "diam": "8", "prof": "3", "barras": "3"})
+caso_3b("BR-B9", "brocas", {"qtd": "40", "diam": "16", "prof": "20", "barras": "6"})
+caso_3b("BR-C1", "brocas", {**BR, "qtd": ""})
+caso_3b("BR-C2", "brocas", {**BR, "diam": ""})
+caso_3b("BR-C3", "brocas", {**BR, "prof": ""})
+caso_3b("BR-C4", "brocas", {**BR, "qtd": "dez"})
+caso_3b("BR-C5", "brocas", {**BR, "qtd": "0"})
+caso_3b("BR-C6", "brocas", {**BR, "diam": "0"})
+caso_3b("BR-C7", "brocas", {**BR, "prof": "-10"})
+caso_3b("BR-C8", "brocas", {**BR, "qtd": "-10"})
+caso_3b("BR-C9", "brocas", {**BR, "qtd": "2.5"})
+caso_3b("BR-C10", "brocas", {**BR, "prof": "10,5"})
+caso_3b("BR-C11", "brocas", {**BR, "prof": "10.5"})
+caso_3b("BR-C12", "brocas", {**BR, "prof": "10 1/2", "barras": "4"})
+caso_3b("BR-C13", "brocas", {**BR, "diam": "11 3/4"})
+caso_3b("BR-C14", "brocas", {**BR, "perda": "-5"})
+caso_3b("BR-C15", "brocas", {**BR, "perda": "2.5"})
+caso_3b("BR-C16", "brocas", {**BR, "barras": "-4"})
+caso_3b("BR-C17", "brocas", {**BR, "barras": "4.5"})
+caso_3b("BR-C18", "brocas", {**BR, "barras": "4", "esp_estribo": ""})
+caso_3b("BR-C19", "brocas", {**BR, "barras": "4", "esp_estribo": "4 1/2"})
+caso_3b("BR-C20", "brocas", {**BR, "barras": "4", "esp_estribo": "-8"})
+caso_3b("BR-C21", "brocas", {**BR, "mo": "oito"})
+caso_3b("BR-C22", "brocas", {**BR, "mo": "-8"})
+caso_3b("BR-C23", "brocas", {**BR, "diam": "6", "barras": "4"})
+caso_3b("BR-C24", "brocas", {**BR, "diam": "6", "barras": "4", "esp_estribo": ""})
+caso_3b("BR-C25", "brocas", {**BR, "prof": "98.43"})
+caso_3b("BR-C26-cancelar", "brocas", {**BR, "prof": "99"}, continuar=False)
+caso_3b("BR-C26-continuar", "brocas", {**BR, "prof": "99"})
+caso_3b("BR-C27", "brocas", {**BR, "prof": "98 1/2"})
+caso_3b("BR-C28", "brocas", {**BR, "prof": "1-21/2"})
+caso_3b("BR-C29", "brocas", {**BR, "qtd": "1,000"})
+
+# BALDRAME (rodada 3b, o ferro; usa o BA = {...} de cima, da rodada 3)
+caso_3b("BA-F1", "baldrame", {**BA, "barras": "4"}, {"bitola": 9.525})
+caso_3b("BA-F2", "baldrame", {**BA, "barras": "4"}, {"bitola": 15.875})
+caso_3b("BA-F3", "baldrame", {**BA, "comp": "20", "barras": "4"})
+caso_3b("BA-F4", "baldrame", {**BA, "comp": "21", "barras": "4"})
+caso_3b("BA-F5", "baldrame", {**BA, "comp": "60", "barras": "4"}, {"bitola": 15.875})
+caso_3b("BA-F6", "baldrame", {**BA, "comp": "100", "barras": "4", "esp_estribo": "6"})
+caso_3b("BA-F7", "baldrame", {"comp": "250", "larg": "12", "alt": "16", "barras": "6", "esp_estribo": "10", "mo": "6.50"},
+        {"traco": "1:4:3", "bitola": 9.525, "imperm": True})
+caso_3b("BA-F8", "baldrame", {**BA, "barras": "2"})
+caso_3b("BA-F9", "baldrame", {**BA, "barras": "4", "esp_estribo": "0"})
+caso_3b("BA-F10", "baldrame", {**BA, "mo": "-8"})
+caso_3b("BA-F11", "baldrame", {**BA, "barras": "4", "esp_estribo": "-6"})
+caso_3b("BA-F12", "baldrame", {**BA, "comp": "1", "barras": "4"})
+
+# PAREDES (rodada 3b)
+PA = {"area": "320"}
+caso_3b("PA-A", "paredes", {"area": "640", "vaos": "80", "junta": "1/2", "quebra": "10"})
+caso_3b("PA-B", "paredes", PA)
+caso_3b("PA-B2", "paredes", {**PA, "vaos": "50"})
+caso_3b("PA-B3", "paredes", {**PA, "junta": "1/4"})
+caso_3b("PA-B4", "paredes", {**PA, "quebra": "8"})
+caso_3b("PA-B5", "paredes", {"area": "4"})
+caso_3b("PA-B6", "paredes", {"area": "5000"})
+caso_3b("PA-C1", "paredes", {"area": ""})
+caso_3b("PA-C2", "paredes", {"area": "trezentos"})
+caso_3b("PA-C3", "paredes", {"area": "0"})
+caso_3b("PA-C4", "paredes", {"area": "-320"})
+caso_3b("PA-C5", "paredes", {**PA, "vaos": "-50"})
+caso_3b("PA-C6", "paredes", {**PA, "vaos": "320"})
+caso_3b("PA-C7", "paredes", {**PA, "vaos": "400"})
+caso_3b("PA-C8", "paredes", {**PA, "vaos": "abc"})
+caso_3b("PA-C9", "paredes", {"area": "320,5"})
+caso_3b("PA-C10", "paredes", {"area": "320.5"})
+caso_3b("PA-C11", "paredes", {"area": "320 1/2"})
+caso_3b("PA-C12", "paredes", {"area": "1,500"})
+caso_3b("PA-C13", "paredes", {**PA, "junta": "-3/8"})
+caso_3b("PA-C14", "paredes", {**PA, "quebra": "-5"})
+caso_3b("PA-C15", "paredes", {**PA, "quebra": "2.5"})
+caso_3b("PA-C16", "paredes", {**PA, "junta": "0"})
+caso_3b("PA-C17", "paredes", {**PA, "junta": "3/16"})
+caso_3b("PA-C18", "paredes", {**PA, "junta": "1/8"})
+caso_3b("PA-C19", "paredes", {**PA, "junta": "1 3/16"})
+caso_3b("PA-C20", "paredes", {**PA, "junta": "1 1/4"})
+caso_3b("PA-C21", "paredes", {**PA, "junta": "1 5/16"})
+caso_3b("PA-C22-cancelar", "paredes", {**PA, "junta": "1 1/2"}, continuar=False)
+caso_3b("PA-C22-continuar", "paredes", {**PA, "junta": "1 1/2"})
+caso_3b("PA-C23", "paredes", {**PA, "quebra": "20"})
+caso_3b("PA-C24", "paredes", {**PA, "quebra": "25"})
+caso_3b("PA-C25", "paredes", {"area": "21528"})
+caso_3b("PA-C26", "paredes", {"area": "21529"})
+caso_3b("PA-C27", "paredes", {"area": "1-21/2"})
+caso_3b("PA-C28", "paredes", {**PA, "junta": ""})
+caso_3b("PA-C29", "paredes", {**PA, "quebra": ""})
+caso_3b("PA-C30", "paredes", {**PA, "vaos": "50 1/2"})
+
+# LAJE (rodada 3b)
+LA = {"area": "500"}
+caso_3b("LA-A", "laje", {"area": "1200", "esp_slab": "6", "perda": "8"}, {"traco": "1:3:3", "tela": True, "lona": False, "base_brita": False})
+caso_3b("LA-B", "laje", LA)
+caso_3b("LA-B2", "laje", LA, {"tela": True})
+caso_3b("LA-B3", "laje", LA, {"lona": False})
+caso_3b("LA-B4", "laje", LA, {"base_brita": False})
+caso_3b("LA-B5", "laje", LA, {"lona": False, "base_brita": False})
+caso_3b("LA-B6", "laje", {**LA, "esp_slab": "5"})
+caso_3b("LA-B7", "laje", LA, {"traco": "1.5:5:5"})
+caso_3b("LA-B8", "laje", {"area": "20"}, {"tela": True})
+caso_3b("LA-B9", "laje", {"area": "10000"}, {"tela": True})
+caso_3b("LA-C1", "laje", {"area": ""})
+caso_3b("LA-C2", "laje", {"area": "quinhentos"})
+caso_3b("LA-C3", "laje", {"area": "0"})
+caso_3b("LA-C4", "laje", {"area": "-500"})
+caso_3b("LA-C5", "laje", {"area": "500,5"})
+caso_3b("LA-C6", "laje", {"area": "500.5"})
+caso_3b("LA-C7", "laje", {"area": "500 1/2"})
+caso_3b("LA-C8", "laje", {"area": "1,500"})
+caso_3b("LA-C9", "laje", {**LA, "esp_slab": ""})
+caso_3b("LA-C10", "laje", {**LA, "esp_slab": "0"})
+caso_3b("LA-C11", "laje", {**LA, "esp_slab": "-4"})
+caso_3b("LA-C12-cancelar", "laje", {**LA, "esp_slab": "3"}, continuar=False)
+caso_3b("LA-C12-continuar", "laje", {**LA, "esp_slab": "3"})
+caso_3b("LA-C13", "laje", {**LA, "esp_slab": "3 7/16"})
+caso_3b("LA-C14", "laje", {**LA, "esp_slab": "3 1/2"})
+caso_3b("LA-C15", "laje", {**LA, "esp_slab": "8"})
+caso_3b("LA-C16", "laje", {**LA, "esp_slab": "8 1/8"})
+caso_3b("LA-C17", "laje", {**LA, "esp_slab": "10"})
+caso_3b("LA-C18", "laje", {**LA, "esp_slab": "quatro"})
+caso_3b("LA-C19", "laje", {**LA, "perda": "-5"})
+caso_3b("LA-C20", "laje", {**LA, "perda": "2.5"})
+caso_3b("LA-C21", "laje", {**LA, "perda": ""})
+caso_3b("LA-C22", "laje", {"area": "21528"})
+caso_3b("LA-C23", "laje", {"area": "21529"})
+caso_3b("LA-C24", "laje", {"area": "25000", "esp_slab": "10"})
+caso_3b("LA-C25", "laje", {"area": "1-21/2"})
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     ver = "--ver" in sys.argv
     filtro = args[0] if args else ""
     ok, diferentes, sem_esperado = 0, [], []
-    for nome, aba, campos, esc, cont in CASOS:
+    esp_3b = esperado_do_roteiro() if CASOS_3B else {}
+    nomes_3b = {c[0] for c in CASOS_3B}
+    for nome, aba, campos, esc, cont in CASOS + CASOS_3B:
         if not nome.startswith(filtro):
             continue
         resultado = rodar(aba, campos, esc, cont)
-        esperado = ESPERADO.get(nome)
+        # os 162 antigos: ESPERADO aqui dentro; os da 3b: o esperado do roteiro
+        esperado = esp_3b.get(nome) if nome in nomes_3b else ESPERADO.get(nome)
         if esperado is None:
             sem_esperado.append(nome)
             print(f"SEM ESPERADO  {nome}\n{resultado}\n")

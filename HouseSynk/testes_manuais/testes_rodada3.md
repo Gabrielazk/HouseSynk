@@ -1,6 +1,6 @@
 # Testes da Rodada 3 (EUA, português): Piso, Azulejo, Rejunte, Pintura e Baldrame (impermeabilização), e a rodada 3b (as abas da Parte A)
 
-**Rodada 3b começou em 15/11/2026** (decisão da Gabi de 11/11/2026: entra neste mesmo roteiro): as abas da Parte A dos EUA, uma por vez, cada uma com a sua seção, **na ordem das abas do app**. Montadas até agora: **Brocas** (40 casos, BR-), o **ferro do Baldrame** (12 casos, BA-F) as **Paredes** (38 casos, PA-) e a **Laje** (36 casos, LA-). Os 162 casos antigos não mudaram. **O teste passa pelas 13 abas dos EUA, na ordem do app** (pedido da Gabi, 15/11/2026): Brocas, Baldrame, Paredes, Laje, Telhado, Elétrica, Hidráulica, Reboco, Piso, Azulejo, Rejunte, Pintura e Esquadrias. Nas abas da rodada 3 (Piso, Azulejo, Rejunte, Pintura e os casos antigos do Baldrame), o Leo do terminal só roda e lista. Uma aba por vez: a Gabi diz quando ir para a próxima. As pendências da 3b ficam num arquivo só delas, o **pendencias_rodada3b.md** (na mesma pasta deste roteiro), e são corrigidas só depois de testar todas as abas; depois da correção, este roteiro, o rodada3.py e o test_rodada3.py são atualizados, o arquivo de pendências é apagado e a rodada 3 acaba. Os casos marcados com ⚠️ são das pendências: o esperado já é o certo, então dão DIFERENTE até a correção.
+**Rodada 3b começou em 15/11/2026** (decisão da Gabi de 11/11/2026: entra neste mesmo roteiro): as abas da Parte A dos EUA, uma por vez, cada uma com a sua seção, **na ordem das abas do app**. Montadas até agora: **Brocas** (40 casos, BR-), o **ferro do Baldrame** (12 casos, BA-F) as **Paredes** (38 casos, PA-) a **Laje** (36 casos, LA-) e o **Telhado** (43 casos, TE-). Os 162 casos antigos não mudaram. **O teste passa pelas 13 abas dos EUA, na ordem do app** (pedido da Gabi, 15/11/2026): Brocas, Baldrame, Paredes, Laje, Telhado, Elétrica, Hidráulica, Reboco, Piso, Azulejo, Rejunte, Pintura e Esquadrias. Nas abas da rodada 3 (Piso, Azulejo, Rejunte, Pintura e os casos antigos do Baldrame), o Leo do terminal só roda e lista. Uma aba por vez: a Gabi diz quando ir para a próxima. As pendências da 3b ficam num arquivo só delas, o **pendencias_rodada3b.md** (na mesma pasta deste roteiro), e são corrigidas só depois de testar todas as abas; depois da correção, este roteiro, o rodada3.py e o test_rodada3.py são atualizados, o arquivo de pendências é apagado e a rodada 3 acaba. Os casos marcados com ⚠️ são das pendências: o esperado já é o certo, então dão DIFERENTE até a correção.
 
 **O que o Leo do terminal faz em cada aba da 3b (pedido da Gabi, 15/11/2026):** coloca os casos da aba no rodada3.py, roda a aba (ex.: `rodada3.py BR-`) e **só lista** para a Gabi: (1) as **pendências**: os casos que deram DIFERENTE (dizendo se o caso já tem ⚠️ no roteiro ou se é novo, com o esperado e o que o app mostrou) e qualquer outra coisa estranha que ele vir; (2) o **visual que só a Gabi pode testar no app** (o que o script não confere: dicas dos campos, títulos, menus, "?", tema claro e escuro, quebra de linha, barra de rolagem, botões, Resumo e lista de compras), tirado da seção "Visual" da aba e do "O que olhar em toda aba". **Ele não corrige nada e não lê nem mexe no pendencias_rodada3b.md:** os ⚠️ do roteiro já dizem quais casos têm que dar DIFERENTE. As pendências novas a Gabi traz para o Leo do chat, e os dois anotam no arquivo de pendências.
 
@@ -2511,6 +2511,693 @@ Por favor, digite números válidos nos campos!
 
 ---
 
+# TELHADO (rodada 3b)
+
+**43 casos** (montado em 15/11/2026). Todos devem dar OK. Ao montar, só apareceu uma pendência de texto da tela (P15, ver o pendencias_rodada3b.md), que nenhum caso confere.
+
+**Como aparece** (confira se nenhuma dica fica cortada):
+
+- Dimensões (Obrigatório)
+- Área em planta, em sq ft (ex: 860)
+- Tipo de telha: já vem **Shingle asfáltico** (opções: Shingle asfáltico e Telha de concreto)
+- Inclinação (pitch) em x/12 (opcional, ex: 6): já vem **6/12**
+- Cumeeira em ft (opcional, ex: 30)
+- Perímetro em ft (opcional, ex: 140)
+- Manta (underlayment) (Opcional): Sim · Não (já vem **Sim**)
+- Base de OSB 4 x 8 ft (Opcional): Sim · Não (já vem **Não**)
+- Taxa de Perda % (opcional, ex: 5): já vem **10** (**P15:** nos EUA a dica tem que ser "ex: 10")
+
+## Teste A: todos os campos, opcionais trocados
+
+#### TE-A
+
+Digite: Área **1200**; Inclinação **8**; Cumeeira **40**; Perímetro **160**; Perda **15**; Base de OSB **Sim**.
+
+```
+Área em planta: 1,200.00 sq ft
+Inclinação: 8/12 (66.7%)
+Área do telhado: 1,442.22 sq ft
+Tipo de telha: Shingle asfáltico
+• Chapas de OSB 4 x 8 ft: 52 chapas ($ 1,040.00)
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Pingadeira (drip edge): 160.0 ft = 19 peças de 10 ft ($ 190.00)
+• Starter (primeira fiada): 160.0 ft = 2 fardos de 120 ft ($ 110.00)
+• Shingle asfáltico (com 15% de perda): 16.59 squares = 50 fardos ($ 2,000.00)
+• Cumeeira: 40.0 ft = 2 fardos de 33.3 ft ($ 120.00)
+• Pregos de telhado 1 1/4 in: 6 caixas de 5 lb ($ 108.00)
+
+Custo Estimado da Etapa: $ 3,808.00
+```
+
+Todos os opcionais trocados (shingle, que é o padrão; a telha de concreto está nos B). 8/12 = 66,7%: área do telhado = 1,200 × √(1 + 0,667²) = **1,442.22 sq ft** × 1,15 = **16.59 squares** × 3 = 49,8 → **50 fardos**. OSB: 1,442.22 × 1,15 ÷ 32 = 51,8 → **52 chapas**. Cumeeira: 40 ÷ 33.3 = 1,2 → **2 fardos**. Pregos: 16.59 × 320 = 5,309 ÷ 978 = 5,4 → **6 caixas**.
+
+## Teste B: só os obrigatórios (e variações)
+
+#### TE-B
+
+Digite: Área **860**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+Só a área: shingle, 6/12, manta Sim, OSB Não, sem cumeeira e sem perímetro (pingadeira, starter e cumeeira não aparecem). 860 × √(1 + 0,5²) = **961.51 sq ft** × 1,10 = **10.58 squares** × 3 = 31,7 → **32 fardos**. Manta: 1,057.7 ÷ 937.5 = 1,1 → **2 rolos**. Pregos: 10.58 × 320 = 3,385 ÷ 978 = 3,5 → **4 caixas**.
+
+#### TE-B2
+
+Digite: Área **860**; Cumeeira **30**; Perímetro **140**; Base de OSB **Sim**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Chapas de OSB 4 x 8 ft: 34 chapas ($ 680.00)
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Pingadeira (drip edge): 140.0 ft = 16 peças de 10 ft ($ 160.00)
+• Starter (primeira fiada): 140.0 ft = 2 fardos de 120 ft ($ 110.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Cumeeira: 30.0 ft = 1 fardo de 33.3 ft ($ 60.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 2,602.00
+```
+
+É o exemplo da Parte A (11/11/2026), conferido por você no app: **$ 2,602.00**.
+
+#### TE-B3
+
+Digite: Área **860**; Inclinação **6/12**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+"6/12" dá o mesmo que "6" (TE-B): o "/12" é tirado antes de ler o número.
+
+#### TE-B4
+
+Digite: Área **860**; Inclinação **3**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 3/12 (25%)
+Área do telhado: 886.47 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Shingle asfáltico (com 10% de perda): 9.75 squares = 30 fardos ($ 1,200.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,632.00
+```
+
+Abaixo de 4/12, a manta vai em **2 camadas** (IRC): 3 rolos.
+
+#### TE-B5
+
+Digite: Área **860**; Manta **Não**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,352.00
+```
+
+#### TE-B6
+
+Digite: Área **860**; Tipo de telha **Telha de concreto**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Telha de concreto
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Telha de concreto (com 10% de perda): 10.58 squares = 921 un ($ 4,144.50)
+
+Custo Estimado da Etapa: $ 4,384.50
+```
+
+Telha de concreto: **87 telhas por square** (10.58 × 87 = 920,5 → 921). Sem pregos e sem starter.
+
+#### TE-B7
+
+Digite: Área **860**; Inclinação **3**; Cumeeira **30**; Tipo de telha **Telha de concreto**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 3/12 (25%)
+Área do telhado: 886.47 sq ft
+Tipo de telha: Telha de concreto
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Telha de concreto (com 10% de perda): 9.75 squares = 849 un ($ 3,820.50)
+• Cumeeira: 30.0 ft = 33 peças ($ 264.00)
+
+Custo Estimado da Etapa: $ 4,444.50
+```
+
+É o outro exemplo da Parte A: **$ 4,444.50**. Cumeeira de concreto: 30 ft × 1 peça por ft × 1,10 = **33 peças**.
+
+#### TE-B8
+
+Digite: Área **860**; Cumeeira **30**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Cumeeira: 30.0 ft = 1 fardo de 33.3 ft ($ 60.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,652.00
+```
+
+#### TE-B9
+
+Digite: Área **860**; Perímetro **140**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Pingadeira (drip edge): 140.0 ft = 16 peças de 10 ft ($ 160.00)
+• Starter (primeira fiada): 140.0 ft = 2 fardos de 120 ft ($ 110.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,862.00
+```
+
+#### TE-B10
+
+Digite: Área **860**; Perímetro **140**; Tipo de telha **Telha de concreto**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Telha de concreto
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Pingadeira (drip edge): 140.0 ft = 16 peças de 10 ft ($ 160.00)
+• Telha de concreto (com 10% de perda): 10.58 squares = 921 un ($ 4,144.50)
+
+Custo Estimado da Etapa: $ 4,544.50
+```
+
+Na telha de concreto, o perímetro dá só a **pingadeira** (o starter é só do shingle).
+
+#### TE-B11
+
+Digite: Área **50**; Cumeeira **10**; Perímetro **30**.
+
+```
+Área em planta: 50.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 55.90 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 1 rolo de 10 squares ($ 120.00)
+• Pingadeira (drip edge): 30.0 ft = 4 peças de 10 ft ($ 40.00)
+• Starter (primeira fiada): 30.0 ft = 1 fardo de 120 ft ($ 55.00)
+• Shingle asfáltico (com 10% de perda): 0.61 squares = 2 fardos ($ 80.00)
+• Cumeeira: 10.0 ft = 1 fardo de 33.3 ft ($ 60.00)
+• Pregos de telhado 1 1/4 in: 1 caixa de 5 lb ($ 18.00)
+
+Custo Estimado da Etapa: $ 373.00
+```
+
+Confira o **singular**: "1 rolo", "1 fardo" e "1 caixa".
+
+#### TE-B12
+
+Digite: Área **860**; Inclinação **4**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 4/12 (33.3%)
+Área do telhado: 906.52 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 9.97 squares = 30 fardos ($ 1,200.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,512.00
+```
+
+4/12 já **não** é "abaixo de 4/12": manta em 1 camada.
+
+#### TE-B13
+
+Digite: Área **860**; Inclinação **12**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 12/12 (100%)
+Área do telhado: 1,216.22 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 13.38 squares = 41 fardos ($ 1,640.00)
+• Pregos de telhado 1 1/4 in: 5 caixas de 5 lb ($ 90.00)
+
+Custo Estimado da Etapa: $ 1,970.00
+```
+
+12/12 é o próprio limite: sem aviso.
+
+## Teste C: erros de digitação e limites
+
+#### TE-C1
+
+Digite: Área **(vazio)**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### TE-C2
+
+Digite: Área **oitocentos**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### TE-C3
+
+Digite: Área **0**.
+
+```
+Erro: A área deve ser maior que zero.
+```
+
+#### TE-C4
+
+Digite: Área **-860**.
+
+```
+Erro: A área deve ser maior que zero.
+```
+
+#### TE-C5
+
+Digite: Área **860,5**.
+
+```
+Área em planta: 860.50 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 962.07 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+#### TE-C6
+
+Digite: Área **860.5**.
+
+```
+Área em planta: 860.50 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 962.07 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+#### TE-C7
+
+Digite: Área **860 1/2**.
+
+```
+Área em planta: 860.50 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 962.07 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+#### TE-C8
+
+Digite: Área **1,500**.
+
+```
+Área em planta: 1,500.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 1,677.05 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 18.45 squares = 56 fardos ($ 2,240.00)
+• Pregos de telhado 1 1/4 in: 7 caixas de 5 lb ($ 126.00)
+
+Custo Estimado da Etapa: $ 2,606.00
+```
+
+#### TE-C9
+
+Digite: Área **860**; Inclinação **(vazio)**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+Inclinação apagada = **6/12**, igual ao TE-B.
+
+#### TE-C10-cancelar
+
+Digite: Área **860**; Inclinação **1 1/2**. Na janela, toque em **Cancelar**.
+
+```
+[JANELA] Inclinação de 1.5/12: o mínimo para shingle asfáltico é 2/12 (código IRC).
+[Cancelar] não calculou
+```
+
+#### TE-C10-continuar
+
+Digite: Área **860**; Inclinação **1 1/2**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Inclinação de 1.5/12: o mínimo para shingle asfáltico é 2/12 (código IRC).
+Área em planta: 860.00 sq ft
+Inclinação: 1.5/12 (12.5%)
+Área do telhado: 866.69 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Shingle asfáltico (com 10% de perda): 9.53 squares = 29 fardos ($ 1,160.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+#### TE-C11
+
+Digite: Área **860**; Inclinação **2**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 2/12 (16.7%)
+Área do telhado: 871.86 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Shingle asfáltico (com 10% de perda): 9.59 squares = 29 fardos ($ 1,160.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+2/12 é o próprio mínimo do shingle: sem aviso.
+
+#### TE-C12
+
+Digite: Área **860**; Inclinação **2**; Tipo de telha **Telha de concreto**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Inclinação de 2/12: o mínimo para telha de concreto é 2.5/12 (código IRC).
+Área em planta: 860.00 sq ft
+Inclinação: 2/12 (16.7%)
+Área do telhado: 871.86 sq ft
+Tipo de telha: Telha de concreto
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Telha de concreto (com 10% de perda): 9.59 squares = 835 un ($ 3,757.50)
+
+Custo Estimado da Etapa: $ 4,117.50
+```
+
+#### TE-C13
+
+Digite: Área **860**; Inclinação **2 1/2**; Tipo de telha **Telha de concreto**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 2.5/12 (20.8%)
+Área do telhado: 878.46 sq ft
+Tipo de telha: Telha de concreto
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Telha de concreto (com 10% de perda): 9.66 squares = 841 un ($ 3,784.50)
+
+Custo Estimado da Etapa: $ 4,144.50
+```
+
+2 1/2/12 é o próprio mínimo da telha de concreto: sem aviso.
+
+#### TE-C14
+
+Digite: Área **860**; Inclinação **14**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Inclinação de 14/12: o limite é 12/12.
+Área em planta: 860.00 sq ft
+Inclinação: 14/12 (116.7%)
+Área do telhado: 1,321.47 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 14.54 squares = 44 fardos ($ 1,760.00)
+• Pregos de telhado 1 1/4 in: 5 caixas de 5 lb ($ 90.00)
+
+Custo Estimado da Etapa: $ 2,090.00
+```
+
+#### TE-C15
+
+Digite: Área **860**; Inclinação **12 1/2**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Inclinação de 12.5/12: o limite é 12/12.
+Área em planta: 860.00 sq ft
+Inclinação: 12.5/12 (104.2%)
+Área do telhado: 1,241.82 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 13.66 squares = 41 fardos ($ 1,640.00)
+• Pregos de telhado 1 1/4 in: 5 caixas de 5 lb ($ 90.00)
+
+Custo Estimado da Etapa: $ 1,970.00
+```
+
+#### TE-C16
+
+Digite: Área **860**; Inclinação **6.5**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6.5/12 (54.2%)
+Área do telhado: 978.06 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.76 squares = 33 fardos ($ 1,320.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,632.00
+```
+
+#### TE-C17
+
+Digite: Área **860**; Inclinação **0**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Inclinação de 0/12: o mínimo para shingle asfáltico é 2/12 (código IRC).
+Área em planta: 860.00 sq ft
+Inclinação: 0/12 (0%)
+Área do telhado: 860.00 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment), 2 camadas (abaixo de 4/12): 3 rolos de 10 squares ($ 360.00)
+• Shingle asfáltico (com 10% de perda): 9.46 squares = 29 fardos ($ 1,160.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+Inclinação 0 (telhado plano) não é erro: dá o aviso do mínimo e, com Continuar, calcula.
+
+#### TE-C18
+
+Digite: Área **860**; Inclinação **-6**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### TE-C19
+
+Digite: Área **860**; Inclinação **seis**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### TE-C20
+
+Digite: Área **860**; Cumeeira **-30**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### TE-C21
+
+Digite: Área **860**; Perímetro **-140**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### TE-C22
+
+Digite: Área **860**; Perímetro **abc**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### TE-C23
+
+Digite: Área **860**; Perda **-5**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### TE-C24
+
+Digite: Área **860**; Perda **(vazio)**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 10% de perda): 10.58 squares = 32 fardos ($ 1,280.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,592.00
+```
+
+Perda apagada = **10%**, igual ao TE-B.
+
+#### TE-C25
+
+Digite: Área **860**; Perda **2.5**.
+
+```
+Área em planta: 860.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 961.51 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 2 rolos de 10 squares ($ 240.00)
+• Shingle asfáltico (com 2.5% de perda): 9.86 squares = 30 fardos ($ 1,200.00)
+• Pregos de telhado 1 1/4 in: 4 caixas de 5 lb ($ 72.00)
+
+Custo Estimado da Etapa: $ 1,512.00
+```
+
+#### TE-C26
+
+Digite: Área **21528**.
+
+```
+Área em planta: 21,528.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 24,069.04 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 29 rolos de 10 squares ($ 3,480.00)
+• Shingle asfáltico (com 10% de perda): 264.76 squares = 795 fardos ($ 31,800.00)
+• Pregos de telhado 1 1/4 in: 87 caixas de 5 lb ($ 1,566.00)
+
+Custo Estimado da Etapa: $ 36,846.00
+```
+
+21,528 sq ft é o próprio limite: sem aviso.
+
+#### TE-C27
+
+Digite: Área **25000**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Área de 25,000 sq ft: o limite é 21,528 sq ft.
+Área em planta: 25,000.00 sq ft
+Inclinação: 6/12 (50%)
+Área do telhado: 27,950.85 sq ft
+Tipo de telha: Shingle asfáltico
+• Manta (underlayment): 33 rolos de 10 squares ($ 3,960.00)
+• Shingle asfáltico (com 10% de perda): 307.46 squares = 923 fardos ($ 36,920.00)
+• Pregos de telhado 1 1/4 in: 101 caixas de 5 lb ($ 1,818.00)
+
+Custo Estimado da Etapa: $ 42,698.00
+```
+
+#### TE-C28
+
+Digite: Área **1-21/2**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+## Visual (Telhado)
+
+- O menu "Tipo de telha" só tem **Shingle asfáltico** (já vem escolhido) e **Telha de concreto** (sem cerâmica e sem fibrocimento).
+- Inclinação vem com **6/12**, perda com **10**; manta **Sim**, OSB **Não**. O campo **Perímetro** aparece e o **Madeiramento não aparece**.
+- A dica do perímetro ("Perímetro em ft (opcional, ex: 140)") não fica cortada.
+- Ao trocar para Telha de concreto, a inclinação continua 6/12.
+- No resultado, nenhum m², m, %, "telhas" do Brasil (cerâmica), ripa, caibro, terça ou vírgula decimal; a inclinação aparece "6/12 (50%)".
+- "?" do Telhado: explica o pitch, o shingle sobre OSB e manta, o square (100 sq ft), os mínimos do IRC (2/12 e 2 1/2/12), a manta em 2 camadas abaixo de 4/12, a cumeeira, o perímetro (beirais e oitões) com a pingadeira e o starter, os pregos e a perda de 10% (15% no telhado de quatro águas), e termina com a legenda das siglas.
+- **Lista de compras** (Finalizar com o TE-B2), no grupo MATERIAL BÁSICO:
+  - Shingle asfáltico: 32 fardos
+  - Cumeeira: 1 fardo de 33.3 ft
+  - Manta (underlayment): 2 rolos de 10 squares
+  - Chapas de OSB 4 x 8 ft: 34 chapas
+  - Pingadeira (drip edge): 16 peças de 10 ft
+  - Starter (primeira fiada): 2 fardos de 120 ft
+  - Pregos de telhado 1 1/4 in: 4 caixas de 5 lb
+- **Lista de compras da telha de concreto** (Finalizar com o TE-B7): Telha de concreto: 849 un · Cumeeira: 33 peças · Manta (underlayment): 3 rolos de 10 squares.
+- No Orçamento do Resumo: Telhado **$ 2,602.00** (TE-B2) ou **$ 4,444.50** (TE-B7).
+- **PDF** (botão Gerar PDF do Resumo, com o TE-B2, opção "Os dois juntos"): o Telhado com as mesmas linhas da aba e a lista de compras igual à de cima.
+
+---
+
 # PISO
 
 **43 casos.** Todos OK (os 31 das pendências P1 e P7 foram corrigidos em 06/11/2026).
@@ -4325,6 +5012,7 @@ Custo Estimado da Etapa: $ 10,748.96
   - brocas (3b): perda "10", esp_estribo **"8"** (in); a bitola #4 vem do reiniciar
   - paredes (3b): junta **"3/8"** (in), quebra "5"; o bloco CMU 8x8x16 vem do reiniciar
   - laje (3b): esp_slab **"4"** (in), perda "5"; tela Não, lona e base Sim vêm do reiniciar
+  - telhado (3b): incl **"6"** (pitch), perda **"10"**; o shingle, a manta Sim e o OSB Não vêm do reiniciar
   - baldrame: perda "5", esp_estribo **"8"** (in)
   - piso e azulejo: nada (perda vazia = automática; A118.1 no Piso e A118.4 no Azulejo vêm do reiniciar, já com o país EUA)
   - rejunte: esp **"5/16"**, perda "10"
@@ -4653,4 +5341,50 @@ caso("LA-C22", "laje", {"area": "21528"})
 caso("LA-C23", "laje", {"area": "21529"})
 caso("LA-C24", "laje", {"area": "25000", "esp_slab": "10"})
 caso("LA-C25", "laje", {"area": "1-21/2"})
+
+# TELHADO (rodada 3b; "telha_tipo" é a telha escolhida no menu)
+TE = {"area": "860"}
+caso("TE-A", "telhado", {"area": "1200", "incl": "8", "cumeeira": "40", "perimetro": "160", "perda": "15"}, {"osb": True})
+caso("TE-B", "telhado", TE)
+caso("TE-B2", "telhado", {**TE, "cumeeira": "30", "perimetro": "140"}, {"osb": True})
+caso("TE-B3", "telhado", {**TE, "incl": "6/12"})
+caso("TE-B4", "telhado", {**TE, "incl": "3"})
+caso("TE-B5", "telhado", TE, {"manta": False})
+caso("TE-B6", "telhado", TE, {"telha_tipo": "concreto"})
+caso("TE-B7", "telhado", {**TE, "incl": "3", "cumeeira": "30"}, {"telha_tipo": "concreto"})
+caso("TE-B8", "telhado", {**TE, "cumeeira": "30"})
+caso("TE-B9", "telhado", {**TE, "perimetro": "140"})
+caso("TE-B10", "telhado", {**TE, "perimetro": "140"}, {"telha_tipo": "concreto"})
+caso("TE-B11", "telhado", {"area": "50", "cumeeira": "10", "perimetro": "30"})
+caso("TE-B12", "telhado", {**TE, "incl": "4"})
+caso("TE-B13", "telhado", {**TE, "incl": "12"})
+caso("TE-C1", "telhado", {"area": ""})
+caso("TE-C2", "telhado", {"area": "oitocentos"})
+caso("TE-C3", "telhado", {"area": "0"})
+caso("TE-C4", "telhado", {"area": "-860"})
+caso("TE-C5", "telhado", {"area": "860,5"})
+caso("TE-C6", "telhado", {"area": "860.5"})
+caso("TE-C7", "telhado", {"area": "860 1/2"})
+caso("TE-C8", "telhado", {"area": "1,500"})
+caso("TE-C9", "telhado", {**TE, "incl": ""})
+caso("TE-C10-cancelar", "telhado", {**TE, "incl": "1 1/2"}, continuar=False)
+caso("TE-C10-continuar", "telhado", {**TE, "incl": "1 1/2"})
+caso("TE-C11", "telhado", {**TE, "incl": "2"})
+caso("TE-C12", "telhado", {**TE, "incl": "2"}, {"telha_tipo": "concreto"})
+caso("TE-C13", "telhado", {**TE, "incl": "2 1/2"}, {"telha_tipo": "concreto"})
+caso("TE-C14", "telhado", {**TE, "incl": "14"})
+caso("TE-C15", "telhado", {**TE, "incl": "12 1/2"})
+caso("TE-C16", "telhado", {**TE, "incl": "6.5"})
+caso("TE-C17", "telhado", {**TE, "incl": "0"})
+caso("TE-C18", "telhado", {**TE, "incl": "-6"})
+caso("TE-C19", "telhado", {**TE, "incl": "seis"})
+caso("TE-C20", "telhado", {**TE, "cumeeira": "-30"})
+caso("TE-C21", "telhado", {**TE, "perimetro": "-140"})
+caso("TE-C22", "telhado", {**TE, "perimetro": "abc"})
+caso("TE-C23", "telhado", {**TE, "perda": "-5"})
+caso("TE-C24", "telhado", {**TE, "perda": ""})
+caso("TE-C25", "telhado", {**TE, "perda": "2.5"})
+caso("TE-C26", "telhado", {"area": "21528"})
+caso("TE-C27", "telhado", {"area": "25000"})
+caso("TE-C28", "telhado", {"area": "1-21/2"})
 ```

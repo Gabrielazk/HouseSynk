@@ -93,7 +93,24 @@ Os números citados (ex.: "BR-B3") são casos do testes_rodada3.md: é só digit
 
 ## Telhado
 
-- [ ] (o Leo do chat acrescenta quando montar a aba no roteiro)
+- [ ] O menu "Tipo de telha" só tem **Shingle asfáltico** (já vem escolhido) e **Telha de concreto** (sem cerâmica e sem fibrocimento).
+- [ ] **P15:** a dica da perda diz "Taxa de Perda % (opcional, ex: 10)" (hoje diz "ex: 5").
+- [ ] Inclinação vem com **6/12**, perda com **10**; manta **Sim**, OSB **Não**. O campo **Perímetro** aparece e o **Madeiramento não aparece**.
+- [ ] A dica do perímetro ("Perímetro em ft (opcional, ex: 140)") não fica cortada.
+- [ ] Ao trocar para Telha de concreto, a inclinação continua 6/12.
+- [ ] No resultado, nenhum m², m, %, "telhas" do Brasil (cerâmica), ripa, caibro, terça ou vírgula decimal; a inclinação aparece "6/12 (50%)".
+- [ ] "?" do Telhado: explica o pitch, o shingle sobre OSB e manta, o square (100 sq ft), os mínimos do IRC (2/12 e 2 1/2/12), a manta em 2 camadas abaixo de 4/12, a cumeeira, o perímetro (beirais e oitões) com a pingadeira e o starter, os pregos e a perda de 10% (15% no telhado de quatro águas), e termina com a legenda das siglas.
+- [ ] **Lista de compras** (Finalizar com o TE-B2), no grupo MATERIAL BÁSICO:
+  - Shingle asfáltico: 32 fardos
+  - Cumeeira: 1 fardo de 33.3 ft
+  - Manta (underlayment): 2 rolos de 10 squares
+  - Chapas de OSB 4 x 8 ft: 34 chapas
+  - Pingadeira (drip edge): 16 peças de 10 ft
+  - Starter (primeira fiada): 2 fardos de 120 ft
+  - Pregos de telhado 1 1/4 in: 4 caixas de 5 lb
+- [ ] **Lista de compras da telha de concreto** (Finalizar com o TE-B7): Telha de concreto: 849 un · Cumeeira: 33 peças · Manta (underlayment): 3 rolos de 10 squares.
+- [ ] No Orçamento do Resumo: Telhado **$ 2,602.00** (TE-B2) ou **$ 4,444.50** (TE-B7).
+- [ ] **PDF** (botão Gerar PDF do Resumo, com o TE-B2, opção "Os dois juntos"): o Telhado com as mesmas linhas da aba e a lista de compras igual à de cima.
 
 ## Elétrica
 

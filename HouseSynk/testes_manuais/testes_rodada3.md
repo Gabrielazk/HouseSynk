@@ -1,6 +1,6 @@
 # Testes da Rodada 3 (EUA, português): Piso, Azulejo, Rejunte, Pintura e Baldrame (impermeabilização), e a rodada 3b (as abas da Parte A)
 
-**Rodada 3b começou em 15/11/2026** (decisão da Gabi de 11/11/2026: entra neste mesmo roteiro): as abas da Parte A dos EUA, uma por vez, cada uma com a sua seção, **na ordem das abas do app**. Montadas até agora: **Brocas** (40 casos, BR-), o **ferro do Baldrame** (12 casos, BA-F) as **Paredes** (38 casos, PA-) a **Laje** (36 casos, LA-) e o **Telhado** (43 casos, TE-). Os 162 casos antigos não mudaram. **O teste passa pelas 13 abas dos EUA, na ordem do app** (pedido da Gabi, 15/11/2026): Brocas, Baldrame, Paredes, Laje, Telhado, Elétrica, Hidráulica, Reboco, Piso, Azulejo, Rejunte, Pintura e Esquadrias. Nas abas da rodada 3 (Piso, Azulejo, Rejunte, Pintura e os casos antigos do Baldrame), o Leo do terminal só roda e lista. Uma aba por vez: a Gabi diz quando ir para a próxima. As pendências da 3b ficam num arquivo só delas, o **pendencias_rodada3b.md** (na mesma pasta deste roteiro), e são corrigidas só depois de testar todas as abas; depois da correção, este roteiro, o rodada3.py e o test_rodada3.py são atualizados, o arquivo de pendências é apagado e a rodada 3 acaba. Os casos marcados com ⚠️ são das pendências: o esperado já é o certo, então dão DIFERENTE até a correção.
+**Rodada 3b começou em 15/11/2026** (decisão da Gabi de 11/11/2026: entra neste mesmo roteiro): as abas da Parte A dos EUA, uma por vez, cada uma com a sua seção, **na ordem das abas do app**. Montadas até agora: **Brocas** (40 casos, BR-), o **ferro do Baldrame** (12 casos, BA-F) as **Paredes** (38 casos, PA-) a **Laje** (36 casos, LA-) o **Telhado** (43 casos, TE-) a **Elétrica** (34 casos, EL-) a **Hidráulica** (33 casos, HI-) o **Reboco** (29 casos, RE-) e a **Esquadrias** (31 casos, ES-). **Com isso, todas as abas da Parte A estão no roteiro.** Os 162 casos antigos não mudaram. **O teste passa pelas 13 abas dos EUA, na ordem do app** (pedido da Gabi, 15/11/2026): Brocas, Baldrame, Paredes, Laje, Telhado, Elétrica, Hidráulica, Reboco, Piso, Azulejo, Rejunte, Pintura e Esquadrias. Nas abas da rodada 3 (Piso, Azulejo, Rejunte, Pintura e os casos antigos do Baldrame), o Leo do terminal só roda e lista. Uma aba por vez: a Gabi diz quando ir para a próxima. As pendências da 3b ficam num arquivo só delas, o **pendencias_rodada3b.md** (na mesma pasta deste roteiro), e são corrigidas só depois de testar todas as abas; depois da correção, este roteiro, o rodada3.py e o test_rodada3.py são atualizados, o arquivo de pendências é apagado e a rodada 3 acaba. Os casos marcados com ⚠️ são das pendências: o esperado já é o certo, então dão DIFERENTE até a correção.
 
 **O que o Leo do terminal faz em cada aba da 3b (pedido da Gabi, 15/11/2026):** coloca os casos da aba no rodada3.py, roda a aba (ex.: `rodada3.py BR-`) e **só lista** para a Gabi: (1) as **pendências**: os casos que deram DIFERENTE (dizendo se o caso já tem ⚠️ no roteiro ou se é novo, com o esperado e o que o app mostrou) e qualquer outra coisa estranha que ele vir; (2) o **visual que só a Gabi pode testar no app** (o que o script não confere: dicas dos campos, títulos, menus, "?", tema claro e escuro, quebra de linha, barra de rolagem, botões, Resumo e lista de compras), tirado da seção "Visual" da aba e do "O que olhar em toda aba". **Ele não corrige nada e não lê nem mexe no pendencias_rodada3b.md:** os ⚠️ do roteiro já dizem quais casos têm que dar DIFERENTE. As pendências novas a Gabi traz para o Leo do chat, e os dois anotam no arquivo de pendências.
 
@@ -3198,6 +3198,1562 @@ Por favor, digite números válidos nos campos!
 
 ---
 
+# ELÉTRICA (rodada 3b)
+
+**34 casos** (montado em 18/11/2026). Nenhuma pendência achada ao montar: todos devem dar OK.
+
+**Como aparece** (confira se nenhuma dica fica cortada):
+
+- Quantidades
+- Tomadas comuns (ex: 20)
+- Tomadas de 20 A (ex: 8)
+- Quantidade de interruptores (ex: 10)
+- Quantidade de pontos de luz (ex: 12)
+- Metragens do projeto (Opcional)
+- Cabo 14/2 em ft (opcional)
+- Cabo 12/2 em ft (opcional)
+- Taxa de Perda % (opcional, ex: 10): já vem **10**
+
+## Teste A: todos os campos, opcionais trocados
+
+#### EL-A
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **600**; Cabo 12/2 **120**; Perda **5**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 5% de perda): 630.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (do projeto, com 5% de perda): 126.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+Todos os campos, com os dois cabos do projeto: 600 ft × 1,05 = **630.0 ft** (3 rolos de 250 ft) e 120 ft × 1,05 = **126.0 ft** (1 rolo). As linhas dizem "(do projeto ...)".
+
+## Teste B: só os obrigatórios (e variações)
+
+#### EL-B
+
+Digite: Tomadas comuns **20**.
+
+```
+Tomadas comuns: 20
+• Cabo Romex 14/2 (estimado, com 10% de perda): 330.0 ft = 2 rolos de 250 ft ($ 190.00)
+• Caixas de tomada e interruptor (1 gang): 20 un ($ 50.00)
+• Tomadas comuns: 20 un ($ 300.00)
+
+Custo Estimado da Etapa: $ 540.00
+```
+
+Só tomadas comuns: 20 × 15 ft × 1,10 = **330.0 ft** de 14/2 → 2 rolos; 20 caixas de 1 gang. Os outros campos (zerados) não aparecem no topo.
+
+#### EL-B2
+
+Digite: Tomadas de 20 A **8**.
+
+```
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 8 un ($ 20.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+
+Custo Estimado da Etapa: $ 360.00
+```
+
+Só tomadas de 20 A: 8 × 15 ft × 1,10 = **132.0 ft** de **12/2**, e elas viram **tomadas GFCI de 20 A**.
+
+#### EL-B3
+
+Digite: Interruptores **10**.
+
+```
+Interruptores: 10
+• Cabo Romex 14/2 (estimado, com 10% de perda): 165.0 ft = 1 rolo de 250 ft ($ 95.00)
+• Caixas de tomada e interruptor (1 gang): 10 un ($ 25.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 240.00
+```
+
+#### EL-B4
+
+Digite: Pontos de luz **12**.
+
+```
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 198.0 ft = 1 rolo de 250 ft ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+
+Custo Estimado da Etapa: $ 155.00
+```
+
+Ponto de luz usa a **caixa redonda de 4 in**, não a de 1 gang.
+
+#### EL-B5
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 693.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+É o exemplo da Parte A (11/11/2026), conferido por você no app: (20 + 10 + 12) × 15 ft × 1,10 = **693.0 ft** de 14/2; **$ 1,200.00**.
+
+#### EL-B6
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **600**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 10% de perda): 660.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+Só o 14/2 do projeto (600 ft × 1,10 = 660.0 ft); o 12/2 continua estimado.
+
+#### EL-B7
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 12/2 **120**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 693.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (do projeto, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-B8
+
+Digite: Tomadas comuns **1**.
+
+```
+Tomadas comuns: 1
+• Cabo Romex 14/2 (estimado, com 10% de perda): 16.5 ft = 1 rolo de 250 ft ($ 95.00)
+• Caixas de tomada e interruptor (1 gang): 1 un ($ 2.50)
+• Tomadas comuns: 1 un ($ 15.00)
+
+Custo Estimado da Etapa: $ 112.50
+```
+
+Confira o **singular**: "1 rolo" e "Tomadas comuns: 1".
+
+#### EL-B9
+
+Digite: Tomadas comuns **250**; Tomadas de 20 A **60**; Interruptores **120**; Pontos de luz **180**.
+
+```
+Tomadas comuns: 250
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 60
+Interruptores: 120
+Pontos de luz: 180
+• Cabo Romex 14/2 (estimado, com 10% de perda): 9,075.0 ft = 37 rolos de 250 ft ($ 3,515.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 990.0 ft = 4 rolos de 250 ft ($ 560.00)
+• Caixas de tomada e interruptor (1 gang): 430 un ($ 1,075.00)
+• Caixas redondas de 4 in (luz): 180 un ($ 900.00)
+• Tomadas comuns: 250 un ($ 3,750.00)
+• Tomadas GFCI de 20 A: 60 un ($ 1,500.00)
+• Interruptores: 120 un ($ 1,440.00)
+
+Custo Estimado da Etapa: $ 12,740.00
+```
+
+## Teste C: erros de digitação e limites
+
+#### EL-C1
+
+Digite: todos os campos **vazios**.
+
+```
+Erro: Informe pelo menos uma tomada, interruptor ou ponto de luz.
+```
+
+Nos EUA a mensagem não fala de chuveiro.
+
+#### EL-C2
+
+Digite: Tomadas comuns **0**; Tomadas de 20 A **0**; Interruptores **0**; Pontos de luz **0**.
+
+```
+Erro: Informe pelo menos uma tomada, interruptor ou ponto de luz.
+```
+
+#### EL-C3
+
+Digite: Tomadas comuns **-5**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Erro: As quantidades não podem ser negativas.
+```
+
+#### EL-C4
+
+Digite: Tomadas comuns **dez**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### EL-C5
+
+Digite: Tomadas comuns **2.5**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### EL-C6-cancelar
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **350**; Interruptores **10**; Pontos de luz **12**. Na janela, toque em **Cancelar**.
+
+```
+[JANELA] 350 tomadas de 20 A: o limite é 300.
+[Cancelar] não calculou
+```
+
+#### EL-C6-continuar
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **350**; Interruptores **10**; Pontos de luz **12**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 350 tomadas de 20 A: o limite é 300.
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 350
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 693.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 5,775.0 ft = 24 rolos de 250 ft ($ 3,360.00)
+• Caixas de tomada e interruptor (1 gang): 380 un ($ 950.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 350 un ($ 8,750.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 13,825.00
+```
+
+#### EL-C7
+
+Digite: Tomadas comuns **300**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Tomadas comuns: 300
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 5,313.0 ft = 22 rolos de 250 ft ($ 2,090.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 318 un ($ 795.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 300 un ($ 4,500.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 7,905.00
+```
+
+#### EL-C8
+
+Digite: Tomadas comuns **301**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 301 tomadas: o limite é 300.
+Tomadas comuns: 301
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 5,329.5 ft = 22 rolos de 250 ft ($ 2,090.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 319 un ($ 797.50)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 301 un ($ 4,515.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 7,922.50
+```
+
+#### EL-C9
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **350**; Pontos de luz **12**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 350 interruptores: o limite é 300.
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 350
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 6,303.0 ft = 26 rolos de 250 ft ($ 2,470.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 378 un ($ 945.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 350 un ($ 4,200.00)
+
+Custo Estimado da Etapa: $ 8,315.00
+```
+
+#### EL-C10
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **350**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 350 pontos de luz: o limite é 300.
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 350
+• Cabo Romex 14/2 (estimado, com 10% de perda): 6,270.0 ft = 26 rolos de 250 ft ($ 2,470.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 350 un ($ 1,750.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 5,075.00
+```
+
+#### EL-C11
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **-100**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### EL-C12
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **abc**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### EL-C13
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **600,5**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 10% de perda): 660.6 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-C14
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **600.5**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 10% de perda): 660.6 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-C15
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **600 1/2**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 10% de perda): 660.6 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-C16
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **1,000**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (do projeto, com 10% de perda): 1,100.0 ft = 5 rolos de 250 ft ($ 475.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,390.00
+```
+
+#### EL-C17
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Cabo 14/2 **0**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 915.00
+```
+
+Cabo 14/2 do projeto = **0**: o projeto diz que não tem esse cabo, então a linha some (o 12/2 continua estimado).
+
+#### EL-C18
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Perda **-5**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### EL-C19
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Perda **2.5**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 2.5% de perda): 645.8 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 2.5% de perda): 123.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-C20
+
+Digite: Tomadas comuns **20**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**; Perda **(vazio)**.
+
+```
+Tomadas comuns: 20
+Tomadas de 20 A (cozinha, banheiro, lavanderia e garagem): 8
+Interruptores: 10
+Pontos de luz: 12
+• Cabo Romex 14/2 (estimado, com 10% de perda): 693.0 ft = 3 rolos de 250 ft ($ 285.00)
+• Cabo Romex 12/2 (estimado, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 38 un ($ 95.00)
+• Caixas redondas de 4 in (luz): 12 un ($ 60.00)
+• Tomadas comuns: 20 un ($ 300.00)
+• Tomadas GFCI de 20 A: 8 un ($ 200.00)
+• Interruptores: 10 un ($ 120.00)
+
+Custo Estimado da Etapa: $ 1,200.00
+```
+
+#### EL-C21
+
+Digite: Tomadas comuns **1,000**; Tomadas de 20 A **8**; Interruptores **10**; Pontos de luz **12**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+Decisão da Gabi (15/11/2026): nos campos de quantidade, o "1,000" não é aceito (igual ao BR-C29 das Brocas).
+
+#### EL-C22
+
+Digite: Tomadas comuns **20**; Cabo 12/2 **120**.
+
+```
+Tomadas comuns: 20
+• Cabo Romex 14/2 (estimado, com 10% de perda): 330.0 ft = 2 rolos de 250 ft ($ 190.00)
+• Cabo Romex 12/2 (do projeto, com 10% de perda): 132.0 ft = 1 rolo de 250 ft ($ 140.00)
+• Caixas de tomada e interruptor (1 gang): 20 un ($ 50.00)
+• Tomadas comuns: 20 un ($ 300.00)
+
+Custo Estimado da Etapa: $ 680.00
+```
+
+Cabo 12/2 do projeto sem tomada de 20 A: o app usa o que foi digitado.
+
+#### EL-C23
+
+Digite: Cabo 14/2 **600**.
+
+```
+Erro: Informe pelo menos uma tomada, interruptor ou ponto de luz.
+```
+
+Só o cabo, sem nenhum ponto: é erro.
+
+## Visual (Elétrica)
+
+- Nos EUA **não aparecem**: os dois campos de chuveiro, o conduíte e os fios em mm². Aparecem os dois campos de tomada e os dois cabos (14/2 e 12/2).
+- Perda vem com **10**.
+- No resultado, nenhum m, mm², "conduíte", "fio", "caixinha 4x2", "octogonal", "chuveiro" ou vírgula decimal.
+- "?" da Elétrica: explica o Romex sem conduíte, o 14/2 e o 12/2, onde o código exige as tomadas de 20 A, os 15 ft por ponto, os rolos de 250 ft e por que as tomadas de 20 A são GFCI, e termina com a legenda das siglas.
+- **Lista de compras** (Finalizar com o EL-B5), no grupo **ELÉTRICA**:
+  - Cabo Romex 14/2: 3 rolos de 250 ft
+  - Cabo Romex 12/2: 1 rolo de 250 ft
+  - Caixas de tomada e interruptor (1 gang): 38 un
+  - Caixas redondas de 4 in (luz): 12 un
+  - Tomadas comuns: 20 un
+  - Tomadas GFCI de 20 A: 8 un
+  - Interruptores: 10 un
+- No Orçamento do Resumo: Elétrica **$ 1,200.00**.
+
+---
+
+# HIDRÁULICA (rodada 3b)
+
+**33 casos** (montado em 18/11/2026). Nenhuma pendência achada ao montar: todos devem dar OK.
+
+**Como aparece** (confira se nenhuma dica fica cortada):
+
+- Quantidades
+- Pontos de água fria (ex: 10)
+- Pontos de água quente (ex: 3)
+- Pontos de esgoto (ex: 8)
+- Metragens do projeto (Opcional)
+- Água fria PEX 1/2 in, em ft (opcional)
+- Água quente PEX 1/2 in, em ft (opcional)
+- Esgoto PVC 2 in, em ft (opcional)
+- Esgoto PVC 3 in, em ft (opcional)
+- Taxa de Perda % (opcional, ex: 10): já vem **10**
+
+## Teste A: todos os campos, opcionais trocados
+
+#### HI-A
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **160**; Água quente PEX **65**; Esgoto PVC 2 in **100**; Esgoto PVC 3 in **60**; Perda **5**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 5% de perda): 168.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (do projeto, com 5% de perda): 68.3 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (do projeto, com 5% de perda): 105.0 ft = 11 barras de 10 ft ($ 165.00)
+• Tubo de esgoto PVC DWV 3 in (do projeto, com 5% de perda): 63.0 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 925.00
+```
+
+É o segundo exemplo da Parte A (11/11/2026), com os 4 tubos do projeto e perda de 5%: 160 ft × 1,05 = **168.0 ft** (2 rolos de 100 ft); 65 × 1,05 = **68.3 ft** (1 rolo); 100 × 1,05 = **105.0 ft** (11 barras de 10 ft); 60 × 1,05 = **63.0 ft** (7 barras); **$ 925.00**.
+
+## Teste B: só os obrigatórios (e variações)
+
+#### HI-B
+
+Digite: Pontos de água fria **10**.
+
+```
+Pontos de água fria: 10
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Registros (stop valves): 10 un ($ 100.00)
+
+Custo Estimado da Etapa: $ 300.00
+```
+
+Só água fria: 10 × 13 ft × 1,10 = **143.0 ft** de PEX azul → 2 rolos; 10 × 4 = **40 conexões**; **10 stop valves** (1 por ponto de água).
+
+#### HI-B2
+
+Digite: Pontos de água quente **3**.
+
+```
+Pontos de água quente: 3
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Registros (stop valves): 3 un ($ 30.00)
+
+Custo Estimado da Etapa: $ 106.00
+```
+
+#### HI-B3
+
+Digite: Pontos de esgoto **8**.
+
+```
+Pontos de esgoto: 8
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+
+Custo Estimado da Etapa: $ 489.00
+```
+
+Só esgoto: 8 × 10 ft × 1,10 = **88.0 ft** de PVC 2 in (9 barras) e 8 × 7 ft × 1,10 = **61.6 ft** de 3 in (7 barras); 8 × 3 = **24 conexões**. Esgoto não tem stop valve.
+
+#### HI-B4
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+É o exemplo da Parte A, conferido por você no app em 13/11/2026: **$ 895.00**. Stop valves: 10 + 3 = **13**.
+
+#### HI-B5
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **160**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 176.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-B6
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Esgoto PVC 3 in **60**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (do projeto, com 10% de perda): 66.0 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-B7
+
+Digite: Pontos de água fria **1**.
+
+```
+Pontos de água fria: 1
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 14.3 ft = 1 rolo de 100 ft ($ 40.00)
+• Conexões PEX de água fria (estimativa): 4 un ($ 12.00)
+• Registros (stop valves): 1 un ($ 10.00)
+
+Custo Estimado da Etapa: $ 62.00
+```
+
+Confira o **singular**: "1 rolo" e "1 un".
+
+#### HI-B8
+
+Digite: Pontos de esgoto **1**.
+
+```
+Pontos de esgoto: 1
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 11.0 ft = 2 barras de 10 ft ($ 30.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 7.7 ft = 1 barra de 10 ft ($ 30.00)
+• Conexões de esgoto PVC (estimativa): 3 un ($ 18.00)
+
+Custo Estimado da Etapa: $ 78.00
+```
+
+11.0 ft de 2 in já passa de 1 barra de 10 ft: **2 barras**; o 3 in fica em "1 barra" (singular).
+
+#### HI-B9
+
+Digite: Pontos de água fria **120**; Pontos de água quente **60**; Pontos de esgoto **90**.
+
+```
+Pontos de água fria: 120
+Pontos de água quente: 60
+Pontos de esgoto: 90
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 1,716.0 ft = 18 rolos de 100 ft ($ 720.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 1,056.0 ft = 11 rolos de 100 ft ($ 440.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 990.0 ft = 99 barras de 10 ft ($ 1,485.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 693.0 ft = 70 barras de 10 ft ($ 2,100.00)
+• Conexões PEX de água fria (estimativa): 480 un ($ 1,440.00)
+• Conexões PEX de água quente (estimativa): 240 un ($ 720.00)
+• Conexões de esgoto PVC (estimativa): 270 un ($ 1,620.00)
+• Registros (stop valves): 180 un ($ 1,800.00)
+
+Custo Estimado da Etapa: $ 10,325.00
+```
+
+## Teste C: erros de digitação e limites
+
+#### HI-C1
+
+Digite: todos os campos **vazios**.
+
+```
+Erro: Informe pelo menos um ponto de água fria, água quente ou esgoto.
+```
+
+#### HI-C2
+
+Digite: Pontos de água fria **0**; Pontos de água quente **0**; Pontos de esgoto **0**.
+
+```
+Erro: Informe pelo menos um ponto de água fria, água quente ou esgoto.
+```
+
+#### HI-C3
+
+Digite: Pontos de água fria **-10**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Erro: As quantidades não podem ser negativas.
+```
+
+#### HI-C4
+
+Digite: Pontos de água fria **dez**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### HI-C5
+
+Digite: Pontos de água fria **2.5**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### HI-C6
+
+Digite: Pontos de água fria **200**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Pontos de água fria: 200
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 2,860.0 ft = 29 rolos de 100 ft ($ 1,160.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 800 un ($ 2,400.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 203 un ($ 2,030.00)
+
+Custo Estimado da Etapa: $ 6,155.00
+```
+
+200 é o próprio limite: sem aviso.
+
+#### HI-C7-cancelar
+
+Digite: Pontos de água fria **201**; Pontos de água quente **3**; Pontos de esgoto **8**. Na janela, toque em **Cancelar**.
+
+```
+[JANELA] 201 pontos de água fria: o limite é 200.
+[Cancelar] não calculou
+```
+
+#### HI-C7-continuar
+
+Digite: Pontos de água fria **201**; Pontos de água quente **3**; Pontos de esgoto **8**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 201 pontos de água fria: o limite é 200.
+Pontos de água fria: 201
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 2,874.3 ft = 29 rolos de 100 ft ($ 1,160.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 804 un ($ 2,412.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 204 un ($ 2,040.00)
+
+Custo Estimado da Etapa: $ 6,177.00
+```
+
+#### HI-C8
+
+Digite: Pontos de água fria **10**; Pontos de água quente **250**; Pontos de esgoto **8**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 250 pontos de água quente: o limite é 200.
+Pontos de água fria: 10
+Pontos de água quente: 250
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 4,400.0 ft = 44 rolos de 100 ft ($ 1,760.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 1,000 un ($ 3,000.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 260 un ($ 2,600.00)
+
+Custo Estimado da Etapa: $ 8,049.00
+```
+
+#### HI-C9
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **250**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] 250 pontos de esgoto: o limite é 200.
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 250
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 2,750.0 ft = 275 barras de 10 ft ($ 4,125.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 1,925.0 ft = 193 barras de 10 ft ($ 5,790.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 750 un ($ 4,500.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 14,821.00
+```
+
+#### HI-C10
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **-160**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### HI-C11
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **abc**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### HI-C12
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **160,5**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 176.6 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-C13
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **160.5**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 176.6 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-C14
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **160 1/2**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 176.6 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-C15
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **1,000**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 1,100.0 ft = 11 rolos de 100 ft ($ 440.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 1,255.00
+```
+
+#### HI-C16
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Água fria PEX **0**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 815.00
+```
+
+PEX azul do projeto = **0**: a linha do tubo some, mas as conexões e os stop valves continuam (vêm dos pontos), igual ao cabo 0 na Elétrica (EL-C17).
+
+#### HI-C17
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Perda **-5**.
+
+```
+Erro: Os valores não podem ser negativos.
+```
+
+#### HI-C18
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Perda **2.5**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 2.5% de perda): 133.3 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 2.5% de perda): 49.2 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 2.5% de perda): 82.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 2.5% de perda): 57.4 ft = 6 barras de 10 ft ($ 180.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 865.00
+```
+
+#### HI-C19
+
+Digite: Pontos de água fria **10**; Pontos de água quente **3**; Pontos de esgoto **8**; Perda **(vazio)**.
+
+```
+Pontos de água fria: 10
+Pontos de água quente: 3
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (estimado, com 10% de perda): 143.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo PEX 1/2 in vermelho, água quente (estimado, com 10% de perda): 52.8 ft = 1 rolo de 100 ft ($ 40.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões PEX de água fria (estimativa): 40 un ($ 120.00)
+• Conexões PEX de água quente (estimativa): 12 un ($ 36.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+• Registros (stop valves): 13 un ($ 130.00)
+
+Custo Estimado da Etapa: $ 895.00
+```
+
+#### HI-C20
+
+Digite: Pontos de água fria **1,000**; Pontos de água quente **3**; Pontos de esgoto **8**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+Decisão da Gabi (15/11/2026): nos campos de quantidade, o "1,000" não é aceito.
+
+#### HI-C21
+
+Digite: Água fria PEX **160**.
+
+```
+Erro: Informe pelo menos um ponto de água fria, água quente ou esgoto.
+```
+
+Só o tubo, sem nenhum ponto: é erro.
+
+#### HI-C22
+
+Digite: Pontos de esgoto **8**; Água fria PEX **160**.
+
+```
+Pontos de esgoto: 8
+• Tubo PEX 1/2 in azul, água fria (do projeto, com 10% de perda): 176.0 ft = 2 rolos de 100 ft ($ 80.00)
+• Tubo de esgoto PVC DWV 2 in (estimado, com 10% de perda): 88.0 ft = 9 barras de 10 ft ($ 135.00)
+• Tubo de esgoto PVC DWV 3 in (estimado, com 10% de perda): 61.6 ft = 7 barras de 10 ft ($ 210.00)
+• Conexões de esgoto PVC (estimativa): 24 un ($ 144.00)
+
+Custo Estimado da Etapa: $ 569.00
+```
+
+## Visual (Hidráulica)
+
+- Os campos de tubo dizem **PEX 1/2 in** (água fria e quente) e **PVC 2 in / 3 in** (esgoto), em ft; nenhum "mm", "CPVC" ou "25 mm".
+- Perda vem com **10**.
+- No resultado, nenhum m, "barras de 6 m", "barras de 3 m", "registros de gaveta" ou vírgula decimal.
+- "?" da Hidráulica: explica o PEX (azul na fria, vermelho na quente, rolos de 100 ft), o PVC DWV de 2 in e de 3 in (código IRC), as metragens por ponto e o stop valve por ponto de água, e termina com a legenda das siglas.
+- **Lista de compras** (Finalizar com o HI-B4), no grupo **HIDRÁULICA**:
+  - Tubo PEX 1/2 in azul, água fria: 2 rolos de 100 ft
+  - Tubo PEX 1/2 in vermelho, água quente: 1 rolo de 100 ft
+  - Tubo de esgoto PVC DWV 2 in: 9 barras de 10 ft
+  - Tubo de esgoto PVC DWV 3 in: 7 barras de 10 ft
+  - Conexões PEX de água fria (estimativa): 40 un
+  - Conexões PEX de água quente (estimativa): 12 un
+  - Conexões de esgoto PVC (estimativa): 24 un
+  - Registros (stop valves): 13 un
+- No Orçamento do Resumo: Hidráulica **$ 895.00**.
+
+---
+
+# REBOCO (rodada 3b)
+
+**29 casos** (montado em 18/11/2026). Nenhuma pendência achada ao montar: todos devem dar OK. Nos EUA, o Reboco é o **stucco**, só na parede de fora.
+
+**Como aparece** (confira se nenhuma dica fica cortada):
+
+- Dimensões (Obrigatório)
+- Área externa em sq ft (ex: 320)
+- Parede de: já vem **Madeira (com OSB)** (opções: Madeira (com OSB) e Bloco ou concreto)
+- Portas/janelas em sq ft (opcional, ex: 50)
+- Taxa de Perda % (opcional, ex: 10): já vem **10**
+
+## Teste A: todos os campos, opcionais trocados
+
+#### RE-A
+
+Digite: Área externa **640**; Portas/janelas **80**; Perda **15**; Parede de **Bloco ou concreto**.
+
+```
+Área bruta: 640.00 sq ft
+Vãos (portas e janelas): 80.00 sq ft
+Área líquida: 560.00 sq ft
+Parede de: Bloco ou concreto
+Sistema: 2 demãos (3/8 + 1/8 in = 1/2 in)
+• Stucco base coat, 1 demão de 3/8 in (com 15% de perda): 33 sacos de 80 lb ($ 495.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 15% de perda): 10 sacos de 80 lb ($ 250.00)
+
+Custo Estimado da Etapa: $ 745.00
+```
+
+Todos os campos, com a parede de **bloco ou concreto**: 2 demãos (1 de base coat + o acabamento), **sem papel e sem tela**. 560 sq ft × 1,15 = 644 sq ft ÷ 20 = 32,2 → **33 sacos** de base; 644 ÷ 70 = 9,2 → **10 sacos** de acabamento.
+
+#### RE-A2
+
+Digite: Área externa **640**; Portas/janelas **80**; Perda **15**; Parede de **Madeira (com OSB)** (o padrão).
+
+```
+Área bruta: 640.00 sq ft
+Vãos (portas e janelas): 80.00 sq ft
+Área líquida: 560.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 15% de perda): 5 rolos de 162 sq ft ($ 125.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 15% de perda): 37 folhas ($ 740.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 15% de perda): 65 sacos de 80 lb ($ 975.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 15% de perda): 10 sacos de 80 lb ($ 250.00)
+
+Custo Estimado da Etapa: $ 2,090.00
+```
+
+Os mesmos números com a parede de **madeira** (o padrão): 3 demãos (2 de base coat), com papel e tela. Base: 644 ÷ 20 × 2 = 64,4 → **65 sacos**.
+
+## Teste B: só os obrigatórios (e variações)
+
+#### RE-B
+
+Digite: Área externa **320**; Parede de **Madeira (com OSB)** (o padrão).
+
+```
+Área bruta: 320.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 21 folhas ($ 420.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 36 sacos de 80 lb ($ 540.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 1,185.00
+```
+
+É o exemplo da Parte A (13/11/2026): 320 × 1,10 = 352 sq ft. Papel: rolo de 162 sq ft com 2 in de emenda (cobre 38 in dos 40) = 153,9 sq ft úteis → 352 ÷ 153,9 = 2,3 → **3 rolos**. Tela: folha de 27 x 96 in com as sobreposições (26 1/2 x 95 in úteis = 17,48 sq ft) → 352 ÷ 17,48 = 20,1 → **21 folhas**. Base: 352 ÷ 20 × 2 = 35,2 → **36 sacos**. Acabamento: 352 ÷ 70 = 5,03 → **6 sacos**. **$ 1,185.00**.
+
+#### RE-B2
+
+Digite: Área externa **320**; Parede de **Bloco ou concreto**.
+
+```
+Área bruta: 320.00 sq ft
+Parede de: Bloco ou concreto
+Sistema: 2 demãos (3/8 + 1/8 in = 1/2 in)
+• Stucco base coat, 1 demão de 3/8 in (com 10% de perda): 18 sacos de 80 lb ($ 270.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 420.00
+```
+
+#### RE-B3
+
+Digite: Área externa **320**; Portas/janelas **50**; Parede de **Bloco ou concreto**.
+
+```
+Área bruta: 320.00 sq ft
+Vãos (portas e janelas): 50.00 sq ft
+Área líquida: 270.00 sq ft
+Parede de: Bloco ou concreto
+Sistema: 2 demãos (3/8 + 1/8 in = 1/2 in)
+• Stucco base coat, 1 demão de 3/8 in (com 10% de perda): 15 sacos de 80 lb ($ 225.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 5 sacos de 80 lb ($ 125.00)
+
+Custo Estimado da Etapa: $ 350.00
+```
+
+É o outro exemplo da Parte A: bloco, 320 sq ft com 50 de vãos: **$ 350.00**.
+
+#### RE-B4
+
+Digite: Área externa **320**; Portas/janelas **50**; Parede de **Madeira (com OSB)** (o padrão).
+
+```
+Área bruta: 320.00 sq ft
+Vãos (portas e janelas): 50.00 sq ft
+Área líquida: 270.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 2 rolos de 162 sq ft ($ 50.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 17 folhas ($ 340.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 30 sacos de 80 lb ($ 450.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 5 sacos de 80 lb ($ 125.00)
+
+Custo Estimado da Etapa: $ 965.00
+```
+
+#### RE-B5
+
+Digite: Área externa **20**; Parede de **Madeira (com OSB)** (o padrão).
+
+```
+Área bruta: 20.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 1 rolo de 162 sq ft ($ 25.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 2 folhas ($ 40.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 3 sacos de 80 lb ($ 45.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 1 saco de 80 lb ($ 25.00)
+
+Custo Estimado da Etapa: $ 135.00
+```
+
+Confira o **singular**: "1 rolo" e "1 saco".
+
+#### RE-B6
+
+Digite: Área externa **20**; Parede de **Bloco ou concreto**.
+
+```
+Área bruta: 20.00 sq ft
+Parede de: Bloco ou concreto
+Sistema: 2 demãos (3/8 + 1/8 in = 1/2 in)
+• Stucco base coat, 1 demão de 3/8 in (com 10% de perda): 2 sacos de 80 lb ($ 30.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 1 saco de 80 lb ($ 25.00)
+
+Custo Estimado da Etapa: $ 55.00
+```
+
+#### RE-B7
+
+Digite: Área externa **8000**; Parede de **Madeira (com OSB)** (o padrão).
+
+```
+Área bruta: 8,000.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 58 rolos de 162 sq ft ($ 1,450.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 504 folhas ($ 10,080.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 880 sacos de 80 lb ($ 13,200.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 126 sacos de 80 lb ($ 3,150.00)
+
+Custo Estimado da Etapa: $ 27,880.00
+```
+
+## Teste C: erros de digitação e limites
+
+#### RE-C1
+
+Digite: Área externa **(vazio)**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### RE-C2
+
+Digite: Área externa **trezentos**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### RE-C3
+
+Digite: Área externa **0**.
+
+```
+Erro: A área deve ser maior que zero.
+```
+
+#### RE-C4
+
+Digite: Área externa **-320**.
+
+```
+Erro: A área deve ser maior que zero.
+```
+
+#### RE-C5
+
+Digite: Área externa **320**; Portas/janelas **-50**.
+
+```
+Erro: Desconto e perda não podem ser negativos.
+```
+
+Vãos negativos dão a mesma mensagem do Brasil ("Desconto e perda não podem ser negativos.").
+
+#### RE-C6
+
+Digite: Área externa **320**; Portas/janelas **320**.
+
+```
+Erro: O desconto de vãos deve ser menor que a área.
+```
+
+#### RE-C7
+
+Digite: Área externa **320**; Portas/janelas **400**.
+
+```
+Erro: O desconto de vãos deve ser menor que a área.
+```
+
+#### RE-C8
+
+Digite: Área externa **320**; Portas/janelas **abc**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### RE-C9
+
+Digite: Área externa **320,5**.
+
+```
+Área bruta: 320.50 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 21 folhas ($ 420.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 36 sacos de 80 lb ($ 540.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 1,185.00
+```
+
+#### RE-C10
+
+Digite: Área externa **320.5**.
+
+```
+Área bruta: 320.50 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 21 folhas ($ 420.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 36 sacos de 80 lb ($ 540.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 1,185.00
+```
+
+#### RE-C11
+
+Digite: Área externa **320 1/2**.
+
+```
+Área bruta: 320.50 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 21 folhas ($ 420.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 36 sacos de 80 lb ($ 540.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 1,185.00
+```
+
+#### RE-C12
+
+Digite: Área externa **1,500**.
+
+```
+Área bruta: 1,500.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 11 rolos de 162 sq ft ($ 275.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 95 folhas ($ 1,900.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 165 sacos de 80 lb ($ 2,475.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 24 sacos de 80 lb ($ 600.00)
+
+Custo Estimado da Etapa: $ 5,250.00
+```
+
+#### RE-C13
+
+Digite: Área externa **320**; Perda **-5**.
+
+```
+Erro: Desconto e perda não podem ser negativos.
+```
+
+#### RE-C14
+
+Digite: Área externa **320**; Perda **2.5**.
+
+```
+Área bruta: 320.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 2.5% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 2.5% de perda): 19 folhas ($ 380.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 2.5% de perda): 33 sacos de 80 lb ($ 495.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 2.5% de perda): 5 sacos de 80 lb ($ 125.00)
+
+Custo Estimado da Etapa: $ 1,075.00
+```
+
+#### RE-C15
+
+Digite: Área externa **320**; Perda **(vazio)**.
+
+```
+Área bruta: 320.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 3 rolos de 162 sq ft ($ 75.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 21 folhas ($ 420.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 36 sacos de 80 lb ($ 540.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 6 sacos de 80 lb ($ 150.00)
+
+Custo Estimado da Etapa: $ 1,185.00
+```
+
+Perda apagada = **10%**, igual ao RE-B.
+
+#### RE-C16
+
+Digite: Área externa **21528**.
+
+```
+Área bruta: 21,528.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 154 rolos de 162 sq ft ($ 3,850.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 1,355 folhas ($ 27,100.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 2,369 sacos de 80 lb ($ 35,535.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 339 sacos de 80 lb ($ 8,475.00)
+
+Custo Estimado da Etapa: $ 74,960.00
+```
+
+21,528 sq ft é o próprio limite: sem aviso.
+
+#### RE-C17-cancelar
+
+Digite: Área externa **21529**. Na janela, toque em **Cancelar**.
+
+```
+[JANELA] Área de 21,529 sq ft: o limite é 21,528 sq ft.
+[Cancelar] não calculou
+```
+
+#### RE-C17-continuar
+
+Digite: Área externa **21529**. Na janela, toque em **Continuar**.
+
+```
+[JANELA] Área de 21,529 sq ft: o limite é 21,528 sq ft.
+Área bruta: 21,529.00 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 154 rolos de 162 sq ft ($ 3,850.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 1,355 folhas ($ 27,100.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 2,369 sacos de 80 lb ($ 35,535.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 339 sacos de 80 lb ($ 8,475.00)
+
+Custo Estimado da Etapa: $ 74,960.00
+```
+
+#### RE-C18
+
+Digite: Área externa **1-21/2**.
+
+```
+Por favor, digite números válidos nos campos!
+```
+
+#### RE-C19
+
+Digite: Área externa **320**; Portas/janelas **50 1/2**.
+
+```
+Área bruta: 320.00 sq ft
+Vãos (portas e janelas): 50.50 sq ft
+Área líquida: 269.50 sq ft
+Parede de: Madeira (com OSB)
+Sistema: 3 demãos (3/8 + 3/8 + 1/8 in = 7/8 in)
+• Papel de 2 camadas (Grade D, 60 min) (com 10% de perda): 2 rolos de 162 sq ft ($ 50.00)
+• Tela metálica 2.5 lb (27 x 96 in) (com 10% de perda): 17 folhas ($ 340.00)
+• Stucco base coat, 2 demãos de 3/8 in (com 10% de perda): 30 sacos de 80 lb ($ 450.00)
+• Stucco de acabamento (finish coat, 1/8 in) (com 10% de perda): 5 sacos de 80 lb ($ 125.00)
+
+Custo Estimado da Etapa: $ 965.00
+```
+
+## Visual (Reboco)
+
+- Nos EUA **não aparecem**: a espessura, o traço da massa, "rebocar os dois lados" e o chapisco. Aparece o menu **"Parede de"**, com **Madeira (com OSB)** (já vem escolhida) e **Bloco ou concreto**.
+- A dica da área diz **"Área externa em sq ft (ex: 320)"** (o stucco é só por fora). Perda vem com **10**.
+- No resultado, nenhum m², m³, cm, "cimento", "cal", "areia", "chapisco" ou vírgula decimal.
+- O nome da aba continua **"Reboco"** (em português); no Resumo e no PDF aparece **"Reboco (stucco)"**.
+- "?" do Reboco: explica o stucco só por fora, os sacos prontos de 80 lb e o rendimento, a parede de madeira (3 demãos, tela e papel) e a de bloco (2 demãos), e a perda, e termina com a legenda das siglas.
+- **Lista de compras** (Finalizar com o RE-B), no grupo MATERIAL BÁSICO:
+  - Papel de 2 camadas (Grade D, 60 min): 3 rolos de 162 sq ft
+  - Tela metálica 2.5 lb (27 x 96 in): 21 folhas
+  - Stucco base coat: 36 sacos de 80 lb
+  - Stucco de acabamento (finish coat, 1/8 in): 6 sacos de 80 lb
+- No Orçamento do Resumo: Reboco (stucco) **$ 1,185.00**.
+
+---
+
 # PISO
 
 **43 casos.** Todos OK (os 31 das pendências P1 e P7 foram corrigidos em 06/11/2026).
@@ -5004,6 +6560,550 @@ Custo Estimado da Etapa: $ 10,748.96
 
 ---
 
+# ESQUADRIAS (rodada 3b)
+
+**31 casos** (montado em 18/11/2026). 1 caso com ⚠️ (P16, ver o pendencias_rodada3b.md) dá DIFERENTE até a correção.
+
+**Como aparece** (confira se nenhuma dica fica cortada):
+
+- Nova porta ou janela
+- Tipo: Porta · Janela
+- Material (Opcional): Não informado · Vinil · Madeira · Alumínio · Fibra de vidro · Aço
+- Quantidade (ex: 3)
+- Largura do vão em in (ex: 36)
+- Altura do vão em in (ex: 80)
+- Botão **Adicionar à lista**
+- Lista para cotação
+- Insumos de fixação: Espuma de baixa expansão (Opcional) · Pregos galvanizados de 2 in (Opcional) · Fita de flashing de 4 in (Opcional), todos já vêm **Não**
+
+## Teste A: todos os campos, opcionais trocados
+
+#### ES-A
+
+Digite: Porta, material **Aço**, quantidade **1**, largura **36**, altura **80** e toque em **Adicionar à lista**; Porta, material **Madeira**, quantidade **2**, largura **32**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **4**, largura **36**, altura **60** e toque em **Adicionar à lista**; Janela, material **Alumínio**, quantidade **1**, largura **24**, altura **24** e toque em **Adicionar à lista**; Janela, material **Fibra de vidro**, quantidade **2**, largura **48**, altura **36** e toque em **Adicionar à lista**; insumos: **Espuma de baixa expansão** Sim, **Pregos galvanizados de 2 in** Sim, **Fita de flashing de 4 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 1x Porta 36 x 80 in (Aço): 20.00 sq ft cada
+• 2x Porta 32 x 80 in (Madeira): 17.78 sq ft cada
+
+Janelas:
+• 4x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+• 1x Janela 24 x 24 in (Alumínio): 4.00 sq ft cada
+• 2x Janela 48 x 36 in (Fibra de vidro): 12.00 sq ft cada
+
+Total: 3 portas e 7 janelas
+Área total dos vãos: 143.56 sq ft
+
+Insumos de fixação:
+• Espuma de baixa expansão (window & door): 3 latas de 12 oz ($ 18.00)
+• Pregos galvanizados de 2 in (a cada 8 in): 223 pregos = 2 caixas de 1 lb ($ 12.00)
+• Fita de flashing de 4 in: 159.7 ft = 3 rolos de 75 ft ($ 120.00)
+
+Custo Estimado da Etapa: $ 150.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Os 5 materiais da lista americana e os 3 insumos. Contorno: porta = 2 lados + o topo; janela = os 4 lados.
+
+## Teste B: só os obrigatórios (e variações)
+
+#### ES-B
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 2 portas e 6 janelas
+Área total dos vãos: 130.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Sem insumo: o custo não aparece, só a frase do fornecedor (sem "$ 0.00").
+
+#### ES-B2
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos: **Espuma de baixa expansão** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 2 portas e 6 janelas
+Área total dos vãos: 130.00 sq ft
+
+Insumos de fixação:
+• Espuma de baixa expansão (window & door): 3 latas de 12 oz ($ 18.00)
+
+Custo Estimado da Etapa: $ 18.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Contorno: 2 portas × (80 + 80 + 36) in + 6 janelas × 2 × (36 + 60) in = 392 + 1,152 = 1,544 in = 128.67 ft ÷ 64 ft por lata = 2,01 → **3 latas**.
+
+#### ES-B3
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos: **Pregos galvanizados de 2 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 2 portas e 6 janelas
+Área total dos vãos: 130.00 sq ft
+
+Insumos de fixação:
+• Pregos galvanizados de 2 in (a cada 8 in): 193 pregos = 2 caixas de 1 lb ($ 12.00)
+
+Custo Estimado da Etapa: $ 12.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+1,544 in ÷ 8 in = **193 pregos** ÷ 138 por caixa = 1,4 → **2 caixas**.
+
+#### ES-B4
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos: **Fita de flashing de 4 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 2 portas e 6 janelas
+Área total dos vãos: 130.00 sq ft
+
+Insumos de fixação:
+• Fita de flashing de 4 in: 138.0 ft = 2 rolos de 75 ft ($ 80.00)
+
+Custo Estimado da Etapa: $ 80.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Fita: o contorno + 4 in em cada canto (janela: 4 cantos; porta: os 2 de cima): 1,544 + 6 × 4 × 4 + 2 × 2 × 4 = 1,656 in = **138.0 ft** → 2 rolos de 75 ft.
+
+#### ES-B5
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos: **Espuma de baixa expansão** Sim, **Pregos galvanizados de 2 in** Sim, **Fita de flashing de 4 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 2 portas e 6 janelas
+Área total dos vãos: 130.00 sq ft
+
+Insumos de fixação:
+• Espuma de baixa expansão (window & door): 3 latas de 12 oz ($ 18.00)
+• Pregos galvanizados de 2 in (a cada 8 in): 193 pregos = 2 caixas de 1 lb ($ 12.00)
+• Fita de flashing de 4 in: 138.0 ft = 2 rolos de 75 ft ($ 80.00)
+
+Custo Estimado da Etapa: $ 110.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+É o exemplo da Parte A (13/11/2026): **$ 110.00**.
+
+#### ES-B6
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; Porta, material **Fibra de vidro**, quantidade **1**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Portas:
+• 3x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Janelas:
+• 6x Janela 36 x 60 in (Vinil): 15.00 sq ft cada
+
+Total: 3 portas e 6 janelas
+Área total dos vãos: 150.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+A mesma porta de novo (mesmo tipo, material e medidas): **soma** no item que já existe (3x), não vira outra linha.
+
+#### ES-B7
+
+Digite: Porta, material **Fibra de vidro**, quantidade **2**, largura **36**, altura **80** e toque em **Adicionar à lista**; Janela, material **Vinil**, quantidade **6**, largura **36**, altura **60** e toque em **Adicionar à lista**; toque no **X** do item 2; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[X] lista: ['2x Porta 36 x 80 in (Fibra de vidro)']; resultado antigo sumiu
+Portas:
+• 2x Porta 36 x 80 in (Fibra de vidro): 20.00 sq ft cada
+
+Total: 2 portas
+Área total dos vãos: 40.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+O X do item 1 (as janelas) tira o item da lista e apaga o resultado antigo.
+
+#### ES-B8
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos: **Fita de flashing de 4 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 1x Porta 36 x 80 in: 20.00 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 20.00 sq ft
+
+Insumos de fixação:
+• Fita de flashing de 4 in: 17.0 ft = 1 rolo de 75 ft ($ 40.00)
+
+Custo Estimado da Etapa: $ 40.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Material **não informado**: a linha fica sem o parêntese. Porta: a fita tem só os 2 cantos de cima: (80 + 80 + 36) + 2 × 4 = 204 in = **17.0 ft**.
+
+#### ES-B9
+
+Digite: Janela, material **Não informado**, quantidade **1**, largura **36**, altura **60** e toque em **Adicionar à lista**; insumos: **Pregos galvanizados de 2 in** Sim; depois toque em **Calcular**.
+
+```
+Janelas:
+• 1x Janela 36 x 60 in: 15.00 sq ft cada
+
+Total: 1 janela
+Área total dos vãos: 15.00 sq ft
+
+Insumos de fixação:
+• Pregos galvanizados de 2 in (a cada 8 in): 24 pregos = 1 caixa de 1 lb ($ 6.00)
+
+Custo Estimado da Etapa: $ 6.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Confira o **singular**: "1 caixa", "Total: 1 janela".
+
+## Teste C: erros de digitação e limites
+
+#### ES-C1
+
+Digite: insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C2
+
+Digite: Porta, material **Não informado**, quantidade **(vazio)**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C3
+
+Digite: Porta, material **Não informado**, quantidade **três**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C4
+
+Digite: Porta, material **Não informado**, quantidade **0**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C5
+
+Digite: Porta, material **Não informado**, quantidade **-3**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C6
+
+Digite: Porta, material **Não informado**, quantidade **2.5**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C7
+
+Digite: Porta, material **Não informado**, quantidade **3**, largura **0**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C8
+
+Digite: Porta, material **Não informado**, quantidade **3**, largura **1-21/2**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C9
+
+Digite: Porta, quantidade **3**, largura **36**, altura **80**, **sem** tocar em Adicionar; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Você digitou uma porta ou janela, mas não tocou em "Adicionar à lista".
+```
+
+Digitou e não tocou em "Adicionar à lista": o app avisa.
+
+#### ES-C10a
+
+Digite: Janela, material **Não informado**, quantidade **1**, largura **36,5**, altura **60** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Janelas:
+• 1x Janela 36 1/2 x 60 in: 15.21 sq ft cada
+
+Total: 1 janela
+Área total dos vãos: 15.21 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+"36,5", "36.5" e "36 1/2" dão o mesmo: o item aparece em fração, "36 1/2 x 60 in".
+
+#### ES-C10b
+
+Digite: Janela, material **Não informado**, quantidade **1**, largura **36.5**, altura **60** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Janelas:
+• 1x Janela 36 1/2 x 60 in: 15.21 sq ft cada
+
+Total: 1 janela
+Área total dos vãos: 15.21 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C10c
+
+Digite: Janela, material **Não informado**, quantidade **1**, largura **36 1/2**, altura **60** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Janelas:
+• 1x Janela 36 1/2 x 60 in: 15.21 sq ft cada
+
+Total: 1 janela
+Área total dos vãos: 15.21 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C11
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos: **Espuma de baixa expansão** Sim, **Pregos galvanizados de 2 in** Sim, **Fita de flashing de 4 in** Sim; depois toque em **Calcular**.
+
+```
+Portas:
+• 1x Porta 36 x 80 in: 20.00 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 20.00 sq ft
+
+Insumos de fixação:
+• Espuma de baixa expansão (window & door): 1 lata de 12 oz ($ 6.00)
+• Pregos galvanizados de 2 in (a cada 8 in): 25 pregos = 1 caixa de 1 lb ($ 6.00)
+• Fita de flashing de 4 in: 17.0 ft = 1 rolo de 75 ft ($ 40.00)
+
+Custo Estimado da Etapa: $ 52.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+Confira o **singular**: "1 lata", "1 caixa", "1 rolo".
+
+#### ES-C12
+
+Digite: Porta, material **Não informado**, quantidade **1000**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos: **Espuma de baixa expansão** Sim, **Pregos galvanizados de 2 in** Sim, **Fita de flashing de 4 in** Sim; depois toque em **Calcular**. Na janela, toque em **Continuar**.
+
+```
+[JANELA no Adicionar] Quantidade de 1,000: o limite é 100 de cada item.
+Portas:
+• 1,000x Porta 36 x 80 in: 20.00 sq ft cada
+
+Total: 1,000 portas
+Área total dos vãos: 20,000.00 sq ft
+
+Insumos de fixação:
+• Espuma de baixa expansão (window & door): 256 latas de 12 oz ($ 1,536.00)
+• Pregos galvanizados de 2 in (a cada 8 in): 24,500 pregos = 178 caixas de 1 lb ($ 1,068.00)
+• Fita de flashing de 4 in: 17,000.0 ft = 227 rolos de 75 ft ($ 9,080.00)
+
+Custo Estimado da Etapa: $ 11,684.00
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C13
+
+Digite: Porta, material **Não informado**, quantidade **100**, largura **36**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Portas:
+• 100x Porta 36 x 80 in: 20.00 sq ft cada
+
+Total: 100 portas
+Área total dos vãos: 2,000.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C14
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **197**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Portas:
+• 1x Porta 197 x 80 in: 109.44 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 109.44 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+197 in é o próprio limite mostrado (500 cm = 196.85 in, que aparece como 197 in): sem aviso.
+
+#### ES-C15
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **198**, altura **80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**. Na janela, toque em **Continuar**.
+
+```
+[JANELA no Adicionar] Largura de 198 in: o limite é 197 in.
+Portas:
+• 1x Porta 198 x 80 in: 110.00 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 110.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C16
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **157** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+Portas:
+• 1x Porta 36 x 157 in: 39.25 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 39.25 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+157 in é o próprio limite mostrado (400 cm = 157.48 in, que aparece como 157 in): sem aviso. 157 1/2 in (ES-C17) já dá.
+
+#### ES-C17
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **157 1/2** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**. Na janela, toque em **Continuar**.
+
+```
+[JANELA no Adicionar] Altura de 157 1/2 in: o limite é 157 in.
+Portas:
+• 1x Porta 36 x 157 1/2 in: 39.38 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 39.38 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+#### ES-C18
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **-80** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**.
+
+```
+[Adicionar] Por favor, digite números válidos nos campos!
+[Adicionar] nada entrou na lista
+Nenhuma porta ou janela na lista ainda.
+```
+
+#### ES-C19 ⚠️ P16
+
+Digite: Porta, material **Não informado**, quantidade **1**, largura **36**, altura **1,000** e toque em **Adicionar à lista**; insumos todos **Não**; depois toque em **Calcular**. Na janela, toque em **Continuar**.
+
+```
+[JANELA no Adicionar] Altura de 1,000 in: o limite é 157 in.
+Portas:
+• 1x Porta 36 x 1,000 in: 250.00 sq ft cada
+
+Total: 1 porta
+Área total dos vãos: 250.00 sq ft
+
+Portas e janelas: use esta lista para pedir orçamento ao fornecedor.
+```
+
+**P16:** hoje aparece "Altura de 1000 in" e "Porta 36 x 1000 in", sem a vírgula do milhar. No Brasil aparece "Largura de 8.000 cm" (regra 16: separador de milhar em todo número). O certo é **"1,000 in"**.
+
+## Visual (Esquadrias)
+
+- O menu **Material** mostra a lista americana: Não informado, **Vinil**, Madeira, Alumínio, **Fibra de vidro** e **Aço** (sem vidro temperado).
+- Os insumos de fixação nos EUA são **Espuma de baixa expansão**, **Pregos galvanizados de 2 in** e **Fita de flashing de 4 in**, todos em **Não** (sem parafusos com bucha e sem argamassa de fixação).
+- As medidas da lista aparecem em polegadas e em fração ("36 1/2 x 60 in") e as áreas em sq ft; nenhum cm, m², "tubo de 500 ml", "parafusos", "argamassa" ou vírgula decimal.
+- Sem insumo, não aparece "$ 0.00": só a frase do fornecedor (ES-B).
+- "?" da Esquadrias: explica a janela pregada pela aba (nailing flange), sem argamassa, e a conta da espuma, dos pregos e da fita, e termina com a legenda das siglas.
+- **Lista de compras** (Finalizar com o ES-B5): no grupo MATERIAL BÁSICO
+  - Espuma de baixa expansão (window & door): 3 latas de 12 oz
+  - Pregos galvanizados de 2 in (a cada 8 in): 2 caixas de 1 lb
+  - Fita de flashing de 4 in: 2 rolos de 75 ft
+  e no grupo ESQUADRIAS (para cotação)
+  - 2x Porta 36 x 80 in (Fibra de vidro)
+  - 6x Janela 36 x 60 in (Vinil)
+- No Orçamento do Resumo: Esquadrias **$ 110.00**.
+
+---
+
 # Para o rodada3.py (Leo do terminal)
 
 - **Desde o fechamento (06/11/2026), os 162 casos antigos têm o esperado no ESPERADO dentro do rodada3.py.** **Na rodada 3b (desde 15/11/2026), quem atualiza o rodada3.py é o Leo do terminal**, aba por aba: entram os casos novos da lista abaixo ("RODADA 3b") e o PADRAO da aba, e o esperado deles é lido daqui, deste roteiro (os 162 antigos continuam com o ESPERADO de dentro). O test_rodada3.py só é atualizado no fim da 3b, junto com o ESPERADO dos casos novos (decisão da Gabi, 15/11/2026). Em cada aba, depois de rodar, ele **só lista** para a Gabi as pendências (os DIFERENTE, novos ou já com ⚠️ no roteiro, e o que mais achar estranho) e o visual que só ela pode testar no app; **não corrige nada** e não precisa do pendencias_rodada3b.md (quem anota lá é a Gabi com o Leo do chat). O jeito de ler o esperado daqui é o mesmo da rodada 3:
@@ -5013,6 +7113,10 @@ Custo Estimado da Etapa: $ 10,748.96
   - paredes (3b): junta **"3/8"** (in), quebra "5"; o bloco CMU 8x8x16 vem do reiniciar
   - laje (3b): esp_slab **"4"** (in), perda "5"; tela Não, lona e base Sim vêm do reiniciar
   - telhado (3b): incl **"6"** (pitch), perda **"10"**; o shingle, a manta Sim e o OSB Não vêm do reiniciar
+  - eletrica (3b): perda "10"
+  - hidraulica (3b): perda "10"
+  - reboco (3b): perda "10"; a parede de madeira vem do reiniciar
+  - esquadrias (3b): {} (sem campo com padrão; os insumos vêm em Não)
   - baldrame: perda "5", esp_estribo **"8"** (in)
   - piso e azulejo: nada (perda vazia = automática; A118.1 no Piso e A118.4 no Azulejo vêm do reiniciar, já com o país EUA)
   - rejunte: esp **"5/16"**, perda "10"
@@ -5387,4 +7491,153 @@ caso("TE-C25", "telhado", {**TE, "perda": "2.5"})
 caso("TE-C26", "telhado", {"area": "21528"})
 caso("TE-C27", "telhado", {"area": "25000"})
 caso("TE-C28", "telhado", {"area": "1-21/2"})
+
+# ELÉTRICA (rodada 3b)
+EL = {"tomadas": "20", "tomadas20": "8", "interruptores": "10", "luzes": "12"}
+caso("EL-A", "eletrica", {**EL, "cabo14": "600", "cabo12": "120", "perda": "5"})
+caso("EL-B", "eletrica", {"tomadas": "20"})
+caso("EL-B2", "eletrica", {"tomadas20": "8"})
+caso("EL-B3", "eletrica", {"interruptores": "10"})
+caso("EL-B4", "eletrica", {"luzes": "12"})
+caso("EL-B5", "eletrica", EL)
+caso("EL-B6", "eletrica", {**EL, "cabo14": "600"})
+caso("EL-B7", "eletrica", {**EL, "cabo12": "120"})
+caso("EL-B8", "eletrica", {"tomadas": "1"})
+caso("EL-B9", "eletrica", {**EL, "tomadas": "250", "tomadas20": "60", "interruptores": "120", "luzes": "180"})
+caso("EL-C1", "eletrica", {})
+caso("EL-C2", "eletrica", {**EL, "tomadas": "0", "tomadas20": "0", "interruptores": "0", "luzes": "0"})
+caso("EL-C3", "eletrica", {**EL, "tomadas": "-5"})
+caso("EL-C4", "eletrica", {**EL, "tomadas": "dez"})
+caso("EL-C5", "eletrica", {**EL, "tomadas": "2.5"})
+caso("EL-C6-cancelar", "eletrica", {**EL, "tomadas20": "350"}, continuar=False)
+caso("EL-C6-continuar", "eletrica", {**EL, "tomadas20": "350"})
+caso("EL-C7", "eletrica", {**EL, "tomadas": "300"})
+caso("EL-C8", "eletrica", {**EL, "tomadas": "301"})
+caso("EL-C9", "eletrica", {**EL, "interruptores": "350"})
+caso("EL-C10", "eletrica", {**EL, "luzes": "350"})
+caso("EL-C11", "eletrica", {**EL, "cabo14": "-100"})
+caso("EL-C12", "eletrica", {**EL, "cabo14": "abc"})
+caso("EL-C13", "eletrica", {**EL, "cabo14": "600,5"})
+caso("EL-C14", "eletrica", {**EL, "cabo14": "600.5"})
+caso("EL-C15", "eletrica", {**EL, "cabo14": "600 1/2"})
+caso("EL-C16", "eletrica", {**EL, "cabo14": "1,000"})
+caso("EL-C17", "eletrica", {**EL, "cabo14": "0"})
+caso("EL-C18", "eletrica", {**EL, "perda": "-5"})
+caso("EL-C19", "eletrica", {**EL, "perda": "2.5"})
+caso("EL-C20", "eletrica", {**EL, "perda": ""})
+caso("EL-C21", "eletrica", {**EL, "tomadas": "1,000"})
+caso("EL-C22", "eletrica", {"tomadas": "20", "cabo12": "120"})
+caso("EL-C23", "eletrica", {"cabo14": "600"})
+
+# HIDRÁULICA (rodada 3b; os campos de tubo têm os nomes do Brasil: esg40 = PVC 2 in, esg100 = PVC 3 in)
+HI = {"fria": "10", "quente": "3", "esgoto": "8"}
+caso("HI-A", "hidraulica", {**HI, "tubo_fria": "160", "tubo_quente": "65", "tubo_esg40": "100", "tubo_esg100": "60", "perda": "5"})
+caso("HI-B", "hidraulica", {"fria": "10"})
+caso("HI-B2", "hidraulica", {"quente": "3"})
+caso("HI-B3", "hidraulica", {"esgoto": "8"})
+caso("HI-B4", "hidraulica", HI)
+caso("HI-B5", "hidraulica", {**HI, "tubo_fria": "160"})
+caso("HI-B6", "hidraulica", {**HI, "tubo_esg100": "60"})
+caso("HI-B7", "hidraulica", {"fria": "1"})
+caso("HI-B8", "hidraulica", {"esgoto": "1"})
+caso("HI-B9", "hidraulica", {**HI, "fria": "120", "quente": "60", "esgoto": "90"})
+caso("HI-C1", "hidraulica", {})
+caso("HI-C2", "hidraulica", {**HI, "fria": "0", "quente": "0", "esgoto": "0"})
+caso("HI-C3", "hidraulica", {**HI, "fria": "-10"})
+caso("HI-C4", "hidraulica", {**HI, "fria": "dez"})
+caso("HI-C5", "hidraulica", {**HI, "fria": "2.5"})
+caso("HI-C6", "hidraulica", {**HI, "fria": "200"})
+caso("HI-C7-cancelar", "hidraulica", {**HI, "fria": "201"}, continuar=False)
+caso("HI-C7-continuar", "hidraulica", {**HI, "fria": "201"})
+caso("HI-C8", "hidraulica", {**HI, "quente": "250"})
+caso("HI-C9", "hidraulica", {**HI, "esgoto": "250"})
+caso("HI-C10", "hidraulica", {**HI, "tubo_fria": "-160"})
+caso("HI-C11", "hidraulica", {**HI, "tubo_fria": "abc"})
+caso("HI-C12", "hidraulica", {**HI, "tubo_fria": "160,5"})
+caso("HI-C13", "hidraulica", {**HI, "tubo_fria": "160.5"})
+caso("HI-C14", "hidraulica", {**HI, "tubo_fria": "160 1/2"})
+caso("HI-C15", "hidraulica", {**HI, "tubo_fria": "1,000"})
+caso("HI-C16", "hidraulica", {**HI, "tubo_fria": "0"})
+caso("HI-C17", "hidraulica", {**HI, "perda": "-5"})
+caso("HI-C18", "hidraulica", {**HI, "perda": "2.5"})
+caso("HI-C19", "hidraulica", {**HI, "perda": ""})
+caso("HI-C20", "hidraulica", {**HI, "fria": "1,000"})
+caso("HI-C21", "hidraulica", {"tubo_fria": "160"})
+caso("HI-C22", "hidraulica", {"esgoto": "8", "tubo_fria": "160"})
+
+# REBOCO (rodada 3b; o stucco; "parede_stucco" é a parede escolhida no menu, o padrão é "madeira")
+RE = {"area": "320"}
+caso("RE-A", "reboco", {"area": "640", "vaos": "80", "perda": "15"}, {"parede_stucco": "bloco"})
+caso("RE-A2", "reboco", {"area": "640", "vaos": "80", "perda": "15"})
+caso("RE-B", "reboco", RE)
+caso("RE-B2", "reboco", RE, {"parede_stucco": "bloco"})
+caso("RE-B3", "reboco", {**RE, "vaos": "50"}, {"parede_stucco": "bloco"})
+caso("RE-B4", "reboco", {**RE, "vaos": "50"})
+caso("RE-B5", "reboco", {"area": "20"})
+caso("RE-B6", "reboco", {"area": "20"}, {"parede_stucco": "bloco"})
+caso("RE-B7", "reboco", {"area": "8000"})
+caso("RE-C1", "reboco", {"area": ""})
+caso("RE-C2", "reboco", {"area": "trezentos"})
+caso("RE-C3", "reboco", {"area": "0"})
+caso("RE-C4", "reboco", {"area": "-320"})
+caso("RE-C5", "reboco", {**RE, "vaos": "-50"})
+caso("RE-C6", "reboco", {**RE, "vaos": "320"})
+caso("RE-C7", "reboco", {**RE, "vaos": "400"})
+caso("RE-C8", "reboco", {**RE, "vaos": "abc"})
+caso("RE-C9", "reboco", {"area": "320,5"})
+caso("RE-C10", "reboco", {"area": "320.5"})
+caso("RE-C11", "reboco", {"area": "320 1/2"})
+caso("RE-C12", "reboco", {"area": "1,500"})
+caso("RE-C13", "reboco", {**RE, "perda": "-5"})
+caso("RE-C14", "reboco", {**RE, "perda": "2.5"})
+caso("RE-C15", "reboco", {**RE, "perda": ""})
+caso("RE-C16", "reboco", {"area": "21528"})
+caso("RE-C17-cancelar", "reboco", {"area": "21529"}, continuar=False)
+caso("RE-C17-continuar", "reboco", {"area": "21529"})
+caso("RE-C18", "reboco", {"area": "1-21/2"})
+caso("RE-C19", "reboco", {**RE, "vaos": "50 1/2"})
+
+# ESQUADRIAS (rodada 3b)
+# O rodada3.py ainda não sabe rodar a Esquadrias: copie do rodada1.py a função rodar_esquadrias (ela digita, toca em
+# "Adicionar à lista", no X, e aperta o Continuar da janela do Adicionar) e, no começo do rodar(), o
+# "if aba == \"esquadrias\": return rodar_esquadrias(campos, escolhas or {})". O PADRAO da esquadrias é {}.
+TODOS_EUA = {"espuma": True, "pregos": True, "fita": True}
+P2 = ("add", "porta", "fibra", "2", "36", "80")
+J6 = ("add", "janela", "vinil", "6", "36", "60")
+def esq(*acoes, fix=None):
+    return {"acoes": list(acoes), "fix": fix or {}}
+caso("ES-A", "esquadrias", {}, esq(
+    ("add", "porta", "aco", "1", "36", "80"), ("add", "porta", "madeira", "2", "32", "80"),
+    ("add", "janela", "vinil", "4", "36", "60"), ("add", "janela", "aluminio", "1", "24", "24"),
+    ("add", "janela", "fibra", "2", "48", "36"), fix=TODOS_EUA))
+caso("ES-B", "esquadrias", {}, esq(P2, J6))
+caso("ES-B2", "esquadrias", {}, esq(P2, J6, fix={"espuma": True}))
+caso("ES-B3", "esquadrias", {}, esq(P2, J6, fix={"pregos": True}))
+caso("ES-B4", "esquadrias", {}, esq(P2, J6, fix={"fita": True}))
+caso("ES-B5", "esquadrias", {}, esq(P2, J6, fix=TODOS_EUA))
+caso("ES-B6", "esquadrias", {}, esq(P2, J6, ("add", "porta", "fibra", "1", "36", "80")))
+caso("ES-B7", "esquadrias", {}, esq(P2, J6, ("rem", 1)))
+caso("ES-B8", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "80"), fix={"fita": True}))
+caso("ES-B9", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36", "60"), fix={"pregos": True}))
+caso("ES-C1", "esquadrias", {}, esq())
+caso("ES-C2", "esquadrias", {}, esq(("add", "porta", "nao_informado", "", "36", "80")))
+caso("ES-C3", "esquadrias", {}, esq(("add", "porta", "nao_informado", "três", "36", "80")))
+caso("ES-C4", "esquadrias", {}, esq(("add", "porta", "nao_informado", "0", "36", "80")))
+caso("ES-C5", "esquadrias", {}, esq(("add", "porta", "nao_informado", "-3", "36", "80")))
+caso("ES-C6", "esquadrias", {}, esq(("add", "porta", "nao_informado", "2.5", "36", "80")))
+caso("ES-C7", "esquadrias", {}, esq(("add", "porta", "nao_informado", "3", "0", "80")))
+caso("ES-C8", "esquadrias", {}, esq(("add", "porta", "nao_informado", "3", "1-21/2", "80")))
+caso("ES-C9", "esquadrias", {"qtd": "3", "larg": "36", "alt": "80"}, esq())
+caso("ES-C10a", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36,5", "60")))
+caso("ES-C10b", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36.5", "60")))
+caso("ES-C10c", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36 1/2", "60")))
+caso("ES-C11", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "80"), fix=TODOS_EUA))
+caso("ES-C12", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1000", "36", "80"), fix=TODOS_EUA))
+caso("ES-C13", "esquadrias", {}, esq(("add", "porta", "nao_informado", "100", "36", "80")))
+caso("ES-C14", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "197", "80")))
+caso("ES-C15", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "198", "80")))
+caso("ES-C16", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "157")))
+caso("ES-C17", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "157 1/2")))
+caso("ES-C18", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "-80")))
+caso("ES-C19", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "1,000")))
 ```

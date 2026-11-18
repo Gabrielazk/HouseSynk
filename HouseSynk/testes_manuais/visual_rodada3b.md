@@ -114,15 +114,50 @@ Os números citados (ex.: "BR-B3") são casos do testes_rodada3.md: é só digit
 
 ## Elétrica
 
-- [ ] (o Leo do chat acrescenta quando montar a aba no roteiro)
+- [ ] Nos EUA **não aparecem**: os dois campos de chuveiro, o conduíte e os fios em mm². Aparecem os dois campos de tomada e os dois cabos (14/2 e 12/2).
+- [ ] Perda vem com **10**.
+- [ ] No resultado, nenhum m, mm², "conduíte", "fio", "caixinha 4x2", "octogonal", "chuveiro" ou vírgula decimal.
+- [ ] "?" da Elétrica: explica o Romex sem conduíte, o 14/2 e o 12/2, onde o código exige as tomadas de 20 A, os 15 ft por ponto, os rolos de 250 ft e por que as tomadas de 20 A são GFCI, e termina com a legenda das siglas.
+- [ ] **Lista de compras** (Finalizar com o EL-B5), no grupo **ELÉTRICA**:
+  - Cabo Romex 14/2: 3 rolos de 250 ft
+  - Cabo Romex 12/2: 1 rolo de 250 ft
+  - Caixas de tomada e interruptor (1 gang): 38 un
+  - Caixas redondas de 4 in (luz): 12 un
+  - Tomadas comuns: 20 un
+  - Tomadas GFCI de 20 A: 8 un
+  - Interruptores: 10 un
+- [ ] No Orçamento do Resumo: Elétrica **$ 1,200.00**.
 
 ## Hidráulica
 
-- [ ] (o Leo do chat acrescenta quando montar a aba no roteiro)
+- [ ] Os campos de tubo dizem **PEX 1/2 in** (água fria e quente) e **PVC 2 in / 3 in** (esgoto), em ft; nenhum "mm", "CPVC" ou "25 mm".
+- [ ] Perda vem com **10**.
+- [ ] No resultado, nenhum m, "barras de 6 m", "barras de 3 m", "registros de gaveta" ou vírgula decimal.
+- [ ] "?" da Hidráulica: explica o PEX (azul na fria, vermelho na quente, rolos de 100 ft), o PVC DWV de 2 in e de 3 in (código IRC), as metragens por ponto e o stop valve por ponto de água, e termina com a legenda das siglas.
+- [ ] **Lista de compras** (Finalizar com o HI-B4), no grupo **HIDRÁULICA**:
+  - Tubo PEX 1/2 in azul, água fria: 2 rolos de 100 ft
+  - Tubo PEX 1/2 in vermelho, água quente: 1 rolo de 100 ft
+  - Tubo de esgoto PVC DWV 2 in: 9 barras de 10 ft
+  - Tubo de esgoto PVC DWV 3 in: 7 barras de 10 ft
+  - Conexões PEX de água fria (estimativa): 40 un
+  - Conexões PEX de água quente (estimativa): 12 un
+  - Conexões de esgoto PVC (estimativa): 24 un
+  - Registros (stop valves): 13 un
+- [ ] No Orçamento do Resumo: Hidráulica **$ 895.00**.
 
 ## Reboco
 
-- [ ] (o Leo do chat acrescenta quando montar a aba no roteiro)
+- [ ] Nos EUA **não aparecem**: a espessura, o traço da massa, "rebocar os dois lados" e o chapisco. Aparece o menu **"Parede de"**, com **Madeira (com OSB)** (já vem escolhida) e **Bloco ou concreto**.
+- [ ] A dica da área diz **"Área externa em sq ft (ex: 320)"** (o stucco é só por fora). Perda vem com **10**.
+- [ ] No resultado, nenhum m², m³, cm, "cimento", "cal", "areia", "chapisco" ou vírgula decimal.
+- [ ] O nome da aba continua **"Reboco"** (em português); no Resumo e no PDF aparece **"Reboco (stucco)"**.
+- [ ] "?" do Reboco: explica o stucco só por fora, os sacos prontos de 80 lb e o rendimento, a parede de madeira (3 demãos, tela e papel) e a de bloco (2 demãos), e a perda, e termina com a legenda das siglas.
+- [ ] **Lista de compras** (Finalizar com o RE-B), no grupo MATERIAL BÁSICO:
+  - Papel de 2 camadas (Grade D, 60 min): 3 rolos de 162 sq ft
+  - Tela metálica 2.5 lb (27 x 96 in): 21 folhas
+  - Stucco base coat: 36 sacos de 80 lb
+  - Stucco de acabamento (finish coat, 1/8 in): 6 sacos de 80 lb
+- [ ] No Orçamento do Resumo: Reboco (stucco) **$ 1,185.00**.
 
 ## Piso
 
@@ -153,4 +188,16 @@ Os números citados (ex.: "BR-B3") são casos do testes_rodada3.md: é só digit
 
 ## Esquadrias
 
-- [ ] (o Leo do chat acrescenta quando montar a aba no roteiro)
+- [ ] O menu **Material** mostra a lista americana: Não informado, **Vinil**, Madeira, Alumínio, **Fibra de vidro** e **Aço** (sem vidro temperado).
+- [ ] Os insumos de fixação nos EUA são **Espuma de baixa expansão**, **Pregos galvanizados de 2 in** e **Fita de flashing de 4 in**, todos em **Não** (sem parafusos com bucha e sem argamassa de fixação).
+- [ ] As medidas da lista aparecem em polegadas e em fração ("36 1/2 x 60 in") e as áreas em sq ft; nenhum cm, m², "tubo de 500 ml", "parafusos", "argamassa" ou vírgula decimal.
+- [ ] Sem insumo, não aparece "$ 0.00": só a frase do fornecedor (ES-B).
+- [ ] "?" da Esquadrias: explica a janela pregada pela aba (nailing flange), sem argamassa, e a conta da espuma, dos pregos e da fita, e termina com a legenda das siglas.
+- [ ] **Lista de compras** (Finalizar com o ES-B5): no grupo MATERIAL BÁSICO
+  - Espuma de baixa expansão (window & door): 3 latas de 12 oz
+  - Pregos galvanizados de 2 in (a cada 8 in): 2 caixas de 1 lb
+  - Fita de flashing de 4 in: 2 rolos de 75 ft
+  e no grupo ESQUADRIAS (para cotação)
+  - 2x Porta 36 x 80 in (Fibra de vidro)
+  - 6x Janela 36 x 60 in (Vinil)
+- [ ] No Orçamento do Resumo: Esquadrias **$ 110.00**.

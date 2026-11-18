@@ -89,11 +89,62 @@ PADRAO = {
     "brocas": {"perda": "10", "esp_estribo": "8"},  # a bitola #4 vem do reiniciar
     "paredes": {"junta": "3/8", "quebra": "5"},     # o bloco CMU 8x8x16 vem do reiniciar
     "laje": {"esp_slab": "4", "perda": "5"},        # tela Não, lona e base Sim vêm do reiniciar
+    "telhado": {"incl": "6", "perda": "10"},        # o shingle, a manta Sim e o OSB Não vêm do reiniciar
+    "eletrica": {"perda": "10"},
+    "hidraulica": {"perda": "10"},
+    "reboco": {"perda": "10"},                      # a parede de madeira vem do reiniciar
+    "esquadrias": {},                               # sem campo com padrão; os insumos vêm em Não
 }
+
+
+# Copiada do rodada1.py (rodada 3b, 18/11/2026)
+def rodar_esquadrias(campos, escolhas):
+    """Esquadrias: cada ("add", tipo, material, qtd, larg, alt) digita no formulário e toca em
+    "Adicionar à lista" (o método real da tela); ("rem", i) toca no X do item i; ("calc",) calcula.
+    No fim, digita `campos` (formulário) e toca em Calcular."""
+    t = nova_tela()
+    t.aba_atual = "esquadrias"
+    t.trocar_aba = lambda *a, **k: None  # sem tela: não remonta a aba
+    t._lbl_resultado = types.SimpleNamespace(text="")
+    t.in_esq_qtd, t.in_esq_larg, t.in_esq_alt = (types.SimpleNamespace(text="") for _ in range(3))
+    t._campos = {"qtd": t.in_esq_qtd, "larg": t.in_esq_larg, "alt": t.in_esq_alt}
+    t.esq_fixacao.update(escolhas.get("fix", {}))
+    saida = []
+
+    def janela(aba, avisos, depois):
+        """Janela "Confira os valores" do Adicionar à lista: mostra e aperta Continuar."""
+        saida.append("[JANELA no Adicionar] " + " | ".join(avisos))
+        t._avisos_aceitos.setdefault(aba, set()).update(avisos)
+        depois()
+    t._pedir_confirmacao = janela
+    for acao in escolhas.get("acoes", []):
+        if acao[0] == "add":
+            _, t.esq_tipo, t.esq_material, t.in_esq_qtd.text, t.in_esq_larg.text, t.in_esq_alt.text = acao
+            t._lbl_resultado.text = ""
+            antes = [dict(i) for i in t.esquadrias_itens]
+            t._adicionar_esquadria()
+            if t._lbl_resultado.text:
+                saida.append(f"[Adicionar] {t._lbl_resultado.text}")
+            if t.esquadrias_itens == antes:
+                saida.append("[Adicionar] nada entrou na lista")
+            elif any(c.text for c in t._campos.values()):
+                saida.append("[Adicionar] campos NÃO ficaram vazios")
+        elif acao[0] == "rem":
+            t.textos_resultado["esquadrias"] = "(resultado antigo)"
+            t._remover_esquadria(acao[1])
+            saida.append(f"[X] lista: {[t._texto_item_esquadria(i) for i in t.esquadrias_itens]}; "
+                         f"resultado antigo {'sumiu' if 'esquadrias' not in t.textos_resultado else 'FICOU'}")
+    e = {"qtd": "", "larg": "", "alt": ""}
+    e.update(campos)
+    r = t._calcular_aba("esquadrias", e)
+    saida.append(r.get("erro") or r.get("texto"))
+    return "\n".join(saida)
 
 
 def rodar(aba, campos, escolhas=None, continuar=True):
     """Limpar + digitar + Calcular. Se aparecer a janela de aviso: Continuar (ou Cancelar)."""
+    if aba == "esquadrias":
+        return rodar_esquadrias(campos, escolhas or {})
     t = nova_tela()
     t.aba_atual = aba
     e = dict(PADRAO[aba]); e.update(campos)
@@ -479,6 +530,198 @@ caso_3b("LA-C22", "laje", {"area": "21528"})
 caso_3b("LA-C23", "laje", {"area": "21529"})
 caso_3b("LA-C24", "laje", {"area": "25000", "esp_slab": "10"})
 caso_3b("LA-C25", "laje", {"area": "1-21/2"})
+
+# TELHADO (rodada 3b; "telha_tipo" é a telha escolhida no menu)
+TE = {"area": "860"}
+caso_3b("TE-A", "telhado", {"area": "1200", "incl": "8", "cumeeira": "40", "perimetro": "160", "perda": "15"}, {"osb": True})
+caso_3b("TE-B", "telhado", TE)
+caso_3b("TE-B2", "telhado", {**TE, "cumeeira": "30", "perimetro": "140"}, {"osb": True})
+caso_3b("TE-B3", "telhado", {**TE, "incl": "6/12"})
+caso_3b("TE-B4", "telhado", {**TE, "incl": "3"})
+caso_3b("TE-B5", "telhado", TE, {"manta": False})
+caso_3b("TE-B6", "telhado", TE, {"telha_tipo": "concreto"})
+caso_3b("TE-B7", "telhado", {**TE, "incl": "3", "cumeeira": "30"}, {"telha_tipo": "concreto"})
+caso_3b("TE-B8", "telhado", {**TE, "cumeeira": "30"})
+caso_3b("TE-B9", "telhado", {**TE, "perimetro": "140"})
+caso_3b("TE-B10", "telhado", {**TE, "perimetro": "140"}, {"telha_tipo": "concreto"})
+caso_3b("TE-B11", "telhado", {"area": "50", "cumeeira": "10", "perimetro": "30"})
+caso_3b("TE-B12", "telhado", {**TE, "incl": "4"})
+caso_3b("TE-B13", "telhado", {**TE, "incl": "12"})
+caso_3b("TE-C1", "telhado", {"area": ""})
+caso_3b("TE-C2", "telhado", {"area": "oitocentos"})
+caso_3b("TE-C3", "telhado", {"area": "0"})
+caso_3b("TE-C4", "telhado", {"area": "-860"})
+caso_3b("TE-C5", "telhado", {"area": "860,5"})
+caso_3b("TE-C6", "telhado", {"area": "860.5"})
+caso_3b("TE-C7", "telhado", {"area": "860 1/2"})
+caso_3b("TE-C8", "telhado", {"area": "1,500"})
+caso_3b("TE-C9", "telhado", {**TE, "incl": ""})
+caso_3b("TE-C10-cancelar", "telhado", {**TE, "incl": "1 1/2"}, continuar=False)
+caso_3b("TE-C10-continuar", "telhado", {**TE, "incl": "1 1/2"})
+caso_3b("TE-C11", "telhado", {**TE, "incl": "2"})
+caso_3b("TE-C12", "telhado", {**TE, "incl": "2"}, {"telha_tipo": "concreto"})
+caso_3b("TE-C13", "telhado", {**TE, "incl": "2 1/2"}, {"telha_tipo": "concreto"})
+caso_3b("TE-C14", "telhado", {**TE, "incl": "14"})
+caso_3b("TE-C15", "telhado", {**TE, "incl": "12 1/2"})
+caso_3b("TE-C16", "telhado", {**TE, "incl": "6.5"})
+caso_3b("TE-C17", "telhado", {**TE, "incl": "0"})
+caso_3b("TE-C18", "telhado", {**TE, "incl": "-6"})
+caso_3b("TE-C19", "telhado", {**TE, "incl": "seis"})
+caso_3b("TE-C20", "telhado", {**TE, "cumeeira": "-30"})
+caso_3b("TE-C21", "telhado", {**TE, "perimetro": "-140"})
+caso_3b("TE-C22", "telhado", {**TE, "perimetro": "abc"})
+caso_3b("TE-C23", "telhado", {**TE, "perda": "-5"})
+caso_3b("TE-C24", "telhado", {**TE, "perda": ""})
+caso_3b("TE-C25", "telhado", {**TE, "perda": "2.5"})
+caso_3b("TE-C26", "telhado", {"area": "21528"})
+caso_3b("TE-C27", "telhado", {"area": "25000"})
+caso_3b("TE-C28", "telhado", {"area": "1-21/2"})
+
+# ELÉTRICA (rodada 3b)
+EL = {"tomadas": "20", "tomadas20": "8", "interruptores": "10", "luzes": "12"}
+caso_3b("EL-A", "eletrica", {**EL, "cabo14": "600", "cabo12": "120", "perda": "5"})
+caso_3b("EL-B", "eletrica", {"tomadas": "20"})
+caso_3b("EL-B2", "eletrica", {"tomadas20": "8"})
+caso_3b("EL-B3", "eletrica", {"interruptores": "10"})
+caso_3b("EL-B4", "eletrica", {"luzes": "12"})
+caso_3b("EL-B5", "eletrica", EL)
+caso_3b("EL-B6", "eletrica", {**EL, "cabo14": "600"})
+caso_3b("EL-B7", "eletrica", {**EL, "cabo12": "120"})
+caso_3b("EL-B8", "eletrica", {"tomadas": "1"})
+caso_3b("EL-B9", "eletrica", {**EL, "tomadas": "250", "tomadas20": "60", "interruptores": "120", "luzes": "180"})
+caso_3b("EL-C1", "eletrica", {})
+caso_3b("EL-C2", "eletrica", {**EL, "tomadas": "0", "tomadas20": "0", "interruptores": "0", "luzes": "0"})
+caso_3b("EL-C3", "eletrica", {**EL, "tomadas": "-5"})
+caso_3b("EL-C4", "eletrica", {**EL, "tomadas": "dez"})
+caso_3b("EL-C5", "eletrica", {**EL, "tomadas": "2.5"})
+caso_3b("EL-C6-cancelar", "eletrica", {**EL, "tomadas20": "350"}, continuar=False)
+caso_3b("EL-C6-continuar", "eletrica", {**EL, "tomadas20": "350"})
+caso_3b("EL-C7", "eletrica", {**EL, "tomadas": "300"})
+caso_3b("EL-C8", "eletrica", {**EL, "tomadas": "301"})
+caso_3b("EL-C9", "eletrica", {**EL, "interruptores": "350"})
+caso_3b("EL-C10", "eletrica", {**EL, "luzes": "350"})
+caso_3b("EL-C11", "eletrica", {**EL, "cabo14": "-100"})
+caso_3b("EL-C12", "eletrica", {**EL, "cabo14": "abc"})
+caso_3b("EL-C13", "eletrica", {**EL, "cabo14": "600,5"})
+caso_3b("EL-C14", "eletrica", {**EL, "cabo14": "600.5"})
+caso_3b("EL-C15", "eletrica", {**EL, "cabo14": "600 1/2"})
+caso_3b("EL-C16", "eletrica", {**EL, "cabo14": "1,000"})
+caso_3b("EL-C17", "eletrica", {**EL, "cabo14": "0"})
+caso_3b("EL-C18", "eletrica", {**EL, "perda": "-5"})
+caso_3b("EL-C19", "eletrica", {**EL, "perda": "2.5"})
+caso_3b("EL-C20", "eletrica", {**EL, "perda": ""})
+caso_3b("EL-C21", "eletrica", {**EL, "tomadas": "1,000"})
+caso_3b("EL-C22", "eletrica", {"tomadas": "20", "cabo12": "120"})
+caso_3b("EL-C23", "eletrica", {"cabo14": "600"})
+
+# HIDRÁULICA (rodada 3b; os campos de tubo têm os nomes do Brasil: esg40 = PVC 2 in, esg100 = PVC 3 in)
+HI = {"fria": "10", "quente": "3", "esgoto": "8"}
+caso_3b("HI-A", "hidraulica", {**HI, "tubo_fria": "160", "tubo_quente": "65", "tubo_esg40": "100", "tubo_esg100": "60", "perda": "5"})
+caso_3b("HI-B", "hidraulica", {"fria": "10"})
+caso_3b("HI-B2", "hidraulica", {"quente": "3"})
+caso_3b("HI-B3", "hidraulica", {"esgoto": "8"})
+caso_3b("HI-B4", "hidraulica", HI)
+caso_3b("HI-B5", "hidraulica", {**HI, "tubo_fria": "160"})
+caso_3b("HI-B6", "hidraulica", {**HI, "tubo_esg100": "60"})
+caso_3b("HI-B7", "hidraulica", {"fria": "1"})
+caso_3b("HI-B8", "hidraulica", {"esgoto": "1"})
+caso_3b("HI-B9", "hidraulica", {**HI, "fria": "120", "quente": "60", "esgoto": "90"})
+caso_3b("HI-C1", "hidraulica", {})
+caso_3b("HI-C2", "hidraulica", {**HI, "fria": "0", "quente": "0", "esgoto": "0"})
+caso_3b("HI-C3", "hidraulica", {**HI, "fria": "-10"})
+caso_3b("HI-C4", "hidraulica", {**HI, "fria": "dez"})
+caso_3b("HI-C5", "hidraulica", {**HI, "fria": "2.5"})
+caso_3b("HI-C6", "hidraulica", {**HI, "fria": "200"})
+caso_3b("HI-C7-cancelar", "hidraulica", {**HI, "fria": "201"}, continuar=False)
+caso_3b("HI-C7-continuar", "hidraulica", {**HI, "fria": "201"})
+caso_3b("HI-C8", "hidraulica", {**HI, "quente": "250"})
+caso_3b("HI-C9", "hidraulica", {**HI, "esgoto": "250"})
+caso_3b("HI-C10", "hidraulica", {**HI, "tubo_fria": "-160"})
+caso_3b("HI-C11", "hidraulica", {**HI, "tubo_fria": "abc"})
+caso_3b("HI-C12", "hidraulica", {**HI, "tubo_fria": "160,5"})
+caso_3b("HI-C13", "hidraulica", {**HI, "tubo_fria": "160.5"})
+caso_3b("HI-C14", "hidraulica", {**HI, "tubo_fria": "160 1/2"})
+caso_3b("HI-C15", "hidraulica", {**HI, "tubo_fria": "1,000"})
+caso_3b("HI-C16", "hidraulica", {**HI, "tubo_fria": "0"})
+caso_3b("HI-C17", "hidraulica", {**HI, "perda": "-5"})
+caso_3b("HI-C18", "hidraulica", {**HI, "perda": "2.5"})
+caso_3b("HI-C19", "hidraulica", {**HI, "perda": ""})
+caso_3b("HI-C20", "hidraulica", {**HI, "fria": "1,000"})
+caso_3b("HI-C21", "hidraulica", {"tubo_fria": "160"})
+caso_3b("HI-C22", "hidraulica", {"esgoto": "8", "tubo_fria": "160"})
+
+# REBOCO (rodada 3b; o stucco; "parede_stucco" é a parede escolhida no menu, o padrão é "madeira")
+RE = {"area": "320"}
+caso_3b("RE-A", "reboco", {"area": "640", "vaos": "80", "perda": "15"}, {"parede_stucco": "bloco"})
+caso_3b("RE-A2", "reboco", {"area": "640", "vaos": "80", "perda": "15"})
+caso_3b("RE-B", "reboco", RE)
+caso_3b("RE-B2", "reboco", RE, {"parede_stucco": "bloco"})
+caso_3b("RE-B3", "reboco", {**RE, "vaos": "50"}, {"parede_stucco": "bloco"})
+caso_3b("RE-B4", "reboco", {**RE, "vaos": "50"})
+caso_3b("RE-B5", "reboco", {"area": "20"})
+caso_3b("RE-B6", "reboco", {"area": "20"}, {"parede_stucco": "bloco"})
+caso_3b("RE-B7", "reboco", {"area": "8000"})
+caso_3b("RE-C1", "reboco", {"area": ""})
+caso_3b("RE-C2", "reboco", {"area": "trezentos"})
+caso_3b("RE-C3", "reboco", {"area": "0"})
+caso_3b("RE-C4", "reboco", {"area": "-320"})
+caso_3b("RE-C5", "reboco", {**RE, "vaos": "-50"})
+caso_3b("RE-C6", "reboco", {**RE, "vaos": "320"})
+caso_3b("RE-C7", "reboco", {**RE, "vaos": "400"})
+caso_3b("RE-C8", "reboco", {**RE, "vaos": "abc"})
+caso_3b("RE-C9", "reboco", {"area": "320,5"})
+caso_3b("RE-C10", "reboco", {"area": "320.5"})
+caso_3b("RE-C11", "reboco", {"area": "320 1/2"})
+caso_3b("RE-C12", "reboco", {"area": "1,500"})
+caso_3b("RE-C13", "reboco", {**RE, "perda": "-5"})
+caso_3b("RE-C14", "reboco", {**RE, "perda": "2.5"})
+caso_3b("RE-C15", "reboco", {**RE, "perda": ""})
+caso_3b("RE-C16", "reboco", {"area": "21528"})
+caso_3b("RE-C17-cancelar", "reboco", {"area": "21529"}, continuar=False)
+caso_3b("RE-C17-continuar", "reboco", {"area": "21529"})
+caso_3b("RE-C18", "reboco", {"area": "1-21/2"})
+caso_3b("RE-C19", "reboco", {**RE, "vaos": "50 1/2"})
+
+# ESQUADRIAS (rodada 3b; roda pela rodar_esquadrias, copiada do rodada1.py)
+TODOS_EUA = {"espuma": True, "pregos": True, "fita": True}
+P2 = ("add", "porta", "fibra", "2", "36", "80")
+J6 = ("add", "janela", "vinil", "6", "36", "60")
+def esq(*acoes, fix=None):
+    return {"acoes": list(acoes), "fix": fix or {}}
+caso_3b("ES-A", "esquadrias", {}, esq(
+    ("add", "porta", "aco", "1", "36", "80"), ("add", "porta", "madeira", "2", "32", "80"),
+    ("add", "janela", "vinil", "4", "36", "60"), ("add", "janela", "aluminio", "1", "24", "24"),
+    ("add", "janela", "fibra", "2", "48", "36"), fix=TODOS_EUA))
+caso_3b("ES-B", "esquadrias", {}, esq(P2, J6))
+caso_3b("ES-B2", "esquadrias", {}, esq(P2, J6, fix={"espuma": True}))
+caso_3b("ES-B3", "esquadrias", {}, esq(P2, J6, fix={"pregos": True}))
+caso_3b("ES-B4", "esquadrias", {}, esq(P2, J6, fix={"fita": True}))
+caso_3b("ES-B5", "esquadrias", {}, esq(P2, J6, fix=TODOS_EUA))
+caso_3b("ES-B6", "esquadrias", {}, esq(P2, J6, ("add", "porta", "fibra", "1", "36", "80")))
+caso_3b("ES-B7", "esquadrias", {}, esq(P2, J6, ("rem", 1)))
+caso_3b("ES-B8", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "80"), fix={"fita": True}))
+caso_3b("ES-B9", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36", "60"), fix={"pregos": True}))
+caso_3b("ES-C1", "esquadrias", {}, esq())
+caso_3b("ES-C2", "esquadrias", {}, esq(("add", "porta", "nao_informado", "", "36", "80")))
+caso_3b("ES-C3", "esquadrias", {}, esq(("add", "porta", "nao_informado", "três", "36", "80")))
+caso_3b("ES-C4", "esquadrias", {}, esq(("add", "porta", "nao_informado", "0", "36", "80")))
+caso_3b("ES-C5", "esquadrias", {}, esq(("add", "porta", "nao_informado", "-3", "36", "80")))
+caso_3b("ES-C6", "esquadrias", {}, esq(("add", "porta", "nao_informado", "2.5", "36", "80")))
+caso_3b("ES-C7", "esquadrias", {}, esq(("add", "porta", "nao_informado", "3", "0", "80")))
+caso_3b("ES-C8", "esquadrias", {}, esq(("add", "porta", "nao_informado", "3", "1-21/2", "80")))
+caso_3b("ES-C9", "esquadrias", {"qtd": "3", "larg": "36", "alt": "80"}, esq())
+caso_3b("ES-C10a", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36,5", "60")))
+caso_3b("ES-C10b", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36.5", "60")))
+caso_3b("ES-C10c", "esquadrias", {}, esq(("add", "janela", "nao_informado", "1", "36 1/2", "60")))
+caso_3b("ES-C11", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "80"), fix=TODOS_EUA))
+caso_3b("ES-C12", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1000", "36", "80"), fix=TODOS_EUA))
+caso_3b("ES-C13", "esquadrias", {}, esq(("add", "porta", "nao_informado", "100", "36", "80")))
+caso_3b("ES-C14", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "197", "80")))
+caso_3b("ES-C15", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "198", "80")))
+caso_3b("ES-C16", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "157")))
+caso_3b("ES-C17", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "157 1/2")))
+caso_3b("ES-C18", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "-80")))
+caso_3b("ES-C19", "esquadrias", {}, esq(("add", "porta", "nao_informado", "1", "36", "1,000")))
 
 
 def main():

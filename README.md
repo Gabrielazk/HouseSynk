@@ -68,7 +68,8 @@ O app está sendo preparado para a **App Store**.
 - Português e inglês.
 - Idioma escolhido separado do país.
 - Brasil (R$) e Estados Unidos (US$), com preços por região editáveis.
-- Nos Estados Unidos, as medidas são digitadas em ft, in e sq ft (com fração, como 3/8 in), e parte das abas já calcula nas embalagens americanas (thinset, grout, galões de tinta).
+- Nos Estados Unidos, as medidas são digitadas em ft, in e sq ft (com fração, como 3/8 in), e **todas as abas** calculam do jeito americano, com as embalagens de lá: concreto em sacos de 94 lb e 80 lb, ferro #3, #4 e #5 em barras de 20 ft, bloco CMU, laje no chão (slab-on-grade), telhado de shingle, cabo Romex, tubos PEX e PVC, stucco, thinset, grout e galões de tinta.
+- Padrões americanos pesquisados no código residencial **IRC** e em fabricantes. O Contrapiso não aparece nos EUA (lá quase não se faz), e cada país mostra só as abas dele.
 
 ---
 
@@ -78,6 +79,24 @@ O app está sendo preparado para a **App Store**.
 - **Kivy 2.3.1** e **KivyMD 2.x** (interface)
 - **SQLite** (banco local: usuários e orçamentos)
 - **ReportLab** (geração do PDF)
+- **pytest** (testes automatizados)
+
+---
+
+## 🧪 Testes
+
+O projeto tem **mais de 1.000 testes automatizados** com **pytest**:
+
+- **Testes de cada aba:** chamam as contas direto (sem abrir a tela) e conferem o resultado e as mensagens de erro.
+- **Testes das rodadas:** cada caso passa pelo mesmo caminho do botão **Calcular** e compara o texto inteiro do resultado com o esperado, no Brasil em português, no Brasil em inglês e nos EUA.
+- Os resultados esperados foram calculados com o código real e conferidos à mão; cada rodada também foi testada no app (visual).
+- Antes de cada mudança, as rodadas antigas rodam de novo, para garantir que nada que já funcionava quebrou (teste de regressão).
+
+```bash
+# dentro da pasta HouseSynk (a que tem o main.py)
+python -m pip install pytest
+python -m pytest
+```
 
 ---
 
@@ -194,7 +213,8 @@ As contas ficam separadas das telas: a mesma conta pode ser usada no app, no PDF
 - [x] Compartilhar a lista de compras pelo WhatsApp
 - [x] Gráfico de custo por etapa no PDF
 - [x] Versão para os Estados Unidos: medidas americanas (ft, in, sq ft) e embalagens de piso, azulejo, rejunte, pintura e impermeabilização
-- [ ] Versão para os Estados Unidos: embalagens das outras abas (concreto, ferro, blocos, telhas, fios e tubos)
+- [x] Versão para os Estados Unidos: as outras abas no padrão americano (concreto, ferro, blocos, laje, telhado, fios, tubos, stucco e esquadrias)
+- [x] Testes automatizados com pytest (mais de 1.000)
 - [ ] Abas só dos Estados Unidos: estrutura de madeira, OSB e drywall
 - [ ] Tabela de preços atualizada por estado (referência SINAPI)
 - [ ] Cronograma estimado da obra
@@ -210,7 +230,7 @@ Os valores são **estimativas** e não substituem o projeto de um engenheiro ou 
 
 ## 👩‍💻 Autora
 
-**Gabriela Salviatto**
+**Gabriella Salviatto**
 
 ---
 
